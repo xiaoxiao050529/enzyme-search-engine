@@ -1,0 +1,40 @@
+HEADER
+HEADER This is a pdb format file writen by the programm fpocket.                 
+HEADER It represents the atoms contacted by the voronoi vertices of the pocket.  
+HEADER                                                                           
+HEADER Information about the pocket    13:
+HEADER 0  - Pocket Score                      : 0.0472
+HEADER 1  - Drug Score                        : 0.0105
+HEADER 2  - Number of alpha spheres           :    16
+HEADER 3  - Mean alpha-sphere radius          : 4.0059
+HEADER 4  - Mean alpha-sphere Solvent Acc.    : 0.6377
+HEADER 5  - Mean B-factor of pocket residues  : 0.1488
+HEADER 6  - Hydrophobicity Score              : 11.8750
+HEADER 7  - Polarity Score                    :     6
+HEADER 8  - Amino Acid based volume Score     : 4.5000
+HEADER 9  - Pocket volume (Monte Carlo)       : 309.8765
+HEADER 10 - Pocket volume (convex hull)       : 12.4058
+HEADER 11 - Charge Score                      :     0
+HEADER 12 - Local hydrophobic density Score   : 12.4286
+HEADER 13 - Number of apolar alpha sphere     :    14
+HEADER 14 - Proportion of apolar alpha sphere : 0.8750
+ATOM   1452  CD1 TYR A 200       3.251  71.864  41.626  0.00  0.00           C 0
+ATOM   1488  CE1 HIS A 204       5.855  74.542  40.028  0.00  0.00           C 0
+ATOM   1478  CG1 VAL A 203       9.401  71.167  38.837  0.00  0.00           C 0
+ATOM   1454  CE1 TYR A 200       2.716  72.861  40.817  0.00  0.00           C 0
+ATOM   1479  CG2 VAL A 203       9.675  69.099  40.217  0.00  0.00           C 0
+ATOM    476   CD ARG A  71       8.230  65.781  37.234  0.00  0.00           C 0
+ATOM   1477   CB VAL A 203       9.490  70.607  40.256  0.00  0.00           C 0
+ATOM   1447   CA TYR A 200       5.845  70.668  43.389  0.00  0.00           C 0
+ATOM   1446    N TYR A 200       6.185  69.413  44.068  0.00  0.00           N 0
+ATOM   1450   CB TYR A 200       4.419  71.096  43.736  0.00  0.00           C 0
+ATOM   1421    O GLU A 196       3.705  68.062  45.338  0.63  9.64           O 0
+ATOM   1444  CG1 VAL A 199       7.265  66.331  42.562  0.00  0.00           C 0
+ATOM   1419   CA GLU A 196       3.111  65.876  46.080  0.00  0.00           C 0
+ATOM   1422   CB GLU A 196       1.704  65.621  45.576  0.00  0.00           C 0
+ATOM    791   CG ASN A 112       6.911  62.246  40.485  0.00  0.00           C 0
+ATOM    790   CB ASN A 112       7.247  62.057  41.942  0.00  0.00           C 0
+ATOM    919  OD1AASP A 130       4.115  61.630  44.706  0.64  1.07           O 0
+ATOM   1443   CB VAL A 199       7.081  66.383  44.087  0.00  0.00           C 0
+TER
+END

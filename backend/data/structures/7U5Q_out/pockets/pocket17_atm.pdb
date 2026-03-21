@@ -1,0 +1,35 @@
+HEADER
+HEADER This is a pdb format file writen by the programm fpocket.                 
+HEADER It represents the atoms contacted by the voronoi vertices of the pocket.  
+HEADER                                                                           
+HEADER Information about the pocket    17:
+HEADER 0  - Pocket Score                      : -0.0310
+HEADER 1  - Drug Score                        : 0.0012
+HEADER 2  - Number of alpha spheres           :    15
+HEADER 3  - Mean alpha-sphere radius          : 3.7848
+HEADER 4  - Mean alpha-sphere Solvent Acc.    : 0.5218
+HEADER 5  - Mean B-factor of pocket residues  : 0.2221
+HEADER 6  - Hydrophobicity Score              : 45.0000
+HEADER 7  - Polarity Score                    :     1
+HEADER 8  - Amino Acid based volume Score     : 4.1667
+HEADER 9  - Pocket volume (Monte Carlo)       : 120.1180
+HEADER 10 - Pocket volume (convex hull)       : 1.3446
+HEADER 11 - Charge Score                      :    -1
+HEADER 12 - Local hydrophobic density Score   : 10.0000
+HEADER 13 - Number of apolar alpha sphere     :    11
+HEADER 14 - Proportion of apolar alpha sphere : 0.7333
+ATOM   2182   CG PRO B 115      24.437  -5.813 -36.958  0.00  0.00           C 0
+ATOM   3181  CD2 LEU B 242      23.306  -1.852 -39.069  0.00  0.00           C 0
+ATOM   2154  CG1 VAL B 111      28.758  -6.652 -41.528  0.00  0.00           C 0
+ATOM   3211  OD1 ASP B 246      23.982  -5.318 -44.950  0.00  0.00           O 0
+ATOM   3201   CB ILE B 245      27.705  -1.909 -43.661  0.00  0.00           C 0
+ATOM   3203  CG2 ILE B 245      28.760  -2.982 -43.460  0.00  0.00           C 0
+ATOM   3177    O LEU B 242      23.776  -1.921 -43.823  0.71  3.21           O 0
+ATOM   3178   CB LEU B 242      21.971  -1.140 -41.085  0.00  0.00           C 0
+ATOM   3212  OD2 ASP B 246      22.278  -4.034 -45.477  0.00  0.00           O 0
+ATOM   2175  CG2 ILE B 114      27.035  -1.737 -38.324  0.00  0.00           C 0
+ATOM   2173   CB ILE B 114      27.934  -2.891 -37.927  0.00  0.00           C 0
+ATOM   2183   CD PRO B 115      25.813  -5.387 -36.582  0.00  0.00           C 0
+ATOM   2152    O VAL B 111      28.513  -6.345 -38.435  0.41  1.07           O 0
+TER
+END

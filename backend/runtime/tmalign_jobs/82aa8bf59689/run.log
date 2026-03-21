@@ -1,0 +1,24 @@
+CMD: /root/tools/TMalign /root/data-platform/backend/runtime/tmalign_jobs/82aa8bf59689/input/best.pdb /root/data-platform/backend/runtime/tmalign_jobs/82aa8bf59689/input/1PS6.pdb
+
+ *********************************************************************
+ * TM-align (Version 20220412): protein structure alignment          *
+ * References: Y Zhang, J Skolnick. Nucl Acids Res 33, 2302-9 (2005) *
+ * Please email comments and suggestions to yangzhanglab@umich.edu   *
+ *********************************************************************
+
+Name of Chain_1: /root/data-platform/backend/runtime/tmalign_jobs/82aa8bf59689/input/best.pdb (to be superimposed onto Chain_2)
+Name of Chain_2: /root/data-platform/backend/runtime/tmalign_jobs/82aa8bf59689/input/1PS6.pdb
+Length of Chain_1: 89 residues
+Length of Chain_2: 328 residues
+
+Aligned length= 56, RMSD=   4.92, Seq_ID=n_identical/n_aligned= 0.036
+TM-score= 0.28873 (if normalized by length of Chain_1, i.e., LN=89, d0=3.41)
+TM-score= 0.12084 (if normalized by length of Chain_2, i.e., LN=328, d0=6.62)
+(You should use TM-score normalized by length of the reference structure)
+
+(":" denotes residue pairs of d <  5.0 Angstrom, "." denotes other aligned residues)
+--------------LHAL--E---------------TINEEG---------------------------------EPIEDN--------------------IVEVDGKE----------------YAVYI---------GNNVSLAHQSQVHGPAILT------------P------------EMSA-------------------------------------------------------------------------------------------------ALATLPPEVRA-RADYSLLPLGISGEEAAAL--------LRALA---------------------------------
+              .:::  .               ::::..                                 ::.                       :::                     ..:.:         ::             .:::            .            :::.                                                                                                 :::::.::::: :....::: ::.               .                                     
+VKTQRVVITPGEPAGIGPDLVVQLAQREWPVELVVCADATLLTNRAAMLGLPLTLRPYSPNSPAQPQTAGTLTLLPVA---LRAPVTAGQLAVENGHYVVETLA-----RACDGCLNGEFAALITGPVHKGVINDAGIPFT-------------GHTEFFEERSQAKKVVMMLATEELRVALATTHLPLRDIADAITPALLHEVIAILHHDLRTKFGIAEPRILVCGLNPHAGEGGHMGTEEIDTIIPVLNELRAQGMKLNGPLPADTLFQPKYLDNADAVLAMYHDQGLPVLKYQGFGRGVNI-TLG-------LPFIRTSVD----HGTALELAGRGKADVGSFITALNLAIKMIVNTQ
+
+Total CPU time is  0.02 seconds

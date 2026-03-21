@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>fpocket 页面</title>
+<script src="https://unpkg.com/3dmol/build/3Dmol-min.js"></script>
+<style>
+body { font-family: system-ui, sans-serif; margin: 16px; }
+.top_nav { display: flex; gap: 8px; margin-bottom: 10px; }
+.top_nav a { display: inline-block; padding: 6px 10px; border: 1px solid #d9d9d9; background: #f6f8fa; color: #0b5394; text-decoration: none; border-radius: 6px; font-weight: 600; }
+.top_nav a:hover { background: #eaf2ff; }
+.layout { display: grid; grid-template-columns: 420px 1fr; gap: 14px; align-items: start; }
+#controls { border: 1px solid #ddd; background: #fafafa; padding: 10px; }
+label { display: block; margin-bottom: 8px; }
+input, button, textarea { width: 100%; box-sizing: border-box; padding: 6px; }
+button { margin-top: 4px; }
+#status { margin-top: 10px; color: #333; }
+#result { border: 1px solid #ddd; background: #fff; min-height: 420px; padding: 10px; display: flex; flex-direction: column; gap: 10px; position: relative; overflow: hidden; }
+#viewer_panel { border: 1px solid #e5e7eb; background: #fcfdff; padding: 8px; display: none; overflow: hidden; }
+#data_panel { border: 1px solid #e5e7eb; background: #fff; padding: 8px; }
+#outputs a { display: block; margin-bottom: 4px; color: #0b5394; }
+pre { white-space: pre-wrap; word-break: break-word; background: #f8f8f8; border: 1px solid #eee; padding: 8px; max-height: 360px; overflow: auto; }
+#debug_error { color: #8a1f11; background: #fff3f0; border: 1px solid #f0c2ba; min-height: 92px; }
+#viewer { height: 560px; border: 1px solid #ddd; background: #fff; position: relative; overflow: hidden; width: 100%; }
+#viewer canvas { position: static !important; display: block; width: 100% !important; height: 100% !important; }
+#pocket_list { margin-top: 8px; max-height: 180px; overflow: auto; border: 1px solid #eee; padding: 6px; }
+.pocket_item { font-size: 12px; border-bottom: 1px dashed #eee; padding: 4px 0; display: flex; align-items: center; gap: 8px; }
+.swatch { width: 12px; height: 12px; border-radius: 2px; border: 1px solid #999; flex: 0 0 12px; }
+#params_wrap { max-height: 320px; overflow: auto; border: 1px solid #eee; }
+#params_table { width: 100%; border-collapse: collapse; font-size: 12px; }
+#params_table th, #params_table td { border: 1px solid #ddd; padding: 4px 6px; text-align: right; white-space: nowrap; }
+#params_table th:first-child, #params_table td:first-child { text-align: left; position: sticky; left: 0; background: #fff; }
+</style>
+</head>
+<body>
+<div class="top_nav">
+  <a href="./index.html">主页面</a>
+  <a href="./diffdock_compare.html">DiffDock对比</a>
+  <a href="./master_table.html">Master表</a>
+  <a href="./fpocket.html">fpocket</a>
+  <a href="./tmalign.html">TM-align</a>
+  <a href="./pdbzn_workflow.html">PDB-ZN工作流</a>
+</div>
+<h2>fpocket 页面</h2>
+<div class="layout">
+  <div id="controls">
+    <label>API地址
+      <input id="api_base" type="text" value="http://127.0.0.1:8017" placeholder="例如 http://127.0.0.1:8017">
+    </label>
+    <div style="margin:-4px 0 8px 0;color:#666;font-size:12px;">支持自动探测 8021/8019/8018/8017/8016；不要填写前端页面端口（如 8020）</div>
+    <label>PDB文件
+      <input id="pdb_file" type="file" accept=".pdb,.ent">
+    </label>
+    <button id="submit_btn" type="button">提交 fpocket 任务</button>
+    <label>任务ID
+      <input id="job_id" type="text" placeholder="提交后自动填入，或手工输入">
+    </label>
+    <button id="poll_btn" type="button">查询任务状态</button>
+    <button id="log_btn" type="button">查看任务日志</button>
+    <div id="status">待提交</div>
+    <pre id="debug_error">phase=idle</pre>
+  </div>
+  <div id="result">
+    <div id="viewer_panel">
+      <h3>口袋可视化（右侧）</h3>
+      <div id="viewer"></div>
+      <div id="pocket_list">暂无</div>
+    </div>
+    <div id="data_panel">
+      <h3>任务结果</h3>
+      <div id="job_meta">-</div>
+      <h4>fpocket 参数表</h4>
+      <div id="params_wrap"><table id="params_table"></table></div>
+      <h4>输出文件</h4>
+      <div id="outputs">暂无</div>
+      <h4>日志</h4>
+      <pre id="log_view">暂无</pre>
+    </div>
+  </div>
+</div>
+<script>
+let pollTimer = null;
+let pollCount = 0;
+let viewer = null;
+function getApiBase() {
+  return (document.getElementById("api_base").value || "").trim().replace(/\/+$/, "");
+}
+function setStatus(t) {
+  document.getElementById("status").textContent = t;
+}
+function setDebugError(t) {
+  document.getElementById("debug_error").textContent = t || "";
+}
+function setJobMeta(t) {
+  document.getElementById("job_meta").textContent = t;
+}
+function ensureViewer() {
+  if (viewer) return viewer;
+  if (window.$3Dmol) {
+    viewer = $3Dmol.createViewer("viewer", {backgroundColor: "white"});
+  } else {
+    viewer = { clear(){}, addModel(){ return { setStyle(){} }; }, addSphere(){}, zoomTo(){}, render(){} };
+  }
+  return viewer;
+}
+function refreshViewerLayout() {
+  const v = ensureViewer();
+  if (v && v.resize) v.resize();
+  if (v && v.render) v.render();
+}
+function fmtSec(ts) {
+  const n = Number(ts || 0);
+  if (!Number.isFinite(n) || n <= 0) return "-";
+  return String(Math.max(0, Math.floor(Date.now() / 1000 - n)));
+}
+function tryParseJson(text) {
+  try { return JSON.parse(text); } catch (_) { return null; }
+}
+async function fetchJsonWithDetail(url, init, phase) {
+  const r = await fetch(url, init);
+  const raw = await r.text();
+  const lower = (raw || "").toLowerCase();
+  const htmlLike = lower.includes("<!doctype html") || lower.includes("<html");
+  const j = tryParseJson(raw);
+  if (!r.ok) {
+    throw new Error(`${phase} http_${r.status} ${htmlLike ? "返回HTML页面（API地址可能填成前端端口）" : raw.slice(0, 260)}`);
+  }
+  if (!j || !j.ok) {
+    throw new Error(`${phase} ${htmlLike ? "返回HTML页面（API地址可能填成前端端口）" : "invalid_json_or_not_ok " + raw.slice(0, 260)}`);
+  }
+  return {json: j, raw};
+}
+async function detectApiBase() {
+  const userBase = getApiBase();
+  const cands = [];
+  if (userBase) cands.push(userBase);
+  const h = window.location.hostname || "127.0.0.1";
+  cands.push(`http://${h}:8021`, `http://${h}:8019`, `http://${h}:8018`, `http://${h}:8017`, `http://${h}:8016`, "http://127.0.0.1:8021", "http://127.0.0.1:8019", "http://127.0.0.1:8018", "http://127.0.0.1:8017", "http://127.0.0.1:8016");
+  const uniq = [];
+  for (const c of cands) if (!uniq.includes(c)) uniq.push(c);
+  let lastErr = "";
+  for (const b of uniq) {
+    try {
+      const {json} = await fetchJsonWithDetail(b + "/api/fpocket/ping?t=" + Date.now(), {method:"GET"}, "ping");
+      const v2 = !!(json && json.features && json.features.fpocket_watchdog);
+      if (json && json.ok && v2) {
+        document.getElementById("api_base").value = b;
+        return {base: b, ping: json};
+      }
+      lastErr = `API ${b} 可达但版本过旧（缺少watchdog）`;
+    } catch (e) {
+      lastErr = e && e.message ? e.message : String(e || "");
+    }
+  }
+  throw new Error("无法连接fpocket API。请确认后端已启动并监听 8021/8019/8018/8017/8016。最后错误：" + lastErr);
+}
+function readFileText(file) {
+  return new Promise((resolve, reject)=>{
+    const fr = new FileReader();
+    fr.onload = () => resolve(String(fr.result || ""));
+    fr.onerror = () => reject(new Error("文件读取失败"));
+    fr.readAsText(file);
+  });
+}
+function renderOutputs(apiBase, outputs) {
+  const box = document.getElementById("outputs");
+  box.innerHTML = "";
+  if (!Array.isArray(outputs) || !outputs.length) {
+    box.textContent = "暂无";
+    return;
+  }
+  for (const it of outputs) {
+    const a = document.createElement("a");
+    a.href = apiBase + (it.url || "");
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.textContent = `${it.path || it.name} (${it.size || 0} bytes)`;
+    box.appendChild(a);
+  }
+}
+function clearPocketPanels() {
+  document.getElementById("viewer_panel").style.display = "none";
+  document.getElementById("pocket_list").textContent = "暂无";
+  document.getElementById("params_table").innerHTML = "";
+  const v = ensureViewer();
+  if (v && v.clear) {
+    v.clear();
+    if (v.render) v.render();
+  }
+}
+function pocketColor(i) {
+  const colors = ["#d62828","#f77f00","#fcbf49","#2a9d8f","#457b9d","#6a4c93","#9d4edd","#00b4d8","#ff006e","#8338ec","#3a86ff","#06d6a0"];
+  return colors[(i - 1) % colors.length];
+}
+function toNumText(v) {
+  const n = Number(v);
+  if (Number.isFinite(n)) return Number.isInteger(n) ? String(n) : n.toFixed(3);
+  return String(v == null ? "-" : v);
+}
+function renderPocketList(pockets) {
+  const box = document.getElementById("pocket_list");
+  if (!Array.isArray(pockets) || !pockets.length) {
+    box.textContent = "暂无口袋";
+    return;
+  }
+  box.innerHTML = "";
+  for (const p of pockets) {
+    const row = document.createElement("div");
+    row.className = "pocket_item";
+    const sw = document.createElement("span");
+    sw.className = "swatch";
+    sw.style.background = pocketColor(Number(p.pocket_id) || 1);
+    const score = p.params && p.params["Score"] != null ? p.params["Score"] : "-";
+    row.innerHTML = `<span>口袋 ${p.pocket_id}</span><span>点数 ${p.point_count || 0}</span><span>Score ${toNumText(score)}</span>`;
+    row.prepend(sw);
+    box.appendChild(row);
+  }
+}
+function renderParamTable(columns, rows) {
+  const table = document.getElementById("params_table");
+  if (!Array.isArray(rows) || !rows.length) {
+    table.innerHTML = "<tr><td>暂无参数</td></tr>";
+    return;
+  }
+  const cols = Array.isArray(columns) && columns.length ? columns : Object.keys(rows[0].params || {});
+  let html = "<thead><tr><th>Pocket</th>";
+  for (const c of cols) html += `<th>${c}</th>`;
+  html += "</tr></thead><tbody>";
+  for (const r of rows) {
+    html += `<tr><td>${r.pocket_id}</td>`;
+    for (const c of cols) {
+      const v = (r.params || {})[c];
+      html += `<td>${toNumText(v)}</td>`;
+    }
+    html += "</tr>";
+  }
+  html += "</tbody>";
+  table.innerHTML = html;
+}
+const METAL_ELEMENTS = new Set(["ZN","FE","MG","MN","CA","CU","CO","NI","NA","K","CD","HG","AL","CR","V","MO","W"]);
+function collectMetalAtoms(model) {
+  if (!model || !model.selectedAtoms) return [];
+  const atoms = model.selectedAtoms({}) || [];
+  return atoms.filter(a => METAL_ELEMENTS.has(String(a.elem || "").toUpperCase()));
+}
+function parsePdbMetals(structureText) {
+  const out = [];
+  if (!structureText) return out;
+  const lines = String(structureText).split(/\r?\n/);
+  for (const line of lines) {
+    if (!(line.startsWith("HETATM") || line.startsWith("ATOM  "))) continue;
+    const elemCol = (line.slice(76, 78) || "").trim().toUpperCase();
+    const atomName = (line.slice(12, 16) || "").trim().toUpperCase().replace(/[0-9]/g, "");
+    const elem = elemCol || atomName;
+    if (!METAL_ELEMENTS.has(elem)) continue;
+    const xs = (line.slice(30, 38) || "").trim();
+    const ys = (line.slice(38, 46) || "").trim();
+    const zs = (line.slice(46, 54) || "").trim();
+    const x = Number(xs), y = Number(ys), z = Number(zs);
+    if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(z)) continue;
+    out.push({elem, x, y, z});
+  }
+  return out;
+}
+function renderPocketViewer(structureText, pockets) {
+  if (!window.$3Dmol) {
+    throw new Error("3D可视化库未加载，无法标记金属离子");
+  }
+  const v = ensureViewer();
+  v.clear();
+  if (!structureText || !structureText.trim()) {
+    if (v.render) v.render();
+    return 0;
+  }
+  if (!v.addModel) {
+    throw new Error("3D可视化初始化失败，无法加载蛋白结构");
+  }
+  const m = v.addModel(structureText, "pdb");
+  if (m && m.setStyle) {
+    m.setStyle({}, {cartoon:{color:"lightblue", opacity:0.9}});
+  }
+  const modelMetals = collectMetalAtoms(m);
+  const pdbMetals = parsePdbMetals(structureText);
+  const metalAtoms = pdbMetals.length >= modelMetals.length ? pdbMetals : modelMetals;
+  let idx = 0;
+  for (const a of metalAtoms) {
+    idx += 1;
+    if (m && m.setStyle) {
+      if (a.serial != null) {
+        m.setStyle({serial: a.serial}, {sphere:{radius:2.6, color:"#ffea00", opacity:1.0}});
+      } else {
+        m.setStyle({elem: String(a.elem || "").toUpperCase()}, {sphere:{radius:2.6, color:"#ffea00", opacity:1.0}});
+      }
+    }
+    if (v.addSphere) {
+      v.addSphere({
+        center: {x: a.x, y: a.y, z: a.z},
+        radius: 3.2,
+        color: "#ff6f00",
+        alpha: 0.25
+      });
+    }
+    if (!v.addLabel) continue;
+    v.addLabel(`${String(a.elem || "M").toUpperCase()}${idx}`, {
+      position: {x: a.x, y: a.y, z: a.z},
+      fontColor: "#111",
+      backgroundColor: "#ffea00",
+      borderColor: "#d08c00",
+      borderThickness: 1,
+      fontSize: 13,
+      inFront: true
+    });
+  }
+  if (pdbMetals.length > 0 && metalAtoms.length === 0) {
+    throw new Error("检测到金属离子坐标，但可视化标记失败");
+  }
+  for (const p of pockets || []) {
+    const color = pocketColor(Number(p.pocket_id) || 1);
+    let cx = 0;
+    let cy = 0;
+    let cz = 0;
+    let cc = 0;
+    for (const pt of (p.points || [])) {
+      if (!v.addSphere) continue;
+      const rr = Number(pt.r);
+      v.addSphere({
+        center: {x: pt.x, y: pt.y, z: pt.z},
+        radius: Number.isFinite(rr) ? Math.max(0.6, Math.min(1.3, rr * 0.25)) : 0.8,
+        color: color,
+        alpha: 0.45
+      });
+      if (Number.isFinite(pt.x) && Number.isFinite(pt.y) && Number.isFinite(pt.z)) {
+        cx += Number(pt.x);
+        cy += Number(pt.y);
+        cz += Number(pt.z);
+        cc += 1;
+      }
+    }
+    if (cc > 0 && v.addLabel) {
+      v.addLabel(`P${p.pocket_id}`, {
+        position: {x: cx / cc, y: cy / cc, z: cz / cc},
+        fontColor: "#111",
+        backgroundColor: color,
+        borderColor: "#444",
+        borderThickness: 1,
+        fontSize: 14,
+        inFront: true
+      });
+    }
+  }
+  if (v.zoomTo) v.zoomTo();
+  if (v.resize) v.resize();
+  if (v.render) v.render();
+  return metalAtoms.length;
+}
+async function loadPocketData() {
+  let apiBase = getApiBase();
+  const id = (document.getElementById("job_id").value || "").trim();
+  if (!id) return;
+  try {
+    const detect = await detectApiBase();
+    apiBase = detect.base;
+    const {json: data} = await fetchJsonWithDetail(apiBase + "/api/fpocket/pockets/" + encodeURIComponent(id), {method:"GET"}, "pockets");
+    const pockets = data.pockets || [];
+    document.getElementById("viewer_panel").style.display = pockets.length ? "block" : "none";
+    if (pockets.length) requestAnimationFrame(refreshViewerLayout);
+    const metalCount = renderPocketViewer(data.structure_pdb_text || "", pockets);
+    renderPocketList(pockets);
+    renderParamTable(data.columns || [], data.rows || []);
+    setDebugError(`phase=pockets_ok\napi=${apiBase}\njob_id=${id}\npockets=${pockets.length}\nrows=${(data.rows || []).length}\nmetal_ions=${metalCount}`);
+  } catch (e) {
+    const msg = (e && e.message ? e.message : "unknown");
+    document.getElementById("viewer_panel").style.display = "none";
+    setStatus("可视化失败：" + msg);
+    setDebugError(`phase=pockets_error\njob_id=${id}\nerror=${msg}`);
+  }
+}
+async function submitJob() {
+  let apiBase = getApiBase();
+  const file = (document.getElementById("pdb_file").files || [])[0];
+  if (!file) {
+    setStatus("请先选择PDB文件");
+    setDebugError("phase=submit_validate\nerror=missing_file");
+    return;
+  }
+  if (pollTimer) {
+    clearInterval(pollTimer);
+    pollTimer = null;
+  }
+  clearPocketPanels();
+  try {
+    setDebugError(`phase=submit_prepare\nfile=${file.name}\nsize=${file.size}`);
+    const detect = await detectApiBase();
+    apiBase = detect.base;
+    setDebugError(`phase=api_ready\napi=${apiBase}\nfpocket_bin=${(detect.ping && detect.ping.fpocket_bin) || "-"}`);
+    const text = await readFileText(file);
+    if (!text || text.trim().length < 50) throw new Error("PDB文件内容为空或过短");
+    const payload = {pdb_name: file.name, pdb_text: text};
+    setStatus("正在提交任务...");
+    setDebugError(`phase=submit_request\napi=${apiBase}\nendpoint=/api/fpocket/submit\npdb_len=${text.length}`);
+    const {json: j} = await fetchJsonWithDetail(apiBase + "/api/fpocket/submit", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify(payload)
+    }, "submit");
+    document.getElementById("job_id").value = j.job_id || "";
+    setStatus(`提交成功：${j.job_id}`);
+    setDebugError(`phase=submitted\njob_id=${j.job_id}\nstatus_url=${j.status_url || "-"}`);
+    pollCount = 0;
+    await pollStatus();
+    pollTimer = setInterval(async ()=>{
+      pollCount += 1;
+      if (pollCount > 180) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+        setStatus("轮询超时，请手动查询任务状态");
+        setDebugError(`phase=poll_timeout\njob_id=${(document.getElementById("job_id").value || "").trim()}`);
+        return;
+      }
+      await pollStatus();
+    }, 1500);
+  } catch (e) {
+    const msg = (e && e.message ? e.message : "unknown");
+    setStatus("提交失败：" + msg);
+    setDebugError(`phase=submit_error\nerror=${msg}`);
+  }
+}
+async function pollStatus() {
+  let apiBase = getApiBase();
+  const id = (document.getElementById("job_id").value || "").trim();
+  if (!id) {
+    setStatus("请填写任务ID");
+    setDebugError("phase=status_validate\nerror=missing_job_id");
+    return;
+  }
+  try {
+    const detect = await detectApiBase();
+    apiBase = detect.base;
+    const {json: j} = await fetchJsonWithDetail(apiBase + "/api/fpocket/status/" + encodeURIComponent(id), {method:"GET"}, "status");
+    const job = j.job || {};
+    const st = job.status || "-";
+    const phase = job.phase || "-";
+    const runningSec = fmtSec(job.started_at);
+    setStatus(`状态：${st}`);
+    setJobMeta(`任务 ${job.id} | pdb=${job.pdb_name || "-"} | pid=${job.pid || "-"} | exit_code=${job.exit_code == null ? "-" : job.exit_code} | phase=${phase} | running=${runningSec}s`);
+    renderOutputs(apiBase, job.outputs || []);
+    setDebugError(`phase=status_ok\napi=${apiBase}\njob_id=${id}\nstatus=${st}\nphase_detail=${phase}\nrunning_sec=${runningSec}\npid=${job.pid || "-"}\nexit_code=${job.exit_code == null ? "-" : job.exit_code}\nerror=${job.error || "-"}`);
+    if (st === "running" && (!job.pid) && Number(runningSec) >= 30) {
+      setStatus(`状态：running（可能卡住，phase=${phase}，已运行${runningSec}s）`);
+    }
+    if (st === "failed") {
+      if (pollTimer) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+      }
+      await loadLog();
+      await loadPocketData();
+    }
+    if (st === "done") {
+      if (pollTimer) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+      }
+      await loadLog();
+      await loadPocketData();
+    }
+  } catch (e) {
+    const msg = (e && e.message ? e.message : "unknown");
+    setStatus("查询失败：" + msg);
+    setDebugError(`phase=status_error\njob_id=${id}\nerror=${msg}`);
+  }
+}
+async function loadLog() {
+  let apiBase = getApiBase();
+  const id = (document.getElementById("job_id").value || "").trim();
+  if (!id) {
+    setStatus("请填写任务ID");
+    setDebugError("phase=log_validate\nerror=missing_job_id");
+    return;
+  }
+  try {
+    const detect = await detectApiBase();
+    apiBase = detect.base;
+    const {json: j} = await fetchJsonWithDetail(apiBase + "/api/fpocket/log/" + encodeURIComponent(id), {method:"GET"}, "log");
+    document.getElementById("log_view").textContent = j.log || "";
+    setStatus("日志已更新");
+    setDebugError(`phase=log_ok\napi=${apiBase}\njob_id=${id}\nlog_len=${(j.log || "").length}`);
+  } catch (e) {
+    const msg = (e && e.message ? e.message : "unknown");
+    setStatus("日志读取失败：" + msg);
+    setDebugError(`phase=log_error\njob_id=${id}\nerror=${msg}`);
+  }
+}
+window.addEventListener("load", async ()=>{
+  try {
+    setStatus("正在探测API...");
+    const d = await detectApiBase();
+    setStatus("API可用：" + d.base);
+    setDebugError(`phase=ready\napi=${d.base}\nfpocket_bin=${(d.ping && d.ping.fpocket_bin) || "-"}`);
+  } catch (e) {
+    const msg = e && e.message ? e.message : "unknown";
+    setStatus("API不可用：" + msg);
+    setDebugError(`phase=init_error\nerror=${msg}`);
+  }
+});
+document.getElementById("submit_btn").addEventListener("click", submitJob);
+document.getElementById("poll_btn").addEventListener("click", pollStatus);
+document.getElementById("log_btn").addEventListener("click", loadLog);
+</script>
+</body>
+</html>

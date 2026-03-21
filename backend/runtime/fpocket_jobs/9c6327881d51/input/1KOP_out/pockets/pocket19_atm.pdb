@@ -1,0 +1,40 @@
+HEADER
+HEADER This is a pdb format file writen by the programm fpocket.                 
+HEADER It represents the atoms contacted by the voronoi vertices of the pocket.  
+HEADER                                                                           
+HEADER Information about the pocket    19:
+HEADER 0  - Pocket Score                      : 0.0948
+HEADER 1  - Drug Score                        : 0.0027
+HEADER 2  - Number of alpha spheres           :    21
+HEADER 3  - Mean alpha-sphere radius          : 3.8916
+HEADER 4  - Mean alpha-sphere Solvent Acc.    : 0.4584
+HEADER 5  - Mean B-factor of pocket residues  : 0.1398
+HEADER 6  - Hydrophobicity Score              : 16.2000
+HEADER 7  - Polarity Score                    :    10
+HEADER 8  - Amino Acid based volume Score     : 4.4000
+HEADER 9  - Pocket volume (Monte Carlo)       : 188.5520
+HEADER 10 - Pocket volume (convex hull)       : 4.6931
+HEADER 11 - Charge Score                      :     3
+HEADER 12 - Local hydrophobic density Score   : 10.0000
+HEADER 13 - Number of apolar alpha sphere     :    11
+HEADER 14 - Proportion of apolar alpha sphere : 0.5238
+ATOM   1817  CZ2 TRP B   7       8.583  28.936  64.809  0.00  0.00           C 0
+ATOM   2264   CB HIS B  66      11.677  26.779  62.580  0.00  0.00           C 0
+ATOM   3163  OG1 THR B 178       5.863  25.455  66.189  0.00  0.00           O 0
+ATOM   2255  ND2 ASN B  64       9.267  25.479  58.690  0.67  5.47           N 0
+ATOM   2267  CD2 HIS B  66      10.467  28.909  61.724  0.00  0.00           C 0
+ATOM   1819  CH2 TRP B   7       9.488  28.085  65.391  0.00  0.00           C 0
+ATOM   3164  CG2 THR B 178       8.114  24.946  66.898  0.00  0.00           C 0
+ATOM   2497  CE1 HIS B  94      10.749  21.093  66.828  0.00  0.00           C 0
+ATOM   1835   OH TYR B   9      11.566  25.085  67.417  0.44  1.07           O 0
+ATOM   2263    O HIS B  66      13.531  24.408  63.398  0.47  1.07           O 0
+ATOM   2475  CD2 HIS B  92       8.977  19.429  63.195  0.00  0.00           C 0
+ATOM   2477  NE2 HIS B  92       7.787  19.572  63.862  0.50  1.09           N 0
+ATOM   2276  CG2 THR B  67      11.002  22.540  60.807  0.00  0.00           C 0
+ATOM   2292  OE1 GLN B  69       7.150  22.306  58.761  0.29  5.36           O 0
+ATOM   2476  CE1 HIS B  92       6.794  19.459  63.000  0.00  0.00           C 0
+ATOM   2474  ND1 HIS B  92       7.306  19.249  61.801  0.00  0.00           N 0
+ATOM   2274   CB THR B  67      12.253  22.173  61.614  0.00  0.00           C 0
+ATOM   2456  NE2 GLN B  90       4.247  20.600  60.155  0.00  0.00           N 0
+TER
+END

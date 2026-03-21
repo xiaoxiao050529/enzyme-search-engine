@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Master Table</title>
+<style>
+body { font-family: system-ui, sans-serif; margin: 16px; }
+.top_nav { display: flex; gap: 8px; margin-bottom: 10px; }
+.top_nav a { display: inline-block; padding: 6px 10px; border: 1px solid #d9d9d9; background: #f6f8fa; color: #0b5394; text-decoration: none; border-radius: 6px; font-weight: 600; }
+.top_nav a:hover { background: #eaf2ff; }
+.controls { display: grid; grid-template-columns: 1.2fr 1fr 1.2fr auto auto auto auto; gap: 8px; margin-bottom: 10px; }
+input, select, button { padding: 6px; box-sizing: border-box; width: 100%; }
+button { width: auto; }
+#status { margin-bottom: 8px; color: #333; }
+.table_wrap { border: 1px solid #ddd; overflow: auto; max-height: 76vh; }
+table { border-collapse: collapse; width: max-content; min-width: 100%; font-size: 13px; }
+th, td { border: 1px solid #e5e5e5; padding: 6px 8px; text-align: left; white-space: nowrap; }
+th { position: sticky; top: 0; background: #f7f9fc; cursor: pointer; z-index: 2; }
+tbody tr:nth-child(even) { background: #fcfcfc; }
+tbody tr:hover { background: #eef6ff; }
+</style>
+</head>
+<body>
+<div class="top_nav">
+  <a href="./index.html">主页面</a>
+  <a href="./diffdock_compare.html">DiffDock对比</a>
+  <a href="./master_table.html">Master表</a>
+  <a href="./fpocket.html">fpocket</a>
+  <a href="./tmalign.html">TM-align</a>
+  <a href="./pdbzn_workflow.html">PDB-ZN工作流</a>
+</div>
+<h2>Master Table</h2>
+<div class="controls">
+  <input id="global_search" type="text" placeholder="全局搜索（任意列）">
+  <select id="col_select"></select>
+  <input id="col_value" type="text" placeholder="列筛选值（包含匹配）">
+  <select id="sort_col"></select>
+  <select id="sort_order">
+    <option value="desc">降序</option>
+    <option value="asc">升序</option>
+  </select>
+  <button id="sort_apply_btn" type="button">按列排序</button>
+  <button id="clear_btn" type="button">清空筛选</button>
+</div>
+<div id="status">正在加载数据...</div>
+<div class="table_wrap">
+  <table id="tbl">
+    <thead id="thead"></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+<script>
+let fullHeader = [];
+let fullRows = [];
+let filteredRows = [];
+let sortState = {key: "", asc: true};
+function asText(v) {
+  if (v == null) return "";
+  return String(v);
+}
+function cmp(a, b) {
+  const na = Number(a);
+  const nb = Number(b);
+  if (!Number.isNaN(na) && !Number.isNaN(nb)) return na - nb;
+  return asText(a).localeCompare(asText(b), "zh-Hans-CN", {numeric:true, sensitivity:"base"});
+}
+function applyFilters() {
+  const q = document.getElementById("global_search").value.trim().toLowerCase();
+  const col = document.getElementById("col_select").value;
+  const cv = document.getElementById("col_value").value.trim().toLowerCase();
+  filteredRows = fullRows.filter(r => {
+    if (q) {
+      const hit = fullHeader.some(h => asText(r[h]).toLowerCase().includes(q));
+      if (!hit) return false;
+    }
+    if (col && cv) {
+      if (!asText(r[col]).toLowerCase().includes(cv)) return false;
+    }
+    return true;
+  });
+  applySort();
+  renderTable();
+}
+function applySort() {
+  const key = sortState.key;
+  if (!key) return;
+  filteredRows.sort((ra, rb) => {
+    const c = cmp(ra[key], rb[key]);
+    return sortState.asc ? c : -c;
+  });
+}
+function getRowJumpId(r) {
+  const idVal = asText(r["_id"]).trim();
+  const pdbFromPath = asText(r["Receptor_PDB"]).split("/").pop().split(".")[0];
+  return (idVal || pdbFromPath).toUpperCase();
+}
+function renderHeader() {
+  const thead = document.getElementById("thead");
+  thead.innerHTML = "";
+  const tr = document.createElement("tr");
+  for (const h of fullHeader) {
+    const th = document.createElement("th");
+    const mark = sortState.key === h ? (sortState.asc ? " ▲" : " ▼") : "";
+    th.textContent = h + mark;
+    th.addEventListener("click", ()=>{
+      if (sortState.key === h) sortState.asc = !sortState.asc;
+      else { sortState.key = h; sortState.asc = true; }
+      applySort();
+      renderHeader();
+      renderTable();
+    });
+    tr.appendChild(th);
+  }
+  thead.appendChild(tr);
+}
+function renderTable() {
+  const tbody = document.getElementById("tbody");
+  tbody.innerHTML = "";
+  for (const r of filteredRows) {
+    const tr = document.createElement("tr");
+    const jumpId = getRowJumpId(r);
+    if (jumpId) {
+      tr.style.cursor = "pointer";
+      tr.addEventListener("click", ()=>{
+        window.location.href = `./index.html?pdb=${encodeURIComponent(jumpId)}`;
+      });
+    }
+    for (const h of fullHeader) {
+      const td = document.createElement("td");
+      const val = asText(r[h]);
+      if ((h === "_id" || h === "Receptor_PDB") && jumpId) {
+        const a = document.createElement("a");
+        a.href = `./index.html?pdb=${encodeURIComponent(jumpId)}`;
+        a.textContent = val;
+        a.style.color = "#0b5394";
+        td.appendChild(a);
+      } else {
+        td.textContent = val;
+      }
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  }
+  document.getElementById("status").textContent = `总行数 ${fullRows.length} | 当前显示 ${filteredRows.length}`;
+}
+function initFilterColumn() {
+  const sel = document.getElementById("col_select");
+  const sortSel = document.getElementById("sort_col");
+  sel.innerHTML = "";
+  sortSel.innerHTML = "";
+  const all = document.createElement("option");
+  all.value = "";
+  all.textContent = "选择列（可不选）";
+  sel.appendChild(all);
+  const sortAll = document.createElement("option");
+  sortAll.value = "";
+  sortAll.textContent = "选择排序列";
+  sortSel.appendChild(sortAll);
+  for (const h of fullHeader) {
+    const op = document.createElement("option");
+    op.value = h;
+    op.textContent = h;
+    sel.appendChild(op);
+    const sop = document.createElement("option");
+    sop.value = h;
+    sop.textContent = h;
+    sortSel.appendChild(sop);
+  }
+}
+async function loadMaster() {
+  const res = await fetch("../backend/data/master_full.json?t=" + Date.now());
+  if (!res.ok) throw new Error("master_full.json 不可用");
+  const j = await res.json();
+  fullHeader = Array.isArray(j.header) ? j.header : [];
+  fullRows = Array.isArray(j.rows) ? j.rows : [];
+  filteredRows = fullRows.slice();
+  initFilterColumn();
+  renderHeader();
+  renderTable();
+}
+document.getElementById("global_search").addEventListener("input", applyFilters);
+document.getElementById("col_select").addEventListener("change", applyFilters);
+document.getElementById("col_value").addEventListener("input", applyFilters);
+document.getElementById("sort_apply_btn").addEventListener("click", ()=>{
+  const key = document.getElementById("sort_col").value;
+  const order = document.getElementById("sort_order").value;
+  sortState.key = key;
+  sortState.asc = order === "asc";
+  applySort();
+  renderHeader();
+  renderTable();
+});
+document.getElementById("clear_btn").addEventListener("click", ()=>{
+  document.getElementById("global_search").value = "";
+  document.getElementById("col_select").value = "";
+  document.getElementById("col_value").value = "";
+  document.getElementById("sort_col").value = "";
+  document.getElementById("sort_order").value = "desc";
+  sortState = {key: "", asc: true};
+  filteredRows = fullRows.slice();
+  renderHeader();
+  renderTable();
+});
+window.addEventListener("load", async ()=>{
+  try {
+    await loadMaster();
+  } catch (e) {
+    document.getElementById("status").textContent = "加载失败：" + (e && e.message ? e.message : "unknown");
+  }
+});
+</script>
+</body>
+</html>

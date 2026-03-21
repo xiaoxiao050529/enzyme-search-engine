@@ -1,0 +1,40 @@
+HEADER
+HEADER This is a pdb format file writen by the programm fpocket.                 
+HEADER It represents the atoms contacted by the voronoi vertices of the pocket.  
+HEADER                                                                           
+HEADER Information about the pocket    20:
+HEADER 0  - Pocket Score                      : 0.0982
+HEADER 1  - Drug Score                        : 0.0155
+HEADER 2  - Number of alpha spheres           :    22
+HEADER 3  - Mean alpha-sphere radius          : 3.8337
+HEADER 4  - Mean alpha-sphere Solvent Acc.    : 0.3288
+HEADER 5  - Mean B-factor of pocket residues  : 0.2796
+HEADER 6  - Hydrophobicity Score              : 7.4000
+HEADER 7  - Polarity Score                    :     3
+HEADER 8  - Amino Acid based volume Score     : 5.0000
+HEADER 9  - Pocket volume (Monte Carlo)       : 291.4031
+HEADER 10 - Pocket volume (convex hull)       : 18.4943
+HEADER 11 - Charge Score                      :     3
+HEADER 12 - Local hydrophobic density Score   : 10.8333
+HEADER 13 - Number of apolar alpha sphere     :    12
+HEADER 14 - Proportion of apolar alpha sphere : 0.5455
+ATOM   1370   NZ LYS A 191       6.036  32.213  55.370  0.62  1.09           N 0
+ATOM   3601   CEALYS B 180       6.570  39.464  55.857  0.00  0.00           C 0
+ATOM   3677  CD1 LEU B 190       2.043  38.611  56.746  0.00  0.00           C 0
+ATOM   3603   NZALYS B 180       6.779  39.251  57.314  0.53  8.75           N 0
+ATOM   3675   CB LEU B 190       1.395  37.493  54.574  0.00  0.00           C 0
+ATOM   3580  NH1 ARG B 178       8.914  33.526  53.564  0.00  0.00           N 0
+ATOM   3674    O LEU B 190       1.986  35.842  51.930  0.00  0.00           O 0
+ATOM   3684   CG LYS B 191       0.976  32.766  53.680  0.00  0.00           C 0
+ATOM   3570    O GLY B 177       6.276  37.082  52.241  0.44  3.21           O 0
+ATOM   1358   CB LEU A 190       4.341  32.163  62.122  0.00  0.00           C 0
+ATOM   3687   NZ LYS B 191      -0.345  31.235  56.914  0.53  7.66           N 0
+ATOM   1367   CG LYS A 191       4.665  29.722  57.900  0.00  0.00           C 0
+ATOM   1357    O LEU A 190       3.704  29.148  61.364  0.47  1.07           O 0
+ATOM   1360  CD1 LEU A 190       3.621  34.551  62.528  0.00  0.00           C 0
+ATOM   1261    O GLY A 177      -0.528  29.894  62.590  0.14  9.64           O 0
+ATOM   1361  CD2 LEU A 190       2.928  32.813  64.152  0.00  0.00           C 0
+ATOM   3686   CE LYS B 191       0.164  32.285  55.996  0.00  0.00           C 0
+ATOM   1369   CE LYS A 191       5.519  31.719  56.665  0.00  0.00           C 0
+TER
+END

@@ -1,0 +1,36 @@
+HEADER
+HEADER This is a pdb format file writen by the programm fpocket.                 
+HEADER It represents the atoms contacted by the voronoi vertices of the pocket.  
+HEADER                                                                           
+HEADER Information about the pocket    13:
+HEADER 0  - Pocket Score                      : 0.0106
+HEADER 1  - Drug Score                        : 0.0002
+HEADER 2  - Number of alpha spheres           :    18
+HEADER 3  - Mean alpha-sphere radius          : 3.9418
+HEADER 4  - Mean alpha-sphere Solvent Acc.    : 0.5662
+HEADER 5  - Mean B-factor of pocket residues  : 0.2849
+HEADER 6  - Hydrophobicity Score              : 21.5000
+HEADER 7  - Polarity Score                    :     4
+HEADER 8  - Amino Acid based volume Score     : 3.5000
+HEADER 9  - Pocket volume (Monte Carlo)       : 192.1955
+HEADER 10 - Pocket volume (convex hull)       : 1.6762
+HEADER 11 - Charge Score                      :     1
+HEADER 12 - Local hydrophobic density Score   : 4.0000
+HEADER 13 - Number of apolar alpha sphere     :     5
+HEADER 14 - Proportion of apolar alpha sphere : 0.2778
+ATOM   3037    O SER B 223      10.881  23.840 -30.947  0.50  9.64           O 0
+ATOM   2339    O THR B 137      16.602  26.564 -28.359  0.00  0.00           O 0
+ATOM   2343    N ALA B 138      15.843  28.594 -27.752  0.00  0.00           N 0
+ATOM   2338    C THR B 137      16.143  27.319 -27.500  0.00  0.00           C 0
+ATOM   2335   OG SER B 136      14.570  23.399 -28.705  0.00  0.00           O 0
+ATOM   2333    O SER B 136      13.730  25.035 -26.049  0.55  2.14           O 0
+ATOM   3039   OG SER B 223      12.721  25.019 -33.263  0.00  0.00           O 0
+ATOM   2344   CA ALA B 138      16.076  29.144 -29.081  0.00  0.00           C 0
+ATOM   3055  NH2 ARG B 225      11.054  26.323 -25.188  0.00  0.00           N 0
+ATOM   2347   CB ALA B 138      15.391  30.501 -29.216  0.00  0.00           C 0
+ATOM   2362   CB ILE B 141      17.251  26.073 -32.335  0.00  0.00           C 0
+ATOM   2346    O ALA B 138      18.012  28.981 -30.488  0.54  1.07           O 0
+ATOM   2364  CG2 ILE B 141      17.024  26.075 -33.840  0.00  0.00           C 0
+ATOM   2363  CG1 ILE B 141      16.300  25.087 -31.661  0.00  0.00           C 0
+TER
+END

@@ -1,0 +1,37 @@
+HEADER
+HEADER This is a pdb format file writen by the programm fpocket.                 
+HEADER It represents the atoms contacted by the voronoi vertices of the pocket.  
+HEADER                                                                           
+HEADER Information about the pocket     8:
+HEADER 0  - Pocket Score                      : 0.0756
+HEADER 1  - Drug Score                        : 0.0004
+HEADER 2  - Number of alpha spheres           :    16
+HEADER 3  - Mean alpha-sphere radius          : 3.8135
+HEADER 4  - Mean alpha-sphere Solvent Acc.    : 0.6408
+HEADER 5  - Mean B-factor of pocket residues  : 0.4740
+HEADER 6  - Hydrophobicity Score              : 1.0000
+HEADER 7  - Polarity Score                    :     5
+HEADER 8  - Amino Acid based volume Score     : 3.3333
+HEADER 9  - Pocket volume (Monte Carlo)       : 286.0158
+HEADER 10 - Pocket volume (convex hull)       : 11.3967
+HEADER 11 - Charge Score                      :    -1
+HEADER 12 - Local hydrophobic density Score   : 2.0000
+HEADER 13 - Number of apolar alpha sphere     :     3
+HEADER 14 - Proportion of apolar alpha sphere : 0.1875
+ATOM   4462    N ASP C 187      17.706  71.412  89.325  0.00  0.00           N 0
+ATOM   4461  CG2 THR C 186      13.787  69.644  89.292  0.00  0.00           C 0
+ATOM   4459   CB THR C 186      15.315  69.612  89.218  0.00  0.00           C 0
+ATOM   4469  OD2 ASP C 187      17.991  73.839  92.143  0.00  0.00           O 0
+ATOM   4456   CA THR C 186      15.767  70.580  88.118  0.00  0.00           C 0
+ATOM   4468  OD1 ASP C 187      18.569  74.408  90.103  0.73  7.50           O 0
+ATOM   4510    O SER C 192      20.885  73.587  83.361  0.34  8.57           O 0
+ATOM   4546  OE2 GLU C 196      23.876  76.993  84.104  0.80  3.21           O 0
+ATOM   4519  ND1 HIS C 193      23.697  74.267  86.305  0.00  0.00           N 0
+ATOM   4521  CE1 HIS C 193      23.452  73.870  87.548  0.00  0.00           C 0
+ATOM   4451    O VAL C 185      13.924  71.764  86.425  0.44  9.64           O 0
+ATOM   4457    C THR C 186      17.260  70.806  88.226  0.00  0.00           C 0
+ATOM   4453  CG1 VAL C 185      16.408  71.939  84.023  0.00  0.00           C 0
+ATOM   4511   CB SER C 192      20.200  71.200  85.344  0.00  0.00           C 0
+ATOM   4458    O THR C 186      17.999  70.359  87.351  0.00  0.00           O 0
+TER
+END

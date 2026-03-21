@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>DiffDock 对比页面</title>
+<script src="https://unpkg.com/3dmol/build/3Dmol-min.js"></script>
+<style>
+body { font-family: system-ui, sans-serif; margin: 16px; }
+.top_nav { display: flex; gap: 8px; margin-bottom: 10px; }
+.top_nav a { display: inline-block; padding: 6px 10px; border: 1px solid #d9d9d9; background: #f6f8fa; color: #0b5394; text-decoration: none; border-radius: 6px; font-weight: 600; }
+.top_nav a:hover { background: #eaf2ff; }
+.layout { display: grid; grid-template-columns: 360px 1fr; gap: 14px; align-items: start; }
+#controls { border: 1px solid #ddd; background: #fafafa; padding: 10px; }
+label { display: block; margin-bottom: 8px; }
+select, input, button { width: 100%; box-sizing: border-box; padding: 6px; }
+.viewer_row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.viewer_box { border: 1px solid #ddd; height: 720px; position: relative; }
+.viewer_title { position: absolute; top: 6px; left: 8px; background: rgba(255,255,255,0.9); border: 1px solid #ddd; border-radius: 4px; padding: 2px 6px; font-size: 12px; z-index: 3; }
+#viewer_left, #viewer_right { width: 100%; height: 100%; }
+#status { margin-top: 10px; color: #333; }
+.rank_panel { margin-top: 10px; border: 1px solid #e5e5e5; background: #fff; padding: 6px; max-height: 220px; overflow: auto; font-size: 12px; }
+.rank_row { display: flex; justify-content: space-between; gap: 8px; padding: 4px 2px; border-bottom: 1px dashed #eee; cursor: pointer; }
+.rank_row:hover { background: #f7f7f7; }
+.rank_title { font-weight: 700; margin-bottom: 4px; }
+.local_box { margin-top: 10px; border: 1px solid #e5e5e5; background: #fff; padding: 8px; }
+.local_title { font-weight: 700; margin-bottom: 6px; }
+.online_row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+</style>
+</head>
+<body>
+<div class="top_nav">
+  <a href="./index.html">主页面</a>
+  <a href="./diffdock_compare.html">DiffDock对比</a>
+  <a href="./master_table.html">Master表</a>
+  <a href="./fpocket.html">fpocket</a>
+  <a href="./tmalign.html">TM-align</a>
+  <a href="./pdbzn_workflow.html">PDB-ZN工作流</a>
+</div>
+<h2>DiffDock 对比页面</h2>
+<div class="layout">
+  <div id="controls">
+    <label>搜索PDB
+      <input id="search_pdb" type="text" placeholder="输入例如 1AF0">
+    </label>
+    <label>左侧PDB
+      <select id="pdb_left"></select>
+    </label>
+    <label>左侧Pose
+      <select id="pose_left"></select>
+    </label>
+    <label>右侧PDB
+      <select id="pdb_right"></select>
+    </label>
+    <label>右侧Pose
+      <select id="pose_right"></select>
+    </label>
+    <button id="res_label_btn" type="button">残基标签：关</button>
+    <button id="measure_mode_btn" type="button">测量模式：关</button>
+    <button id="measure_clear_btn" type="button">清空测量</button>
+    <button id="auto_top2_btn" type="button">按ZN距离自动前2名</button>
+    <button id="swap_btn" type="button">左右Pose互换</button>
+    <button id="load_btn" type="button">加载对比</button>
+    <div class="local_box">
+      <div class="local_title">在线DiffDock推理</div>
+      <label>API地址
+        <input id="api_base" type="text" value="http://127.0.0.1:8015" placeholder="例如 http://127.0.0.1:8015">
+      </label>
+      <label>受体文件（PDB/CIF）
+        <input id="online_receptor_file" type="file" accept=".pdb,.cif">
+      </label>
+      <label>配体文件（SDF）
+        <input id="online_ligand_file" type="file" accept=".sdf">
+      </label>
+      <div class="online_row">
+        <label>inference_steps
+          <input id="online_steps" type="number" min="1" value="20">
+        </label>
+        <label>samples_per_complex
+          <input id="online_samples" type="number" min="1" value="10">
+        </label>
+      </div>
+      <button id="online_submit_btn" type="button">提交在线推理</button>
+      <button id="online_poll_btn" type="button">查询任务状态</button>
+      <button id="online_load_btn" type="button">加载在线结果到对比</button>
+      <div id="online_job_info"></div>
+      <label>左侧在线Pose
+        <select id="online_pose_left"></select>
+      </label>
+      <label>右侧在线Pose
+        <select id="online_pose_right"></select>
+      </label>
+    </div>
+    <div class="rank_panel">
+      <div class="rank_title">左侧PDB Top10（底物-ZN距离升序）</div>
+      <div id="left_rank_list"></div>
+    </div>
+    <div class="rank_panel">
+      <div class="rank_title">右侧PDB Top10（底物-ZN距离升序）</div>
+      <div id="right_rank_list"></div>
+    </div>
+    <div id="status"></div>
+  </div>
+  <div class="viewer_row">
+    <div class="viewer_box">
+      <div class="viewer_title" id="left_title">左侧</div>
+      <div id="viewer_left"></div>
+    </div>
+    <div class="viewer_box">
+      <div class="viewer_title" id="right_title">右侧</div>
+      <div id="viewer_right"></div>
+    </div>
+  </div>
+</div>
+<script>
+let diffdockIndex = {items:[]};
+let masterData = {items:[]};
+let vLeft;
+let vRight;
+let residueLabelMode = false;
+let measureMode = false;
+const viewerStates = new Map();
+const receptorInfoCache = new Map();
+let autoApplyingTop2 = false;
+let onlineJobId = "";
+let onlineResult = {apiBase:"", receptor:null, poses:[]};
+function makeViewer(id) {
+  try {
+    if (window.$3Dmol) return $3Dmol.createViewer(id, {backgroundColor:"white"});
+  } catch (_) {}
+  return { clear(){}, addModel(){ return { setStyle(){} }; }, setStyle(){}, zoomTo(){}, render(){}, setClickable(){}, getModel(){ return { selectedAtoms(){ return []; } }; }, addLabel(){}, removeLabel(){} };
+}
+vLeft = makeViewer("viewer_left");
+vRight = makeViewer("viewer_right");
+function setStatus(t) {
+  document.getElementById("status").textContent = t;
+}
+function getApiBase() {
+  return (document.getElementById("api_base").value || "").trim().replace(/\/+$/, "");
+}
+function setOnlineInfo(t) {
+  document.getElementById("online_job_info").textContent = t;
+}
+function readFileText(file) {
+  return new Promise((resolve, reject)=>{
+    const fr = new FileReader();
+    fr.onload = () => resolve(String(fr.result || ""));
+    fr.onerror = () => reject(new Error("文件读取失败: " + (file && file.name ? file.name : "")));
+    fr.readAsText(file);
+  });
+}
+function dist3(a, b) {
+  const dx = a.x - b.x;
+  const dy = a.y - b.y;
+  const dz = a.z - b.z;
+  return Math.sqrt(dx * dx + dy * dy + dz * dz);
+}
+function parsePdbAtoms(text) {
+  const out = [];
+  const lines = (text || "").split(/\r?\n/);
+  for (const line of lines) {
+    if (!(line.startsWith("ATOM") || line.startsWith("HETATM"))) continue;
+    const atom = line.slice(12,16).trim();
+    const resn = line.slice(17,20).trim();
+    const chain = line.slice(21,22).trim();
+    const resiStr = line.slice(22,26).trim();
+    const x = Number(line.slice(30,38).trim());
+    const y = Number(line.slice(38,46).trim());
+    const z = Number(line.slice(46,54).trim());
+    const elemRaw = line.length >= 78 ? line.slice(76,78).trim() : "";
+    const elem = (elemRaw || atom.replace(/[0-9]/g, "").slice(0,2)).toUpperCase();
+    if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(z)) continue;
+    out.push({atom, resn, chain, resi: resiStr, x, y, z, elem});
+  }
+  return out;
+}
+function parseSdfAtoms(text) {
+  const lines = (text || "").split(/\r?\n/);
+  if (lines.length < 4) return [];
+  const nAtoms = parseInt((lines[3] || "").slice(0,3).trim(), 10);
+  if (!Number.isFinite(nAtoms) || nAtoms <= 0) return [];
+  const atoms = [];
+  for (let i = 4; i < 4 + nAtoms && i < lines.length; i++) {
+    const line = lines[i];
+    const x = Number(line.slice(0,10).trim());
+    const y = Number(line.slice(10,20).trim());
+    const z = Number(line.slice(20,30).trim());
+    const elem = line.slice(31,34).trim().toUpperCase();
+    if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(z)) continue;
+    atoms.push({x, y, z, elem});
+  }
+  return atoms;
+}
+async function fetchText(url) {
+  const r = await fetch(url + "?t=" + Date.now());
+  if (!r.ok) throw new Error(url + "加载失败");
+  return await r.text();
+}
+function findHisCoordinatedZn(atoms) {
+  const znAtoms = atoms.filter(a => a.elem === "ZN" || (a.atom || "").toUpperCase() === "ZN");
+  if (!znAtoms.length) return null;
+  let best3 = null;
+  let bestAny = null;
+  for (const zn of znAtoms) {
+    const hisSet = new Set();
+    for (const a of atoms) {
+      if (a.resn !== "HIS") continue;
+      if (dist3(zn, a) <= 3.0) hisSet.add(`${a.chain}:${a.resi}`);
+    }
+    const hit = {zn, hisCount: hisSet.size};
+    if (!bestAny || hit.hisCount > bestAny.hisCount) bestAny = hit;
+    if (hit.hisCount >= 3 && (!best3 || hit.hisCount > best3.hisCount)) best3 = hit;
+  }
+  return best3 || bestAny;
+}
+async function getReceptorInfo(pid) {
+  if (receptorInfoCache.has(pid)) return receptorInfoCache.get(pid);
+  const cands = structureCandidates(pid);
+  let text = "";
+  let used = "";
+  for (const c of cands) {
+    if (c.toLowerCase().endsWith(".cif")) continue;
+    try {
+      text = await fetchText(c);
+      used = c;
+      break;
+    } catch (_) {}
+  }
+  const atoms = parsePdbAtoms(text);
+  const znInfo = findHisCoordinatedZn(atoms);
+  const info = {atoms, znInfo, source: used};
+  receptorInfoCache.set(pid, info);
+  return info;
+}
+async function computeZnDistanceRanking(pid, topN) {
+  const entry = getEntryById(pid);
+  if (!entry) return [];
+  const receptor = await getReceptorInfo(pid);
+  const zn = receptor && receptor.znInfo ? receptor.znInfo.zn : null;
+  const poses = (entry.poses || []).filter(p => p.rank != null).sort((a,b)=>a.rank-b.rank).slice(0, topN);
+  const rows = [];
+  for (const p of poses) {
+    let d = Number.POSITIVE_INFINITY;
+    try {
+      const sdf = await fetchText(p.file);
+      const ligAtoms = parseSdfAtoms(sdf).filter(a => a.elem !== "H");
+      if (zn && ligAtoms.length) {
+        for (const a of ligAtoms) {
+          const dd = dist3(a, zn);
+          if (dd < d) d = dd;
+        }
+      }
+    } catch (_) {}
+    rows.push({...p, zn_distance: Number.isFinite(d) ? d : null, his_count: receptor && receptor.znInfo ? receptor.znInfo.hisCount : 0});
+  }
+  rows.sort((a,b)=>{
+    const da = a.zn_distance == null ? Number.POSITIVE_INFINITY : a.zn_distance;
+    const db = b.zn_distance == null ? Number.POSITIVE_INFINITY : b.zn_distance;
+    return da - db;
+  });
+  return rows;
+}
+function renderRankList(side, rows) {
+  const box = document.getElementById(side === "left" ? "left_rank_list" : "right_rank_list");
+  box.innerHTML = "";
+  if (!rows.length) {
+    box.textContent = "无可用排序数据";
+    return;
+  }
+  for (const r of rows) {
+    const div = document.createElement("div");
+    div.className = "rank_row";
+    const d = r.zn_distance == null ? "NA" : r.zn_distance.toFixed(2) + " Å";
+    div.innerHTML = `<span>rank${r.rank}</span><span>${d}</span>`;
+    div.title = `confidence: ${r.confidence ?? "NA"}, HIS数: ${r.his_count}`;
+    div.addEventListener("click", ()=>{
+      const poseSel = document.getElementById(side === "left" ? "pose_left" : "pose_right");
+      poseSel.value = r.file;
+      loadCompare();
+    });
+    box.appendChild(div);
+  }
+}
+async function refreshRankForSide(side) {
+  const pid = document.getElementById(side === "left" ? "pdb_left" : "pdb_right").value;
+  if (!pid) {
+    renderRankList(side, []);
+    return [];
+  }
+  const rows = await computeZnDistanceRanking(pid, 10);
+  renderRankList(side, rows);
+  return rows;
+}
+async function applyAutoTop2FromLeft() {
+  if (autoApplyingTop2) return;
+  autoApplyingTop2 = true;
+  try {
+    const leftPid = document.getElementById("pdb_left").value;
+    if (!leftPid) return;
+    const rows = await refreshRankForSide("left");
+    if (!rows.length) return;
+    const leftPoseSel = document.getElementById("pose_left");
+    const rightPoseSel = document.getElementById("pose_right");
+    const rightPdbSel = document.getElementById("pdb_right");
+    rightPdbSel.value = leftPid;
+    renderPoseOptions("right");
+    leftPoseSel.value = rows[0].file;
+    rightPoseSel.value = rows.length > 1 ? rows[1].file : rows[0].file;
+    await refreshRankForSide("right");
+    loadCompare();
+  } finally {
+    autoApplyingTop2 = false;
+  }
+}
+function getViewerState(viewer) {
+  if (!viewerStates.has(viewer)) {
+    viewerStates.set(viewer, {ligModel:null, ligColor:"cyanCarbon", pickedLabel:null, nearLabels:[], lastSel:null, measurePoints:[], measureShapes:[], measureLabels:[]});
+  }
+  return viewerStates.get(viewer);
+}
+function atomName(a) {
+  return `${a.chain || ""}:${a.resn || ""}${a.resi || ""}:${a.atom || a.elem || ""}`;
+}
+function offsetLabelPos(a, ref) {
+  const r = ref || {x:a.x, y:a.y - 1, z:a.z};
+  let vx = a.x - r.x;
+  let vy = a.y - r.y;
+  let vz = a.z - r.z;
+  const n = Math.sqrt(vx*vx + vy*vy + vz*vz);
+  if (n < 1e-6) {
+    vx = 0;
+    vy = 1;
+    vz = 0;
+  } else {
+    vx /= n;
+    vy /= n;
+    vz /= n;
+  }
+  return {x:a.x + vx * 1.0, y:a.y + vy * 1.0, z:a.z + vz * 1.0};
+}
+function clearMeasurementForViewer(viewer, state) {
+  if (viewer.removeShape) {
+    for (const s of state.measureShapes) viewer.removeShape(s);
+  }
+  state.measureShapes = [];
+  if (viewer.removeLabel) {
+    for (const l of state.measureLabels) viewer.removeLabel(l);
+  }
+  state.measureLabels = [];
+  state.measurePoints = [];
+}
+function handleMeasureClick(viewer, state, atom, sideText) {
+  state.measurePoints.push(atom);
+  if (state.measurePoints.length === 2) {
+    const a = state.measurePoints[0];
+    const b = state.measurePoints[1];
+    const d = dist3(a, b);
+    if (viewer.addLine) {
+      state.measureShapes.push(viewer.addLine({start:{x:a.x,y:a.y,z:a.z}, end:{x:b.x,y:b.y,z:b.z}, color:"red", linewidth:3}));
+    }
+    if (viewer.addLabel) {
+      state.measureLabels.push(viewer.addLabel(`d=${d.toFixed(2)} Å`, {
+        position:{x:(a.x+b.x)/2, y:(a.y+b.y)/2, z:(a.z+b.z)/2},
+        backgroundColor:"red",
+        fontColor:"white",
+        inFront:true
+      }));
+    }
+    setStatus(`${sideText}键长：${atomName(a)} ↔ ${atomName(b)} = ${d.toFixed(2)} Å`);
+  } else if (state.measurePoints.length === 3) {
+    const a = state.measurePoints[0];
+    const b = state.measurePoints[1];
+    const c = state.measurePoints[2];
+    const v1 = {x:a.x-b.x, y:a.y-b.y, z:a.z-b.z};
+    const v2 = {x:c.x-b.x, y:c.y-b.y, z:c.z-b.z};
+    const n1 = Math.sqrt(v1.x*v1.x+v1.y*v1.y+v1.z*v1.z);
+    const n2 = Math.sqrt(v2.x*v2.x+v2.y*v2.y+v2.z*v2.z);
+    const cosv = (v1.x*v2.x+v1.y*v2.y+v1.z*v2.z) / Math.max(1e-8, n1*n2);
+    const ang = Math.acos(Math.max(-1, Math.min(1, cosv))) * 180 / Math.PI;
+    if (viewer.addLine) {
+      state.measureShapes.push(viewer.addLine({start:{x:b.x,y:b.y,z:b.z}, end:{x:a.x,y:a.y,z:a.z}, color:"purple", linewidth:3}));
+      state.measureShapes.push(viewer.addLine({start:{x:b.x,y:b.y,z:b.z}, end:{x:c.x,y:c.y,z:c.z}, color:"purple", linewidth:3}));
+    }
+    if (viewer.addLabel) {
+      state.measureLabels.push(viewer.addLabel(`∠=${ang.toFixed(1)}°`, {
+        position:{x:b.x,y:b.y,z:b.z},
+        backgroundColor:"purple",
+        fontColor:"white",
+        inFront:true
+      }));
+    }
+    setStatus(`${sideText}键角：${atomName(a)} - ${atomName(b)} - ${atomName(c)} = ${ang.toFixed(1)}°`);
+    state.measurePoints = [];
+  } else {
+    setStatus(`${sideText}测量点1：${atomName(atom)}，请继续点击第2个原子`);
+  }
+  viewer.render();
+}
+function clearViewerLabels(viewer, state) {
+  if (state.pickedLabel && viewer.removeLabel) viewer.removeLabel(state.pickedLabel);
+  state.pickedLabel = null;
+  if (viewer.removeLabel) {
+    for (const lb of state.nearLabels) viewer.removeLabel(lb);
+  }
+  state.nearLabels = [];
+}
+function applyPanelBase(viewer, state) {
+  viewer.setStyle({}, {cartoon:{color:"lightgray"}});
+  if (state.ligModel && state.ligModel.setStyle) {
+    state.ligModel.setStyle({}, {stick:{colorscheme:state.ligColor, radius:0.24}});
+  }
+  viewer.setStyle({elem:"ZN"}, {sphere:{radius:1.0, color:"magenta"}, stick:{radius:0.2, color:"magenta"}});
+  viewer.setStyle({atom:"ZN"}, {sphere:{radius:1.0, color:"magenta"}, stick:{radius:0.2, color:"magenta"}});
+  viewer.setStyle({within:{distance:3.0, sel:{elem:"ZN"}}}, {stick:{colorscheme:"greenCarbon", radius:0.18}});
+  viewer.setStyle({within:{distance:3.0, sel:{atom:"ZN"}}}, {stick:{colorscheme:"greenCarbon", radius:0.18}});
+  viewer.setStyle({within:{distance:5.0, sel:{elem:"ZN"}}, byres:true}, {stick:{colorscheme:"yellowCarbon", radius:0.18}});
+  viewer.setStyle({within:{distance:5.0, sel:{atom:"ZN"}}, byres:true}, {stick:{colorscheme:"yellowCarbon", radius:0.18}});
+}
+function labelResiduesInSelection(viewer, state, sel) {
+  if (!residueLabelMode || !viewer.getModel || !viewer.addLabel) return;
+  if (viewer.removeLabel) {
+    for (const lb of state.nearLabels) viewer.removeLabel(lb);
+  }
+  state.nearLabels = [];
+  const model = viewer.getModel();
+  if (!model || !model.selectedAtoms) return;
+  const coreSel = sel && sel.within ? {within: sel.within} : sel;
+  const atoms = model.selectedAtoms(coreSel) || [];
+  const resMap = new Map();
+  for (const a of atoms) {
+    if (!a) continue;
+    const key = `${a.chain || ""}:${a.resn || ""}${a.resi || ""}`;
+    const prev = resMap.get(key);
+    if (!prev || a.atom === "CA") resMap.set(key, a);
+  }
+  for (const a of resMap.values()) {
+    const lb = viewer.addLabel(`${a.chain || ""}:${a.resn || ""}${a.resi || ""}`, {
+      position: offsetLabelPos(a),
+      backgroundColor: "rgba(255,255,255,0.92)",
+      fontColor: "black",
+      fontSize: 15,
+      inFront: true
+    });
+    state.nearLabels.push(lb);
+  }
+}
+function bindViewerClick(viewer) {
+  const state = getViewerState(viewer);
+  if (!viewer.setClickable) return;
+  viewer.setClickable({}, true, function(atom) {
+    if (!atom) return;
+    const sideText = viewer === vLeft ? "左侧" : "右侧";
+    if (measureMode) {
+      handleMeasureClick(viewer, state, atom, sideText);
+      return;
+    }
+    applyPanelBase(viewer, state);
+    const isZn = (atom.elem || "").toUpperCase() === "ZN" || (atom.atom || "").toUpperCase() === "ZN";
+    const nearSel = isZn
+      ? {within:{distance:5.0, sel:(atom.serial != null ? {serial:atom.serial} : {elem:"ZN"})}, byres:true}
+      : {within:{distance:5.0, sel:{chain: atom.chain, resi: atom.resi}}, byres:true};
+    viewer.setStyle(nearSel, {stick:{colorscheme:"whiteCarbon", radius:0.18}});
+    if (!isZn) viewer.setStyle({chain: atom.chain, resi: atom.resi}, {stick:{color:"orange", radius:0.22}});
+    viewer.setStyle({elem:"ZN"}, {sphere:{radius:1.0, color:"magenta"}, stick:{radius:0.2, color:"magenta"}});
+    viewer.setStyle({atom:"ZN"}, {sphere:{radius:1.0, color:"magenta"}, stick:{radius:0.2, color:"magenta"}});
+    clearViewerLabels(viewer, state);
+    labelResiduesInSelection(viewer, state, nearSel);
+    state.lastSel = nearSel;
+    if (viewer.addLabel) {
+      const pickedText = isZn ? "ZN" : `${atom.chain || ""}:${atom.resn || ""}${atom.resi || ""}`;
+      state.pickedLabel = viewer.addLabel(pickedText, {
+        position: {x:atom.x, y:atom.y, z:atom.z},
+        backgroundColor: "black",
+        fontColor: "white",
+        fontSize: 15,
+        inFront: true
+      });
+    }
+    viewer.zoomTo(nearSel);
+    viewer.render();
+    setStatus(isZn ? "已定位 ZN 的5Å邻域" : `已定位 ${atom.chain || ""}:${atom.resn || ""}${atom.resi || ""} 的5Å邻域`);
+  });
+}
+async function fetchJson(url) {
+  const r = await fetch(url + "?t=" + Date.now());
+  if (!r.ok) throw new Error(url + "加载失败");
+  return await r.json();
+}
+async function initData() {
+  diffdockIndex = await fetchJson("../backend/data/diffdock_index.json");
+  masterData = await fetchJson("../backend/data/data.json");
+  renderPdbOptions();
+  setStatus("数据已加载，可选择PDB进行pose对比");
+}
+function getEntryById(id) {
+  return (diffdockIndex.items || []).find(x => (x.id || "").toUpperCase() === (id || "").toUpperCase());
+}
+function getMasterItem(id) {
+  return (masterData.items || []).find(x => (x.id || "").toUpperCase() === (id || "").toUpperCase());
+}
+function renderPdbOptions() {
+  const q = document.getElementById("search_pdb").value.trim().toUpperCase();
+  const arr = (diffdockIndex.items || []).filter(x => !q || (x.id || "").toUpperCase().includes(q));
+  const leftSel = document.getElementById("pdb_left");
+  const rightSel = document.getElementById("pdb_right");
+  const currentLeft = leftSel.value;
+  const currentRight = rightSel.value;
+  leftSel.innerHTML = "";
+  rightSel.innerHTML = "";
+  for (const sel of [leftSel, rightSel]) {
+    for (const it of arr) {
+      const op = document.createElement("option");
+      op.value = it.id;
+      op.textContent = `${it.id} (${it.pose_count})`;
+      sel.appendChild(op);
+    }
+  }
+  if (!arr.length) {
+    for (const sel of [leftSel, rightSel]) {
+      const op = document.createElement("option");
+      op.value = "";
+      op.textContent = "无匹配PDB";
+      sel.appendChild(op);
+    }
+  } else {
+    if (arr.find(x => x.id === currentLeft)) leftSel.value = currentLeft;
+    if (arr.find(x => x.id === currentRight)) rightSel.value = currentRight;
+    if (!leftSel.value && arr.length) leftSel.value = arr[0].id;
+    if (!rightSel.value && arr.length > 1) rightSel.value = arr[1].id;
+    if (!rightSel.value && arr.length) rightSel.value = arr[0].id;
+  }
+  renderPoseOptions("left");
+  renderPoseOptions("right");
+  refreshRankForSide("left");
+  refreshRankForSide("right");
+}
+function poseLabel(p) {
+  const r = p.rank != null ? `rank${p.rank}` : "rank?";
+  const c = p.confidence != null ? `conf ${p.confidence}` : "conf ?";
+  return `${r} | ${c}`;
+}
+function getDefaultPoseFile(pid) {
+  const entry = getEntryById(pid);
+  const poses = entry ? (entry.poses || []) : [];
+  const m = getMasterItem(pid) || {};
+  const best = (m.best_sdf || "").split("/").pop();
+  if (best) {
+    const hit = poses.find(p => (p.filename || "") === best);
+    if (hit) return hit.file;
+  }
+  return poses.length ? poses[0].file : "";
+}
+function renderPoseOptions(side) {
+  const pid = document.getElementById(side === "left" ? "pdb_left" : "pdb_right").value;
+  const entry = getEntryById(pid);
+  const poseSel = document.getElementById(side === "left" ? "pose_left" : "pose_right");
+  const current = poseSel.value;
+  poseSel.innerHTML = "";
+  const poses = entry ? (entry.poses || []) : [];
+  for (const p of poses) {
+    const op = document.createElement("option");
+    op.value = p.file;
+    op.textContent = poseLabel(p);
+    poseSel.appendChild(op);
+  }
+  if (poses.find(p => p.file === current)) {
+    poseSel.value = current;
+  } else {
+    const def = getDefaultPoseFile(pid);
+    if (def) poseSel.value = def;
+  }
+}
+function structureCandidates(id) {
+  const m = getMasterItem(id) || {};
+  const cands = [];
+  if (m.receptor_rel) cands.push(m.receptor_rel);
+  if (m.receptor_pdb) cands.push(m.receptor_pdb);
+  cands.push(`../backend/data/structures/${id}.pdb`);
+  cands.push(`../backend/data/structures/${id}.cif`);
+  return [...new Set(cands.filter(Boolean))];
+}
+async function tryLoadModel(viewer, candidates, fmts) {
+  for (let i = 0; i < candidates.length; i++) {
+    const u = candidates[i];
+    try {
+      const r = await fetch(u + "?t=" + Date.now());
+      if (!r.ok) continue;
+      const txt = await r.text();
+      viewer.addModel(txt, fmts[i]);
+      return u;
+    } catch (_) {}
+  }
+  return "";
+}
+async function loadOne(viewer, id, poseFile, ligandColor) {
+  viewer.clear();
+  const state = getViewerState(viewer);
+  clearViewerLabels(viewer, state);
+  clearMeasurementForViewer(viewer, state);
+  const cands = structureCandidates(id);
+  const fmts = cands.map(x => x.toLowerCase().endsWith(".cif") ? "cif" : "pdb");
+  const loadedRec = await tryLoadModel(viewer, cands, fmts);
+  if (!loadedRec) throw new Error("受体结构未找到: " + id);
+  const r = await fetch(poseFile + "?t=" + Date.now());
+  if (!r.ok) throw new Error("pose加载失败: " + poseFile);
+  const sdf = await r.text();
+  const lig = viewer.addModel(sdf, "sdf");
+  state.ligModel = lig;
+  state.ligColor = ligandColor;
+  applyPanelBase(viewer, state);
+  lig.setStyle({}, {stick:{colorscheme:ligandColor, radius:0.24}});
+  bindViewerClick(viewer);
+  state.lastSel = {within:{distance:5.0, sel:{elem:"ZN"}}, byres:true};
+  if (residueLabelMode) {
+    labelResiduesInSelection(viewer, state, state.lastSel);
+  }
+  viewer.zoomTo();
+  viewer.render();
+  return loadedRec;
+}
+async function loadOneLocal(viewer, receptor, pose, ligandColor) {
+  viewer.clear();
+  const state = getViewerState(viewer);
+  clearViewerLabels(viewer, state);
+  clearMeasurementForViewer(viewer, state);
+  viewer.addModel(receptor.text, receptor.fmt);
+  const lig = viewer.addModel(pose.text, "sdf");
+  state.ligModel = lig;
+  state.ligColor = ligandColor;
+  applyPanelBase(viewer, state);
+  lig.setStyle({}, {stick:{colorscheme:ligandColor, radius:0.24}});
+  bindViewerClick(viewer);
+  state.lastSel = {within:{distance:5.0, sel:{elem:"ZN"}}, byres:true};
+  if (residueLabelMode) labelResiduesInSelection(viewer, state, state.lastSel);
+  viewer.zoomTo();
+  viewer.render();
+}
+function renderOnlinePoses() {
+  const leftSel = document.getElementById("online_pose_left");
+  const rightSel = document.getElementById("online_pose_right");
+  leftSel.innerHTML = "";
+  rightSel.innerHTML = "";
+  for (const p of onlineResult.poses) {
+    const op1 = document.createElement("option");
+    op1.value = p.name;
+    op1.textContent = p.name;
+    leftSel.appendChild(op1);
+    const op2 = document.createElement("option");
+    op2.value = p.name;
+    op2.textContent = p.name;
+    rightSel.appendChild(op2);
+  }
+  if (rightSel.options.length > 1) rightSel.selectedIndex = 1;
+}
+async function submitOnlineJob() {
+  const apiBase = getApiBase();
+  if (!apiBase) {
+    setStatus("请填写API地址");
+    return;
+  }
+  const receptorFile = (document.getElementById("online_receptor_file").files || [])[0];
+  const ligandFile = (document.getElementById("online_ligand_file").files || [])[0];
+  if (!receptorFile || !ligandFile) {
+    setStatus("请上传受体和配体文件");
+    return;
+  }
+  const receptorText = await readFileText(receptorFile);
+  const ligandText = await readFileText(ligandFile);
+  const payload = {
+    receptor_name: receptorFile.name,
+    receptor_text: receptorText,
+    ligand_name: ligandFile.name,
+    ligand_text: ligandText,
+    inference_steps: Number(document.getElementById("online_steps").value || 20),
+    samples_per_complex: Number(document.getElementById("online_samples").value || 10)
+  };
+  setStatus("正在提交在线DiffDock任务...");
+  try {
+    const r = await fetch(apiBase + "/api/diffdock/submit", {
+      method:"POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify(payload)
+    });
+    const j = await r.json();
+    if (!r.ok || !j.ok) throw new Error(j.error || "submit failed");
+    onlineJobId = j.job_id;
+    setOnlineInfo(`任务已提交：${onlineJobId}`);
+    setStatus(`在线任务已提交：${onlineJobId}`);
+  } catch (e) {
+    setStatus("在线提交失败：" + (e && e.message ? e.message : "unknown"));
+  }
+}
+async function pollOnlineJob() {
+  const apiBase = getApiBase();
+  if (!apiBase || !onlineJobId) {
+    setStatus("请先提交在线任务");
+    return;
+  }
+  try {
+    const r = await fetch(apiBase + "/api/diffdock/status/" + encodeURIComponent(onlineJobId));
+    const j = await r.json();
+    if (!r.ok || !j.ok) throw new Error(j.error || "status failed");
+    const job = j.job || {};
+    setOnlineInfo(`任务 ${job.id}：${job.status}${job.error ? " | " + job.error : ""}`);
+    if (job.status === "done" && Array.isArray(job.poses) && job.poses.length) {
+      const receptorFile = (document.getElementById("online_receptor_file").files || [])[0];
+      if (!receptorFile) throw new Error("缺少受体文件");
+      const receptorText = await readFileText(receptorFile);
+      const receptorFmt = receptorFile.name.toLowerCase().endsWith(".cif") ? "cif" : "pdb";
+      onlineResult = {
+        apiBase,
+        receptor: {name: receptorFile.name, text: receptorText, fmt: receptorFmt},
+        poses: job.poses
+      };
+      renderOnlinePoses();
+      setStatus(`在线任务完成，pose数量 ${job.poses.length}`);
+    } else {
+      setStatus(`在线任务状态：${job.status}`);
+    }
+  } catch (e) {
+    setStatus("查询在线任务失败：" + (e && e.message ? e.message : "unknown"));
+  }
+}
+async function fetchOnlinePoseText(poseName) {
+  const p = (onlineResult.poses || []).find(x => x.name === poseName);
+  if (!p) throw new Error("pose不存在: " + poseName);
+  const r = await fetch(onlineResult.apiBase + p.url);
+  if (!r.ok) throw new Error("下载pose失败: " + poseName);
+  return await r.text();
+}
+async function loadCompareOnline() {
+  if (!onlineResult.receptor || !onlineResult.poses.length) {
+    setStatus("请先提交并查询到在线结果");
+    return;
+  }
+  const leftName = document.getElementById("online_pose_left").value;
+  const rightName = document.getElementById("online_pose_right").value;
+  if (!leftName || !rightName) {
+    setStatus("请选择左右在线pose");
+    return;
+  }
+  setStatus("正在加载在线DiffDock结果...");
+  try {
+    const [leftText, rightText] = await Promise.all([fetchOnlinePoseText(leftName), fetchOnlinePoseText(rightName)]);
+    await loadOneLocal(vLeft, onlineResult.receptor, {name:leftName, text:leftText}, "orangeCarbon");
+    await loadOneLocal(vRight, onlineResult.receptor, {name:rightName, text:rightText}, "cyanCarbon");
+    document.getElementById("left_title").textContent = `左侧：在线任务 ${onlineJobId} | ${leftName}`;
+    document.getElementById("right_title").textContent = `右侧：在线任务 ${onlineJobId} | ${rightName}`;
+    setStatus("在线DiffDock结果已加载到对比窗口");
+  } catch (e) {
+    setStatus("在线结果加载失败：" + (e && e.message ? e.message : "unknown"));
+  }
+}
+async function loadCompare() {
+  const leftPid = document.getElementById("pdb_left").value;
+  const rightPid = document.getElementById("pdb_right").value;
+  const leftPose = document.getElementById("pose_left").value;
+  const rightPose = document.getElementById("pose_right").value;
+  if (!leftPid || !rightPid || !leftPose || !rightPose) {
+    setStatus("请选择左右PDB和左右pose");
+    return;
+  }
+  setStatus("正在加载对比...");
+  try {
+    await loadOne(vLeft, leftPid, leftPose, "orangeCarbon");
+    await loadOne(vRight, rightPid, rightPose, "cyanCarbon");
+    document.getElementById("left_title").textContent = `左侧：${leftPid} | ${leftPose.split('/').pop()}`;
+    document.getElementById("right_title").textContent = `右侧：${rightPid} | ${rightPose.split('/').pop()}`;
+    setStatus("加载完成，可旋转/缩放对比");
+  } catch (e) {
+    setStatus("加载失败：" + (e && e.message ? e.message : "unknown"));
+  }
+}
+document.getElementById("search_pdb").addEventListener("input", renderPdbOptions);
+document.getElementById("pdb_left").addEventListener("change", async ()=>{ renderPoseOptions("left"); await refreshRankForSide("left"); await applyAutoTop2FromLeft(); });
+document.getElementById("pdb_right").addEventListener("change", async ()=>{ renderPoseOptions("right"); await refreshRankForSide("right"); loadCompare(); });
+document.getElementById("pose_left").addEventListener("change", loadCompare);
+document.getElementById("pose_right").addEventListener("change", loadCompare);
+document.getElementById("swap_btn").addEventListener("click", ()=>{
+  const pl = document.getElementById("pdb_left");
+  const pr = document.getElementById("pdb_right");
+  const pv = pl.value; pl.value = pr.value; pr.value = pv;
+  const l = document.getElementById("pose_left");
+  const r = document.getElementById("pose_right");
+  const t = l.value; l.value = r.value; r.value = t;
+  renderPoseOptions("left");
+  renderPoseOptions("right");
+  loadCompare();
+});
+document.getElementById("load_btn").addEventListener("click", loadCompare);
+document.getElementById("online_submit_btn").addEventListener("click", submitOnlineJob);
+document.getElementById("online_poll_btn").addEventListener("click", pollOnlineJob);
+document.getElementById("online_load_btn").addEventListener("click", loadCompareOnline);
+document.getElementById("auto_top2_btn").addEventListener("click", applyAutoTop2FromLeft);
+document.getElementById("measure_mode_btn").addEventListener("click", ()=>{
+  measureMode = !measureMode;
+  document.getElementById("measure_mode_btn").textContent = "测量模式：" + (measureMode ? "开" : "关");
+  for (const viewer of [vLeft, vRight]) {
+    const state = getViewerState(viewer);
+    state.measurePoints = [];
+  }
+  setStatus(measureMode ? "测量模式已开启：每个窗口点击2点测键长，连续点击3点测键角" : "测量模式已关闭");
+});
+document.getElementById("measure_clear_btn").addEventListener("click", ()=>{
+  for (const viewer of [vLeft, vRight]) {
+    const state = getViewerState(viewer);
+    clearMeasurementForViewer(viewer, state);
+    if (viewer.render) viewer.render();
+  }
+  setStatus("测量结果已清空");
+});
+document.getElementById("res_label_btn").addEventListener("click", ()=>{
+  residueLabelMode = !residueLabelMode;
+  document.getElementById("res_label_btn").textContent = "残基标签：" + (residueLabelMode ? "开" : "关");
+  for (const viewer of [vLeft, vRight]) {
+    const state = getViewerState(viewer);
+    if (residueLabelMode) {
+      if (state.lastSel) labelResiduesInSelection(viewer, state, state.lastSel);
+    } else {
+      clearViewerLabels(viewer, state);
+    }
+    if (viewer.render) viewer.render();
+  }
+  setStatus(residueLabelMode ? "已开启残基标签，可点击残基或ZN查看5Å邻域标签" : "已关闭残基标签");
+});
+window.addEventListener("load", async ()=>{
+  try {
+    await initData();
+    renderPoseOptions("left");
+    renderPoseOptions("right");
+    await applyAutoTop2FromLeft();
+    await refreshRankForSide("right");
+    loadCompare();
+  } catch (e) {
+    setStatus("初始化失败：" + (e && e.message ? e.message : "unknown"));
+  }
+});
+</script>
+</body>
+</html>

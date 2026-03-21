@@ -1,0 +1,24 @@
+CMD: /root/tools/TMalign /root/data-platform/backend/runtime/tmalign_jobs/95a5cfddff16/input/1KOP.pdb /root/data-platform/backend/runtime/tmalign_jobs/95a5cfddff16/input/1TXL.pdb
+
+ *********************************************************************
+ * TM-align (Version 20220412): protein structure alignment          *
+ * References: Y Zhang, J Skolnick. Nucl Acids Res 33, 2302-9 (2005) *
+ * Please email comments and suggestions to yangzhanglab@umich.edu   *
+ *********************************************************************
+
+Name of Chain_1: /root/data-platform/backend/runtime/tmalign_jobs/95a5cfddff16/input/1KOP.pdb (to be superimposed onto Chain_2)
+Name of Chain_2: /root/data-platform/backend/runtime/tmalign_jobs/95a5cfddff16/input/1TXL.pdb
+Length of Chain_1: 223 residues
+Length of Chain_2: 188 residues
+
+Aligned length= 99, RMSD=   5.55, Seq_ID=n_identical/n_aligned= 0.030
+TM-score= 0.27071 (if normalized by length of Chain_1, i.e., LN=223, d0=5.55)
+TM-score= 0.30566 (if normalized by length of Chain_2, i.e., LN=188, d0=5.11)
+(You should use TM-score normalized by length of the reference structure)
+
+(":" denotes residue pairs of d <  5.0 Angstrom, "." denotes other aligned residues)
+HTHW----------------------------------------------------GY-TGHDSPESWGNLSEEFRLCSTGKNQSPVNITETV----------------SGKLPAIKVNYKPSMVDVENNGHTIQVNYPEGGNTL-T-VNGRTYTLKQFHFHVPSENQIKGRTF-----PMEAHFVHLDEN--KQ--P--LVLAVLYEAGKTNGRLSSIWNVMPMTAGKVKLNQPFDASTLLPKRLKYYRFAGSLTTPPCTEGVSWLVLKTYDHIDQAQ-------AEKFTRAVGSENNRPVQPLNARVVIE
+                                                        .. :::::.:::.       .:. . ...:.                      ..::::::::::.::::........:::.   .::. . ..:.:::::::::.                 .::::::::::.  ..  .  .:.::::                                                              :..              .   .     ...             
+----HGKPLTEVEQKAANGVFDDANVQNRTLSDWDGVWQSVYPLLQSGKLDPVFQKKADADKTKTFAEI-------KDY-Y-HKGYA------TDIEMIGIEDGIVEFHRNNETTSCKYDYDGYKILTYKSGKKGVRY---LFECKDPESKAPKYIQFSDHI------------IAPRKSSHFHIFMGNDSQQSLLNEMENWPTYYP--------------------------------------------------------------YQL-------SSEEVVEE---M-----MSH-------------
+
+Total CPU time is  0.05 seconds

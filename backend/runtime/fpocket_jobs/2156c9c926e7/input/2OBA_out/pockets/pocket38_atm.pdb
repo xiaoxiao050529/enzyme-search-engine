@@ -1,0 +1,37 @@
+HEADER
+HEADER This is a pdb format file writen by the programm fpocket.                 
+HEADER It represents the atoms contacted by the voronoi vertices of the pocket.  
+HEADER                                                                           
+HEADER Information about the pocket    38:
+HEADER 0  - Pocket Score                      : -0.1445
+HEADER 1  - Drug Score                        : 0.0000
+HEADER 2  - Number of alpha spheres           :    17
+HEADER 3  - Mean alpha-sphere radius          : 4.1632
+HEADER 4  - Mean alpha-sphere Solvent Acc.    : 0.5611
+HEADER 5  - Mean B-factor of pocket residues  : 0.4887
+HEADER 6  - Hydrophobicity Score              : 12.6667
+HEADER 7  - Polarity Score                    :     6
+HEADER 8  - Amino Acid based volume Score     : 5.1667
+HEADER 9  - Pocket volume (Monte Carlo)       : 303.3515
+HEADER 10 - Pocket volume (convex hull)       : 5.2331
+HEADER 11 - Charge Score                      :     0
+HEADER 12 - Local hydrophobic density Score   : 0.0000
+HEADER 13 - Number of apolar alpha sphere     :     1
+HEADER 14 - Proportion of apolar alpha sphere : 0.0588
+ATOM   5710  NH1 ARG F  87      47.473  -6.721  26.936  0.19  9.84           N 0
+ATOM   5968  OD2 ASP F 118      47.073 -11.481  30.995  0.00  0.00           O 0
+ATOM   5756  NE2 GLN F  91      46.526  -3.350  32.827  0.00  0.00           N 0
+ATOM   5707   CD ARG F  87      45.235  -5.728  28.382  0.00  0.00           C 0
+ATOM   5967  OD1 ASP F 118      44.998 -10.830  30.584  0.76  1.07           O 0
+ATOM   5945   OH TYR F 115      43.072  -9.008  30.560  0.47  5.36           O 0
+ATOM   5706   CG ARG F  87      44.144  -4.855  29.045  0.00  0.00           C 0
+ATOM   5966   CG ASP F 118      45.871 -11.337  31.339  0.00  0.00           C 0
+ATOM   5753   CG GLN F  91      44.175  -3.381  33.503  0.00  0.00           C 0
+ATOM   5965   CB ASP F 118      45.467 -11.793  32.749  0.00  0.00           C 0
+ATOM   5740  CD1 TRP F  90      40.477  -6.886  34.152  0.00  0.00           C 0
+ATOM   5961    N ASP F 118      43.001 -11.464  32.773  0.44  2.19           N 0
+ATOM   5742  NE1 TRP F  90      40.261  -8.025  34.900  0.54  5.47           N 0
+ATOM   5964    O ASP F 118      43.530 -12.750  35.115  0.26  9.64           O 0
+ATOM   3983   OG SER E  -1      45.492  -8.532  27.471  0.35  2.14           O 0
+TER
+END

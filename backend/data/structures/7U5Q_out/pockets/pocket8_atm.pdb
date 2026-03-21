@@ -1,0 +1,60 @@
+HEADER
+HEADER This is a pdb format file writen by the programm fpocket.                 
+HEADER It represents the atoms contacted by the voronoi vertices of the pocket.  
+HEADER                                                                           
+HEADER Information about the pocket     8:
+HEADER 0  - Pocket Score                      : 0.0628
+HEADER 1  - Drug Score                        : 0.0002
+HEADER 2  - Number of alpha spheres           :    56
+HEADER 3  - Mean alpha-sphere radius          : 3.9694
+HEADER 4  - Mean alpha-sphere Solvent Acc.    : 0.4865
+HEADER 5  - Mean B-factor of pocket residues  : 0.1523
+HEADER 6  - Hydrophobicity Score              : 3.5333
+HEADER 7  - Polarity Score                    :    12
+HEADER 8  - Amino Acid based volume Score     : 4.8000
+HEADER 9  - Pocket volume (Monte Carlo)       : 592.5214
+HEADER 10 - Pocket volume (convex hull)       : 117.9039
+HEADER 11 - Charge Score                      :     1
+HEADER 12 - Local hydrophobic density Score   : 5.4286
+HEADER 13 - Number of apolar alpha sphere     :     7
+HEADER 14 - Proportion of apolar alpha sphere : 0.1250
+ATOM   2624  OE1 GLU B 172      31.705  18.022 -29.536  0.55  9.64           O 0
+ATOM   2591    N ALA B 169      30.060  16.961 -34.548  0.00  0.00           N 0
+ATOM   2592   CA ALA B 169      29.809  18.157 -33.750  0.00  0.00           C 0
+ATOM   2595   CB ALA B 169      30.460  19.371 -34.413  0.00  0.00           C 0
+ATOM   2751   CE LYS B 188      34.430  12.083 -28.107  0.00  0.00           C 0
+ATOM   2590  OD2 ASP B 168      32.746  12.338 -35.641  0.00  0.00           O 0
+ATOM   2775   NZ LYS B 191      32.459   9.206 -32.839  0.58  5.47           N 0
+ATOM   2711  NE1 TRP B 184      30.990  13.557 -29.496  0.54  4.37           N 0
+ATOM   2808  OD2 ASP B 195      33.174   8.182 -35.311  0.67  4.29           O 0
+ATOM   1765  NE2 GLN B  54      40.813  11.343 -34.512  0.00  0.00           N 0
+ATOM   1764  OE1 GLN B  54      40.419   9.632 -33.105  0.72  6.43           O 0
+ATOM   2752   NZ LYS B 188      35.559  13.048 -28.223  0.00  0.00           N 0
+ATOM   2750   CD LYS B 188      34.920  10.651 -27.964  0.00  0.00           C 0
+ATOM   2714  CZ2 TRP B 184      29.975  12.448 -31.506  0.00  0.00           C 0
+ATOM   2562    O GLU B 165      32.216  16.993 -36.665  0.62  5.36           O 0
+ATOM   2560   CA GLU B 165      33.661  16.125 -38.370  0.00  0.00           C 0
+ATOM   2564   CG GLU B 165      36.145  16.075 -38.926  0.00  0.00           C 0
+ATOM   2563   CB GLU B 165      34.973  16.902 -38.420  0.00  0.00           C 0
+ATOM   2846  NH2 ARG B 199      37.182  12.065 -39.833  0.55  4.37           N 0
+ATOM   2557  CE1 HIS B 164      33.197  10.305 -39.197  0.00  0.00           C 0
+ATOM   2747    O LYS B 188      34.058   5.578 -30.474  0.64  5.36           O 0
+ATOM   2748   CB LYS B 188      34.348   8.250 -28.480  0.00  0.00           C 0
+ATOM   2783   CE MET B 192      38.338   3.562 -30.240  0.00  0.00           C 0
+ATOM   1756  NE2 GLN B  53      40.905   6.526 -30.167  0.23  9.84           N 0
+ATOM   2587   CB ASP B 168      31.369  14.102 -34.816  0.00  0.00           C 0
+ATOM   2585    C ASP B 168      29.617  15.775 -34.131  0.00  0.00           C 0
+ATOM   2781   CG MET B 192      36.322   3.517 -32.179  0.00  0.00           C 0
+ATOM   1788  CG1 ILE B  57      39.406   5.309 -34.745  0.00  0.00           C 0
+ATOM   2565   CD GLU B 165      37.464  16.814 -38.832  0.00  0.00           C 0
+ATOM   2566  OE1 GLU B 165      37.546  17.784 -38.048  0.00  0.00           O 0
+ATOM   1800  NH1 ARG B  58      40.212  13.683 -38.888  0.43  6.56           N 0
+ATOM   1797   CD ARG B  58      40.820  11.100 -37.882  0.00  0.00           C 0
+ATOM   2749   CG LYS B 188      33.872   9.689 -28.462  0.00  0.00           C 0
+ATOM   1796   CG ARG B  58      39.797  10.115 -38.415  0.00  0.00           C 0
+ATOM   1789  CG2 ILE B  57      37.500   6.516 -35.835  0.00  0.00           C 0
+ATOM   2843   NE ARG B 199      36.666  10.265 -41.151  0.00  0.00           N 0
+ATOM   1786    O ILE B  57      37.784   6.260 -38.970  0.00  0.00           O 0
+ATOM   2805   CB ASP B 195      33.561   6.704 -37.120  0.00  0.00           C 0
+TER
+END

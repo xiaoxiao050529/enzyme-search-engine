@@ -1,0 +1,37 @@
+HEADER
+HEADER This is a pdb format file writen by the programm fpocket.                 
+HEADER It represents the atoms contacted by the voronoi vertices of the pocket.  
+HEADER                                                                           
+HEADER Information about the pocket    35:
+HEADER 0  - Pocket Score                      : -0.0799
+HEADER 1  - Drug Score                        : 0.0001
+HEADER 2  - Number of alpha spheres           :    15
+HEADER 3  - Mean alpha-sphere radius          : 4.1197
+HEADER 4  - Mean alpha-sphere Solvent Acc.    : 0.6298
+HEADER 5  - Mean B-factor of pocket residues  : 0.3066
+HEADER 6  - Hydrophobicity Score              : -3.8571
+HEADER 7  - Polarity Score                    :     5
+HEADER 8  - Amino Acid based volume Score     : 3.4286
+HEADER 9  - Pocket volume (Monte Carlo)       : 337.8007
+HEADER 10 - Pocket volume (convex hull)       : 9.8782
+HEADER 11 - Charge Score                      :    -2
+HEADER 12 - Local hydrophobic density Score   : 4.0000
+HEADER 13 - Number of apolar alpha sphere     :     5
+HEADER 14 - Proportion of apolar alpha sphere : 0.3333
+ATOM   4165  OD1 ASN C 146      10.121  80.601  78.405  0.00  0.00           O 0
+ATOM   4027   CB ASP C 129      15.262  82.543  75.555  0.00  0.00           C 0
+ATOM   4164   CG ASN C 146      11.198  80.079  78.701  0.00  0.00           C 0
+ATOM   4163   CB ASN C 146      12.226  79.882  77.598  0.00  0.00           C 0
+ATOM   4028   CG ASP C 129      15.016  83.725  74.669  0.00  0.00           C 0
+ATOM   4029  OD1 ASP C 129      15.131  84.913  75.122  0.33  4.29           O 0
+ATOM   4030  OD2 ASP C 129      14.764  83.634  73.455  0.24  2.14           O 0
+ATOM   3827  OD2 ASP C 101       9.588  87.971  71.860  0.00  7.50           O 0
+ATOM   3826  OD1 ASP C 101       7.553  87.324  72.434  0.58  9.64           O 0
+ATOM   3818  CG1 VAL C 100       8.751  84.699  69.664  0.00  0.00           C 0
+ATOM   4020   CA GLY C 128      12.302  79.440  73.242  0.00  0.00           C 0
+ATOM   4174  ND2 ASN C 147      14.453  79.692  80.815  0.00  0.00           N 0
+ATOM   4023    N ASP C 129      13.963  80.843  74.342  0.00  0.00           N 0
+ATOM   3885   OH TYR C 108      12.874  85.493  69.618  0.42  9.64           O 0
+ATOM   3883  CE2 TYR C 108      12.099  83.257  69.123  0.00  0.00           C 0
+TER
+END

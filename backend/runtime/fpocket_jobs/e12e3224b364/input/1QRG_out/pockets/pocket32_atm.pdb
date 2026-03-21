@@ -1,0 +1,43 @@
+HEADER
+HEADER This is a pdb format file writen by the programm fpocket.                 
+HEADER It represents the atoms contacted by the voronoi vertices of the pocket.  
+HEADER                                                                           
+HEADER Information about the pocket    32:
+HEADER 0  - Pocket Score                      : -0.0517
+HEADER 1  - Drug Score                        : 0.0011
+HEADER 2  - Number of alpha spheres           :    21
+HEADER 3  - Mean alpha-sphere radius          : 4.0962
+HEADER 4  - Mean alpha-sphere Solvent Acc.    : 0.6605
+HEADER 5  - Mean B-factor of pocket residues  : 0.2868
+HEADER 6  - Hydrophobicity Score              : 29.3000
+HEADER 7  - Polarity Score                    :     5
+HEADER 8  - Amino Acid based volume Score     : 3.8000
+HEADER 9  - Pocket volume (Monte Carlo)       : 308.8285
+HEADER 10 - Pocket volume (convex hull)       : 20.0858
+HEADER 11 - Charge Score                      :     1
+HEADER 12 - Local hydrophobic density Score   : 10.0000
+HEADER 13 - Number of apolar alpha sphere     :    11
+HEADER 14 - Proportion of apolar alpha sphere : 0.5238
+ATOM   2998  CG2 VAL B 198      32.020  48.380  56.245  0.00  0.00           C 0
+ATOM   2991   CB ALA B 197      33.484  44.207  54.313  0.00  0.00           C 0
+ATOM    567  CD2 LEU A  83      27.563  47.856  52.730  0.00  0.00           C 0
+ATOM    578  OE1AGLU A  84      31.214  46.212  50.697  0.79  5.36           O 0
+ATOM    566  CD1 LEU A  83      25.626  46.349  52.243  0.00  0.00           C 0
+ATOM   2968  OG1 THR B 194      28.431  44.143  58.530  0.36  7.50           O 0
+ATOM   2957   CB HIS B 193      32.058  39.758  57.851  0.00  0.00           C 0
+ATOM   2963    N THR B 194      31.036  42.948  58.855  0.00  0.00           N 0
+ATOM   2933    O ALA B 190      26.095  40.878  59.131  0.09  8.57           O 0
+ATOM   2966    O THR B 194      32.454  45.739  57.351  0.00  0.00           O 0
+ATOM   2969  CG2 THR B 194      29.319  46.377  58.364  0.00  0.00           C 0
+ATOM   2956    O HIS B 193      32.738  42.453  57.472  0.55  1.07           O 0
+ATOM    580  OE2AGLU A  84      32.922  44.912  50.227  0.64  8.57           O 0
+ATOM    576   CDAGLU A  84      31.859  45.492  49.907  0.00  0.00           C 0
+ATOM    643  CD1 ILE A  93      30.582  42.246  46.501  0.00  0.00           C 0
+ATOM    574   CGAGLU A  84      31.332  45.255  48.499  0.00  0.00           C 0
+ATOM   2964   CA THR B 194      30.819  44.269  58.244  0.00  0.00           C 0
+ATOM   2955    C HIS B 193      32.003  42.149  58.433  0.00  0.00           C 0
+ATOM    668  ND2 ASN A  96      27.110  43.930  49.103  0.74  5.47           N 0
+ATOM    667  OD1 ASN A  96      24.939  43.666  49.610  0.70  4.29           O 0
+ATOM   1012   NZ LYS A 141      23.310  42.970  54.186  0.05  8.75           N 0
+TER
+END

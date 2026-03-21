@@ -1,0 +1,39 @@
+HEADER
+HEADER This is a pdb format file writen by the programm fpocket.                 
+HEADER It represents the atoms contacted by the voronoi vertices of the pocket.  
+HEADER                                                                           
+HEADER Information about the pocket    13:
+HEADER 0  - Pocket Score                      : -0.1358
+HEADER 1  - Drug Score                        : 0.0009
+HEADER 2  - Number of alpha spheres           :    23
+HEADER 3  - Mean alpha-sphere radius          : 3.8548
+HEADER 4  - Mean alpha-sphere Solvent Acc.    : 0.5465
+HEADER 5  - Mean B-factor of pocket residues  : 0.5290
+HEADER 6  - Hydrophobicity Score              : 24.3333
+HEADER 7  - Polarity Score                    :     3
+HEADER 8  - Amino Acid based volume Score     : 4.3333
+HEADER 9  - Pocket volume (Monte Carlo)       : 197.7832
+HEADER 10 - Pocket volume (convex hull)       : 3.4889
+HEADER 11 - Charge Score                      :     0
+HEADER 12 - Local hydrophobic density Score   : 7.0000
+HEADER 13 - Number of apolar alpha sphere     :     8
+HEADER 14 - Proportion of apolar alpha sphere : 0.3478
+ATOM     60  CG1 VAL A  35       4.297  42.756  32.117  0.00  0.00           C 0
+ATOM    157  ND2 ASN A  48       1.051  38.878  31.910  0.70  9.84           N 0
+ATOM     88   NZ LYS A  38       1.677  42.493  39.258  0.00  0.00           N 0
+ATOM     61  CG2 VAL A  35       3.532  45.018  32.755  0.00  0.00           C 0
+ATOM    116  CG1 VAL A  43       2.546  37.889  39.238  0.00  0.00           C 0
+ATOM    118    N PHE A  44       2.934  36.477  35.981  0.73  2.19           N 0
+ATOM    121    O PHE A  44       1.105  34.955  34.752  0.62  2.14           O 0
+ATOM    135  OD1 ASP A  45      -2.500  36.133  35.038  0.59  9.64           O 0
+ATOM     86   CD LYS A  38       3.984  43.004  38.534  0.00  0.00           C 0
+ATOM     56   CA VAL A  35       5.370  43.897  34.068  0.00  0.00           C 0
+ATOM     84   CB LYS A  38       5.586  41.253  37.687  0.00  0.00           C 0
+ATOM    114    O VAL A  43       4.295  38.236  36.366  0.73  3.21           O 0
+ATOM    119   CA PHE A  44       2.435  36.956  34.698  0.00  0.00           C 0
+ATOM    136  OD2 ASP A  45      -2.657  38.196  34.344  0.52  7.50           O 0
+ATOM    120    C PHE A  44       1.280  36.067  34.250  0.00  0.00           C 0
+ATOM     58    O VAL A  35       6.485  41.808  34.507  0.00  0.00           O 0
+ATOM     87   CE LYS A  38       3.054  41.953  39.101  0.00  0.00           C 0
+TER
+END

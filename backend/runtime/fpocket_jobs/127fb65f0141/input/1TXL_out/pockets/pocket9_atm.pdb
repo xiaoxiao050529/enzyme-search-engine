@@ -1,0 +1,38 @@
+HEADER
+HEADER This is a pdb format file writen by the programm fpocket.                 
+HEADER It represents the atoms contacted by the voronoi vertices of the pocket.  
+HEADER                                                                           
+HEADER Information about the pocket     9:
+HEADER 0  - Pocket Score                      : -0.0689
+HEADER 1  - Drug Score                        : 0.0001
+HEADER 2  - Number of alpha spheres           :    22
+HEADER 3  - Mean alpha-sphere radius          : 3.8316
+HEADER 4  - Mean alpha-sphere Solvent Acc.    : 0.4833
+HEADER 5  - Mean B-factor of pocket residues  : 0.3473
+HEADER 6  - Hydrophobicity Score              : 20.5000
+HEADER 7  - Polarity Score                    :     4
+HEADER 8  - Amino Acid based volume Score     : 3.7000
+HEADER 9  - Pocket volume (Monte Carlo)       : 226.9373
+HEADER 10 - Pocket volume (convex hull)       : 9.1850
+HEADER 11 - Charge Score                      :    -2
+HEADER 12 - Local hydrophobic density Score   : 3.0000
+HEADER 13 - Number of apolar alpha sphere     :     4
+HEADER 14 - Proportion of apolar alpha sphere : 0.1818
+ATOM   1242    O MET A 180      19.370  17.627  27.957  0.00  0.00           O 0
+ATOM   1296   OG SER A 187      13.326  13.747  29.911  0.63  1.07           O 0
+ATOM   1266  OD2 ASP A 183      15.824  11.495  27.949  0.36  4.29           O 0
+ATOM   1328  OE1 GLU A 191      17.826  17.080  34.746  0.00  0.00           O 0
+ATOM   1304  CD2 LEU A 188      15.830  17.953  28.591  0.00  0.00           C 0
+ATOM   1248   CA GLY A 181      18.307  16.114  25.932  0.00  0.00           C 0
+ATOM   1223    O ILE A 178      20.071  23.711  30.344  0.00  0.00           O 0
+ATOM   1239    N MET A 180      19.038  20.407  27.905  0.51  1.09           N 0
+ATOM   1354  ND2 ASN A 194      21.760  19.387  34.023  0.44  8.75           N 0
+ATOM   1229   CA PHE A 179      18.009  22.218  29.168  0.00  0.00           C 0
+ATOM   1375   CD PRO A 196      22.271  22.622  32.690  0.00  0.00           C 0
+ATOM   1234  CD1 PHE A 179      16.219  22.156  32.038  0.00  0.00           C 0
+ATOM   1350    O ASN A 194      18.719  21.393  34.848  0.00  0.00           O 0
+ATOM   1246   CE MET A 180      23.219  21.662  28.378  0.00  0.00           C 0
+ATOM   1326   CG GLU A 191      15.830  17.908  33.751  0.00  0.00           C 0
+ATOM   1232   CB PHE A 179      16.535  22.080  29.547  0.00  0.00           C 0
+TER
+END

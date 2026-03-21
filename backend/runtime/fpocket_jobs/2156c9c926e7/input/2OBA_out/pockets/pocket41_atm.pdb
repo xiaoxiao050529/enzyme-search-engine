@@ -1,0 +1,44 @@
+HEADER
+HEADER This is a pdb format file writen by the programm fpocket.                 
+HEADER It represents the atoms contacted by the voronoi vertices of the pocket.  
+HEADER                                                                           
+HEADER Information about the pocket    41:
+HEADER 0  - Pocket Score                      : -0.2000
+HEADER 1  - Drug Score                        : 0.0435
+HEADER 2  - Number of alpha spheres           :    32
+HEADER 3  - Mean alpha-sphere radius          : 3.6688
+HEADER 4  - Mean alpha-sphere Solvent Acc.    : 0.3836
+HEADER 5  - Mean B-factor of pocket residues  : 0.3019
+HEADER 6  - Hydrophobicity Score              : 2.4000
+HEADER 7  - Polarity Score                    :     4
+HEADER 8  - Amino Acid based volume Score     : 3.8000
+HEADER 9  - Pocket volume (Monte Carlo)       : 231.3912
+HEADER 10 - Pocket volume (convex hull)       : 21.3733
+HEADER 11 - Charge Score                      :     0
+HEADER 12 - Local hydrophobic density Score   : 20.7273
+HEADER 13 - Number of apolar alpha sphere     :    22
+HEADER 14 - Proportion of apolar alpha sphere : 0.6875
+ATOM   1288   NE ARG B  33      20.604   6.373  14.950  0.75  1.09           N 0
+ATOM   1286   CG ARG B  33      21.832   6.389  12.815  0.00  0.00           C 0
+ATOM   1267    O SER B  31      25.304   7.755  15.313  0.50  3.21           O 0
+ATOM   1287   CD ARG B  33      20.731   5.708  13.643  0.00  0.00           C 0
+ATOM   1087  CG2 THR B   8      26.058   5.213  12.085  0.00  0.00           C 0
+ATOM   1086  OG1 THR B   8      24.181   4.184  10.938  0.30  7.50           O 0
+ATOM   5901   SG CYS F 109      24.112   0.336  16.691  0.00  0.00           S 0
+ATOM   5066  OG1 THR F   8      24.777   3.702  25.128  0.66  5.36           O 0
+ATOM   5067  CG2 THR F   8      26.156   5.129  23.781  0.00  0.00           C 0
+ATOM   5267   CD ARG F  33      25.083   0.071  22.351  0.00  0.00           C 0
+ATOM   1921   SG CYS B 109      21.393   4.743  19.726  0.00  0.00           S 0
+ATOM   1268   CB SER B  31      27.273   5.830  15.846  0.00  0.00           C 0
+ATOM   5249   OG SER F  31      26.808   7.165  19.326  0.73  1.07           O 0
+ATOM   1916    N CYS B 109      21.114   7.938  19.959  0.62  1.09           N 0
+ATOM   5248   CB SER F  31      27.234   5.921  19.873  0.00  0.00           C 0
+ATOM   5268   NE ARG F  33      25.618  -0.371  21.049  0.56  2.19           N 0
+ATOM   5247    O SER F  31      28.622   3.538  20.270  0.56  3.21           O 0
+ATOM   5266   CG ARG F  33      26.152   0.816  23.177  0.00  0.00           C 0
+ATOM   1269   OG SER B  31      28.351   5.164  16.494  0.56  2.14           O 0
+ATOM   5896    N CYS F 109      27.430  -0.550  15.870  0.58  1.09           N 0
+ATOM   5900   CB CYS F 109      25.026  -0.583  15.393  0.00  0.00           C 0
+ATOM   1107  OE2 GLU B  10      28.987   4.088  13.433  0.67  5.36           O 0
+TER
+END

@@ -1,0 +1,41 @@
+HEADER
+HEADER This is a pdb format file writen by the programm fpocket.                 
+HEADER It represents the atoms contacted by the voronoi vertices of the pocket.  
+HEADER                                                                           
+HEADER Information about the pocket    27:
+HEADER 0  - Pocket Score                      : 0.0042
+HEADER 1  - Drug Score                        : 0.0012
+HEADER 2  - Number of alpha spheres           :    28
+HEADER 3  - Mean alpha-sphere radius          : 4.1642
+HEADER 4  - Mean alpha-sphere Solvent Acc.    : 0.4826
+HEADER 5  - Mean B-factor of pocket residues  : 0.1929
+HEADER 6  - Hydrophobicity Score              : -3.2727
+HEADER 7  - Polarity Score                    :     8
+HEADER 8  - Amino Acid based volume Score     : 4.4545
+HEADER 9  - Pocket volume (Monte Carlo)       : 386.0717
+HEADER 10 - Pocket volume (convex hull)       : 25.1454
+HEADER 11 - Charge Score                      :     3
+HEADER 12 - Local hydrophobic density Score   : 5.0000
+HEADER 13 - Number of apolar alpha sphere     :     6
+HEADER 14 - Proportion of apolar alpha sphere : 0.2143
+ATOM   2060  OE2 GLU A 274       7.564  22.336  82.021  0.52  4.29           O 0
+ATOM   2091  CG2 THR A 278       3.601  19.622  84.832  0.00  0.00           C 0
+ATOM     25  CD1 ILE A  28       6.358  17.219  83.106  0.00  0.00           C 0
+ATOM   2109   NZALYS A 280       5.767  24.033  86.128  0.50  8.75           N 0
+ATOM      5   CB ARG A  25      10.993  20.278  89.096  0.00  0.00           C 0
+ATOM   2123  OG1 THR A 282       9.609  23.931  82.463  0.64  5.36           O 0
+ATOM     23  CG1 ILE A  28       6.324  16.307  84.393  0.00  0.00           C 0
+ATOM   2124  CG2 THR A 282       8.208  25.698  83.431  0.00  0.00           C 0
+ATOM      9    O LYS A  26       9.686  16.367  88.110  0.54  6.43           O 0
+ATOM    485  OE1AGLN A  83       3.458  15.722  87.394  0.00  0.00           O 0
+ATOM    255   CA ARG A  57      11.861  16.124  82.395  0.00  0.00           C 0
+ATOM      4    O ARG A  25      12.993  17.652  88.970  0.00  0.00           O 0
+ATOM    259   CG ARG A  57      12.280  18.447  81.422  0.00  0.00           C 0
+ATOM    257    O ARG A  57       9.750  15.404  83.271  0.78  2.14           O 0
+ATOM    258   CB ARG A  57      11.334  17.231  81.455  0.00  0.00           C 0
+ATOM    253    O GLY A  56      14.177  15.389  83.828  0.66  4.29           O 0
+ATOM    263  NH1 ARG A  57      11.649  21.892  81.752  0.54  6.56           N 0
+ATOM      1    N ARG A  25      13.330  20.236  89.895  0.00  0.00           N 0
+ATOM     12   CA PRO A  27      10.512  14.307  86.519  0.00  0.00           C 0
+TER
+END

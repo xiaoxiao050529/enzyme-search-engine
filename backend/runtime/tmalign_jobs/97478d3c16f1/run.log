@@ -1,0 +1,24 @@
+CMD: /root/tools/TMalign /root/data-platform/backend/runtime/tmalign_jobs/97478d3c16f1/input/1KOP.pdb /root/data-platform/backend/runtime/tmalign_jobs/97478d3c16f1/input/2PEB.pdb
+
+ *********************************************************************
+ * TM-align (Version 20220412): protein structure alignment          *
+ * References: Y Zhang, J Skolnick. Nucl Acids Res 33, 2302-9 (2005) *
+ * Please email comments and suggestions to yangzhanglab@umich.edu   *
+ *********************************************************************
+
+Name of Chain_1: /root/data-platform/backend/runtime/tmalign_jobs/97478d3c16f1/input/1KOP.pdb (to be superimposed onto Chain_2)
+Name of Chain_2: /root/data-platform/backend/runtime/tmalign_jobs/97478d3c16f1/input/2PEB.pdb
+Length of Chain_1: 223 residues
+Length of Chain_2: 113 residues
+
+Aligned length= 59, RMSD=   4.24, Seq_ID=n_identical/n_aligned= 0.051
+TM-score= 0.19154 (if normalized by length of Chain_1, i.e., LN=223, d0=5.55)
+TM-score= 0.31901 (if normalized by length of Chain_2, i.e., LN=113, d0=3.92)
+(You should use TM-score normalized by length of the reference structure)
+
+(":" denotes residue pairs of d <  5.0 Angstrom, "." denotes other aligned residues)
+HTHWGYTGHDSPESWGNLSEEFRLCSTGKNQSPVNITETVSGKLPAIKVNYKPSMVDVE------------------------------NNG-H-TIQVNYPEGGNTLTVNGRTYTLKQFHFHV-PSENQIKGRTFPM--EAHFVHLDEN------KQPLVLAVLYEAGKTNGRLSSIWNVMPMTAGKVKLNQPFDASTLLPKR--LKYYRFAGSLTTPPCTEGVSWLVLKTYDHIDQAQAEKFTRAVGSENNRPVQPLNARVVIE-----------
+                                                                                         .:: : :::::::::::...     ::: :::::: :::.           .               .::::::::::    .                            .:::  :::... :          ::..                                                 
+-----------------------------------------------------------KEDTIEIAGFHAHVYFDAASRDVAARVREGLGARFEVQLGRWFDKPIGPH-----PKG-YQVAFLPNQFD---------KVV---------PWLLNREGLDILVHPET----G----------------------------DAVSDHAVYSLW-L----------GAAL--------------------------------------ALNIEFLRQLS
+
+Total CPU time is  0.02 seconds

@@ -1,0 +1,61 @@
+HEADER
+HEADER This is a pdb format file writen by the programm fpocket.                 
+HEADER It represents the atoms contacted by the voronoi vertices of the pocket.  
+HEADER                                                                           
+HEADER Information about the pocket    18:
+HEADER 0  - Pocket Score                      : 0.1091
+HEADER 1  - Drug Score                        : 0.0003
+HEADER 2  - Number of alpha spheres           :    46
+HEADER 3  - Mean alpha-sphere radius          : 4.0441
+HEADER 4  - Mean alpha-sphere Solvent Acc.    : 0.5709
+HEADER 5  - Mean B-factor of pocket residues  : 0.1045
+HEADER 6  - Hydrophobicity Score              : -20.1429
+HEADER 7  - Polarity Score                    :    10
+HEADER 8  - Amino Acid based volume Score     : 3.7143
+HEADER 9  - Pocket volume (Monte Carlo)       : 610.0942
+HEADER 10 - Pocket volume (convex hull)       : 111.7485
+HEADER 11 - Charge Score                      :     3
+HEADER 12 - Local hydrophobic density Score   : 4.8889
+HEADER 13 - Number of apolar alpha sphere     :     9
+HEADER 14 - Proportion of apolar alpha sphere : 0.1957
+ATOM    958    O GLY A 139     -16.168   3.742  58.853  0.00  0.00           O 0
+ATOM    976  OD1 ASN A 141     -19.374   6.706  58.149  0.54  1.07           O 0
+ATOM    977  ND2 ASN A 141     -18.950   5.155  56.617  0.42  4.37           N 0
+ATOM    994  ND2 ASN A 143     -22.491   5.495  58.824  0.64  9.84           N 0
+ATOM   1504   CG PRO A 206     -16.200  13.412  68.831  0.00  0.00           C 0
+ATOM   1503   CB PRO A 206     -17.125  14.549  68.618  0.00  0.00           C 0
+ATOM    896  NH2 ARG A 130     -21.215  10.586  72.934  0.00  0.00           N 0
+ATOM    893   NE ARG A 130     -19.320  11.884  73.053  0.66  4.37           N 0
+ATOM   1505   CD PRO A 206     -15.752  12.845  67.524  0.00  0.00           C 0
+ATOM    998    O SER A 144     -17.758  11.014  64.311  0.00  0.00           O 0
+ATOM    966   NE ARG A 140     -12.488   7.170  64.223  0.78  2.19           N 0
+ATOM    884  OD1 ASN A 129     -13.120   7.829  67.659  0.54  2.14           O 0
+ATOM   1496   CA GLY A 205     -14.982  12.858  64.658  0.00  0.00           C 0
+ATOM    846   CB PRO A 126     -19.376   7.449  72.253  0.00  0.00           C 0
+ATOM    845    O PRO A 126     -16.520   9.240  72.133  0.64  1.07           O 0
+ATOM   1487    O ARG A 204     -13.066  11.603  63.106  0.62  2.14           O 0
+ATOM    990    O ASN A 143     -21.103   8.857  62.844  0.00  0.00           O 0
+ATOM    847   CG PRO A 126     -19.963   6.130  71.896  0.00  0.00           C 0
+ATOM   1000   OG SER A 144     -16.942   7.690  61.623  0.76  6.43           O 0
+ATOM    991   CB ASN A 143     -21.730   7.140  60.388  0.00  0.00           C 0
+ATOM    989    C ASN A 143     -20.548   8.880  61.744  0.00  0.00           C 0
+ATOM    885  ND2 ASN A 129     -14.637   6.717  68.813  0.83  1.09           N 0
+ATOM    883   CG ASN A 129     -14.119   7.843  68.383  0.00  0.00           C 0
+ATOM    882   CB ASN A 129     -14.643   9.139  68.996  0.00  0.00           C 0
+ATOM    843   CA PRO A 126     -17.900   7.326  71.820  0.00  0.00           C 0
+ATOM    821   OG SER A 123     -14.321   1.810  65.054  0.43  4.29           O 0
+ATOM    949    O GLU A 138     -13.718   1.926  61.634  0.48  1.07           O 0
+ATOM    827   CG LYS A 124     -17.516   0.276  66.888  0.00  0.00           C 0
+ATOM    960   CA ARG A 140     -14.879   5.931  59.928  0.00  0.00           C 0
+ATOM    959    N ARG A 140     -14.269   4.625  59.691  0.00  0.00           N 0
+ATOM    819    O SER A 123     -16.206   4.417  67.000  0.00  0.00           O 0
+ATOM    999   CB SER A 144     -16.887   8.925  62.307  0.00  0.00           C 0
+ATOM    996   CA SER A 144     -18.305   9.307  62.724  0.00  0.00           C 0
+ATOM    842    N PRO A 126     -17.621   5.885  71.960  0.54  1.09           N 0
+ATOM    824    C LYS A 124     -17.136   2.662  69.951  0.00  0.00           C 0
+ATOM    825    O LYS A 124     -18.156   2.380  70.601  0.68  7.50           O 0
+ATOM    823   CA LYS A 124     -17.012   2.208  68.483  0.00  0.00           C 0
+ATOM    820   CB SER A 123     -13.967   3.178  65.132  0.00  0.00           C 0
+ATOM    964   CG ARG A 140     -13.757   6.526  62.177  0.00  0.00           C 0
+TER
+END

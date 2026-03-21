@@ -1,0 +1,40 @@
+HEADER
+HEADER This is a pdb format file writen by the programm fpocket.                 
+HEADER It represents the atoms contacted by the voronoi vertices of the pocket.  
+HEADER                                                                           
+HEADER Information about the pocket    11:
+HEADER 0  - Pocket Score                      : 0.1731
+HEADER 1  - Drug Score                        : 0.0001
+HEADER 2  - Number of alpha spheres           :    23
+HEADER 3  - Mean alpha-sphere radius          : 3.8177
+HEADER 4  - Mean alpha-sphere Solvent Acc.    : 0.5341
+HEADER 5  - Mean B-factor of pocket residues  : 0.0551
+HEADER 6  - Hydrophobicity Score              : 15.7778
+HEADER 7  - Polarity Score                    :     4
+HEADER 8  - Amino Acid based volume Score     : 3.2222
+HEADER 9  - Pocket volume (Monte Carlo)       : 290.0706
+HEADER 10 - Pocket volume (convex hull)       : 14.4269
+HEADER 11 - Charge Score                      :     1
+HEADER 12 - Local hydrophobic density Score   : 0.0000
+HEADER 13 - Number of apolar alpha sphere     :     0
+HEADER 14 - Proportion of apolar alpha sphere : 0.0000
+ATOM   1860  CD2 HIS A 249       5.335   5.961  58.527  0.00  0.00           C 0
+ATOM   1869   CA GLY A 251      10.023   4.183  60.513  0.00  0.00           C 0
+ATOM   1862  NE2 HIS A 249       4.789   4.757  58.139  0.56  7.66           N 0
+ATOM   1203  NE2 GLN A 170       6.067   6.674  55.101  0.00  0.00           N 0
+ATOM   1202  OE1 GLN A 170       7.648   8.219  54.802  0.43  4.29           O 0
+ATOM   1866    O ALA A 250       7.185   3.998  60.726  0.56  5.36           O 0
+ATOM   1925  CG2AILE A 258      11.935  10.517  57.435  0.00  0.00           C 0
+ATOM   1906  OD1 ASP A 256      15.056   5.533  57.284  0.00  0.00           O 0
+ATOM   1856    O HIS A 249       7.074   7.672  61.095  0.00  0.00           O 0
+ATOM   1916    N ILE A 258      12.924   9.114  60.103  0.00  0.00           N 0
+ATOM   1876   CB ALA A 252      11.705  -0.030  58.828  0.00  0.00           C 0
+ATOM   1905   CG ASP A 256      15.851   4.574  57.482  0.00  0.00           C 0
+ATOM   1907  OD2 ASP A 256      16.456   3.979  56.567  0.00  0.00           O 0
+ATOM   1929    N ALA A 259      10.544  10.882  60.268  0.00  0.00           N 0
+ATOM   1933   CB ALA A 259       8.081  10.962  60.467  0.00  0.00           C 0
+ATOM   1872    N ALA A 252      11.000   2.022  59.973  0.58  5.47           N 0
+ATOM   1414    O LYS A 196       8.863  12.017  57.224  0.50  1.07           O 0
+ATOM   1903    O ASP A 256      13.529   4.687  60.038  0.71  1.07           O 0
+TER
+END

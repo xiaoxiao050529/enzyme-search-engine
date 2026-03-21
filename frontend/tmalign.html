@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>TM-align 页面</title>
+<style>
+body { font-family: system-ui, sans-serif; margin: 16px; }
+.top_nav { display: flex; gap: 8px; margin-bottom: 10px; }
+.top_nav a { display: inline-block; padding: 6px 10px; border: 1px solid #d9d9d9; background: #f6f8fa; color: #0b5394; text-decoration: none; border-radius: 6px; font-weight: 600; }
+.top_nav a:hover { background: #eaf2ff; }
+.layout { display: grid; grid-template-columns: 420px 1fr; gap: 14px; align-items: start; }
+#controls { border: 1px solid #ddd; background: #fafafa; padding: 10px; }
+label { display: block; margin-bottom: 8px; }
+input, button, select { width: 100%; box-sizing: border-box; padding: 6px; }
+button { margin-top: 4px; }
+#status { margin-top: 10px; color: #333; }
+#debug_error { margin-top: 8px; color: #8a1f11; background: #fff3f0; border: 1px solid #f0c2ba; padding: 6px; white-space: pre-wrap; word-break: break-word; max-height: 220px; overflow: auto; }
+#result { border: 1px solid #ddd; background: #fff; min-height: 420px; padding: 10px; }
+pre { white-space: pre-wrap; word-break: break-word; background: #f8f8f8; border: 1px solid #eee; padding: 8px; max-height: 360px; overflow: auto; }
+.line { border-top: 1px dashed #ddd; margin: 10px 0; }
+.table_wrap { border: 1px solid #e5e5e5; max-height: 360px; overflow: auto; }
+table { border-collapse: collapse; width: max-content; min-width: 100%; font-size: 12px; }
+th, td { border: 1px solid #e5e5e5; padding: 4px 6px; text-align: left; white-space: nowrap; }
+th { position: sticky; top: 0; background: #f7f9fc; z-index: 1; }
+</style>
+</head>
+<body>
+<div class="top_nav">
+  <a href="./index.html">主页面</a>
+  <a href="./diffdock_compare.html">DiffDock对比</a>
+  <a href="./master_table.html">Master表</a>
+  <a href="./fpocket.html">fpocket</a>
+  <a href="./tmalign.html">TM-align</a>
+  <a href="./pdbzn_workflow.html">PDB-ZN工作流</a>
+</div>
+<h2>TM-align 页面</h2>
+<div class="layout">
+  <div id="controls">
+    <label>API地址
+      <input id="api_base" type="text" value="http://127.0.0.1:8017" placeholder="例如 http://127.0.0.1:8017">
+    </label>
+    <div style="margin:-4px 0 8px 0;color:#666;font-size:12px;">请填写后端API端口（8017/8016），不要填写前端页面端口 8020</div>
+    <label>结构1（PDB/ENT）
+      <input id="pdb1_file" type="file" accept=".pdb,.ent">
+    </label>
+    <label>结构2（PDB/ENT）
+      <input id="pdb2_file" type="file" accept=".pdb,.ent">
+    </label>
+    <button id="submit_btn" type="button">提交 TM-align 任务</button>
+    <label>任务ID
+      <input id="job_id" type="text" placeholder="提交后自动填入，或手工输入">
+    </label>
+    <button id="poll_btn" type="button">查询任务状态</button>
+    <button id="log_btn" type="button">查看任务日志</button>
+    <div class="line"></div>
+    <h4 style="margin:4px 0 8px 0;">1 对多 TM-align</h4>
+    <label>参考结构（单个）
+      <input id="batch_query_file" type="file" accept=".pdb,.ent">
+    </label>
+    <label>目标结构（多个）
+      <input id="batch_target_files" type="file" accept=".pdb,.ent" multiple>
+    </label>
+    <label>相似性评分方式
+      <select id="batch_score_mode">
+        <option value="short_chain">短链归一（取 TM-score 较高值）</option>
+        <option value="tm1">结构1归一（TM-score_1）</option>
+        <option value="tm2">结构2归一（TM-score_2）</option>
+        <option value="tm_max">TM-score 最大值（tm_score_max）</option>
+      </select>
+    </label>
+    <button id="batch_run_btn" type="button">运行 1 对多并排序</button>
+    <button id="batch_stop_btn" type="button">停止 1 对多任务</button>
+    <div id="status">待提交</div>
+    <pre id="debug_error"></pre>
+  </div>
+  <div id="result">
+    <h3>任务结果</h3>
+    <div id="job_meta">-</div>
+    <h4>指标</h4>
+    <pre id="metrics_view">暂无</pre>
+    <h4>日志</h4>
+    <pre id="log_view">暂无</pre>
+    <h4>1 对多结果（按相似性从高到低）</h4>
+    <div id="batch_meta">暂无</div>
+    <div class="table_wrap">
+      <table id="batch_table">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Target</th>
+            <th>Similarity</th>
+            <th>TM1</th>
+            <th>TM2</th>
+            <th>TM_max</th>
+            <th>Aligned</th>
+            <th>RMSD</th>
+            <th>Seq_ID</th>
+            <th>Status</th>
+            <th>JobID</th>
+          </tr>
+        </thead>
+        <tbody id="batch_tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<script>
+function getApiBase() {
+  return (document.getElementById("api_base").value || "").trim().replace(/\/+$/, "");
+}
+function setStatus(t) {
+  document.getElementById("status").textContent = t;
+}
+function setDebugError(t) {
+  document.getElementById("debug_error").textContent = t || "";
+}
+function tryParseJson(text) {
+  try { return JSON.parse(text); } catch (_) { return null; }
+}
+async function fetchJsonWithDetail(url, init, phase) {
+  const r = await fetch(url, init);
+  const raw = await r.text();
+  const j = tryParseJson(raw);
+  const rawHead = (raw || "").slice(0, 300);
+  const htmlLike = rawHead.includes("<!DOCTYPE") || rawHead.includes("<html");
+  if (!r.ok) throw new Error(`${phase} http_${r.status} ${htmlLike ? "返回了HTML页面（API地址可能填成了前端端口）" : rawHead}`);
+  if (!j || !j.ok) throw new Error(`${phase} ${htmlLike ? "返回了HTML页面（API地址可能填成了前端端口）" : "invalid_json_or_not_ok " + rawHead}`);
+  return {json:j, raw};
+}
+async function resolveApiBase() {
+  const inputBase = getApiBase();
+  const candidates = [inputBase, "http://127.0.0.1:8017", "http://127.0.0.1:8016"].filter(Boolean);
+  const uniq = [];
+  for (const c of candidates) if (!uniq.includes(c)) uniq.push(c);
+  const errors = [];
+  for (const b of uniq) {
+    try {
+      const {json} = await fetchJsonWithDetail(b + "/api/tmalign/ping", {}, "ping");
+      if (json && json.ok) {
+        if (b !== inputBase) document.getElementById("api_base").value = b;
+        return b;
+      }
+    } catch (e) {
+      errors.push(`${b} => ${e && e.message ? e.message : "ping_failed"}`);
+    }
+  }
+  throw new Error("所有API地址均不可用\n" + errors.join("\n"));
+}
+function readFileText(file) {
+  return new Promise((resolve, reject)=>{
+    const fr = new FileReader();
+    fr.onload = () => resolve(String(fr.result || ""));
+    fr.onerror = () => reject(new Error("文件读取失败"));
+    fr.readAsText(file);
+  });
+}
+function renderMetrics(metrics) {
+  const m = metrics || {};
+  document.getElementById("metrics_view").textContent =
+`TM-score(结构1归一) : ${m.tm_score_1 == null ? "-" : m.tm_score_1}
+TM-score(结构2归一) : ${m.tm_score_2 == null ? "-" : m.tm_score_2}
+TM-score(最大值)    : ${m.tm_score_max == null ? "-" : m.tm_score_max}
+Aligned length      : ${m.aligned_length == null ? "-" : m.aligned_length}
+RMSD                : ${m.rmsd == null ? "-" : m.rmsd}
+Seq_ID              : ${m.seq_id == null ? "-" : m.seq_id}`;
+}
+function numOrNull(v) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+function calcSimilarity(metrics, mode) {
+  const m = metrics || {};
+  const tm1 = numOrNull(m.tm_score_1);
+  const tm2 = numOrNull(m.tm_score_2);
+  const tmMax = numOrNull(m.tm_score_max);
+  if (mode === "tm1") return tm1;
+  if (mode === "tm2") return tm2;
+  if (mode === "tm_max") return tmMax;
+  if (tm1 == null && tm2 == null) return tmMax;
+  if (tm1 == null) return tm2;
+  if (tm2 == null) return tm1;
+  return Math.max(tm1, tm2);
+}
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+let batchRunning = false;
+function renderBatchRows(rows) {
+  const tbody = document.getElementById("batch_tbody");
+  tbody.innerHTML = "";
+  const sorted = (rows || []).slice().sort((a, b) => {
+    const sa = numOrNull(a.similarity);
+    const sb = numOrNull(b.similarity);
+    if (sa == null && sb == null) return 0;
+    if (sa == null) return 1;
+    if (sb == null) return -1;
+    return sb - sa;
+  });
+  for (let i = 0; i < sorted.length; i += 1) {
+    const r = sorted[i];
+    const tr = document.createElement("tr");
+    const vals = [
+      String(i + 1),
+      r.target_name || "-",
+      r.similarity == null ? "-" : String(r.similarity),
+      r.tm1 == null ? "-" : String(r.tm1),
+      r.tm2 == null ? "-" : String(r.tm2),
+      r.tmMax == null ? "-" : String(r.tmMax),
+      r.aligned == null ? "-" : String(r.aligned),
+      r.rmsd == null ? "-" : String(r.rmsd),
+      r.seqId == null ? "-" : String(r.seqId),
+      r.status || "-",
+      r.job_id || "-"
+    ];
+    for (const v of vals) {
+      const td = document.createElement("td");
+      td.textContent = v;
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  }
+  const okCount = sorted.filter(x => x.status === "done").length;
+  const top = sorted.find(x => numOrNull(x.similarity) != null);
+  const topText = top ? `${top.target_name} (${top.similarity})` : "-";
+  document.getElementById("batch_meta").textContent = `总数 ${sorted.length} | 成功 ${okCount} | Top1 ${topText}`;
+}
+async function submitTmalignWithTexts(apiBase, name1, text1, name2, text2) {
+  const {json:j} = await fetchJsonWithDetail(apiBase + "/api/tmalign/submit", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({pdb1_name:name1, pdb1_text:text1, pdb2_name:name2, pdb2_text:text2})
+  }, "submit");
+  return j.job_id || "";
+}
+async function waitForDone(apiBase, jobId, onTick) {
+  for (let i = 0; i < 300; i += 1) {
+    const {json:j} = await fetchJsonWithDetail(apiBase + "/api/tmalign/status/" + encodeURIComponent(jobId), {}, "status");
+    const job = j.job || {};
+    if (typeof onTick === "function") onTick(job);
+    const st = String(job.status || "");
+    if (st === "done" || st === "failed") return job;
+    await sleep(1200);
+  }
+  throw new Error("任务超时");
+}
+async function submitJob() {
+  let phase = "resolve_api";
+  const f1 = (document.getElementById("pdb1_file").files || [])[0];
+  const f2 = (document.getElementById("pdb2_file").files || [])[0];
+  if (!f1 || !f2) return setStatus("请同时选择两个PDB/ENT文件");
+  try {
+    setDebugError("");
+    const apiBase = await resolveApiBase();
+    phase = "read_file";
+    const t1 = await readFileText(f1);
+    const t2 = await readFileText(f2);
+    setStatus("正在提交任务...");
+    phase = "submit";
+    const {json:j} = await fetchJsonWithDetail(apiBase + "/api/tmalign/submit", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({pdb1_name:f1.name, pdb1_text:t1, pdb2_name:f2.name, pdb2_text:t2})
+    }, phase);
+    document.getElementById("job_id").value = j.job_id || "";
+    setStatus(`提交成功：${j.job_id}`);
+    setDebugError(`phase=done\napi=${apiBase}\njob_id=${j.job_id}\nfile1=${f1.name}\nfile2=${f2.name}`);
+    await pollStatus();
+  } catch (e) {
+    const m = e && e.message ? e.message : "unknown";
+    setStatus("提交失败：" + m);
+    setDebugError(`phase=${phase}\nerror=${m}`);
+  }
+}
+async function runBatchOneToMany() {
+  let phase = "resolve_api";
+  const qFile = (document.getElementById("batch_query_file").files || [])[0];
+  const targets = Array.from(document.getElementById("batch_target_files").files || []);
+  if (!qFile) return setStatus("请先选择参考结构文件");
+  if (!targets.length) return setStatus("请至少选择一个目标结构文件");
+  if (batchRunning) return setStatus("1对多任务正在运行");
+  const mode = document.getElementById("batch_score_mode").value || "short_chain";
+  const rows = [];
+  try {
+    batchRunning = true;
+    setDebugError("");
+    const apiBase = await resolveApiBase();
+    phase = "read_query";
+    const qText = await readFileText(qFile);
+    for (let i = 0; i < targets.length; i += 1) {
+      if (!batchRunning) break;
+      const tf = targets[i];
+      phase = "read_target";
+      const tText = await readFileText(tf);
+      setStatus(`[${i + 1}/${targets.length}] 提交 ${tf.name}`);
+      phase = "submit";
+      const jobId = await submitTmalignWithTexts(apiBase, qFile.name, qText, tf.name, tText);
+      let finalJob = null;
+      phase = "wait_done";
+      finalJob = await waitForDone(apiBase, jobId, (job) => {
+        setStatus(`[${i + 1}/${targets.length}] ${tf.name} 状态：${job.status || "-"}`);
+      });
+      const metrics = finalJob.metrics || {};
+      const tm1 = numOrNull(metrics.tm_score_1);
+      const tm2 = numOrNull(metrics.tm_score_2);
+      const tmMax = numOrNull(metrics.tm_score_max);
+      rows.push({
+        target_name: tf.name,
+        similarity: finalJob.status === "done" ? calcSimilarity(metrics, mode) : null,
+        tm1,
+        tm2,
+        tmMax,
+        aligned: numOrNull(metrics.aligned_length),
+        rmsd: numOrNull(metrics.rmsd),
+        seqId: numOrNull(metrics.seq_id),
+        status: finalJob.status || "failed",
+        job_id: jobId
+      });
+      renderBatchRows(rows);
+      setDebugError(`phase=batch_progress\nmode=${mode}\napi=${apiBase}\ncurrent=${i + 1}/${targets.length}\njob_id=${jobId}\nstatus=${finalJob.status || "-"}`);
+    }
+    setStatus(batchRunning ? "1对多任务完成" : "1对多任务已停止");
+  } catch (e) {
+    const m = e && e.message ? e.message : "unknown";
+    setStatus("1对多失败：" + m);
+    setDebugError(`phase=${phase}\nerror=${m}`);
+  } finally {
+    batchRunning = false;
+  }
+}
+async function pollStatus() {
+  let phase = "resolve_api";
+  const id = (document.getElementById("job_id").value || "").trim();
+  if (!id) return setStatus("请填写任务ID");
+  try {
+    const apiBase = await resolveApiBase();
+    phase = "status";
+    const {json:j} = await fetchJsonWithDetail(apiBase + "/api/tmalign/status/" + encodeURIComponent(id), {}, phase);
+    const job = j.job || {};
+    setStatus(`状态：${job.status}`);
+    document.getElementById("job_meta").textContent = `任务 ${job.id} | pdb1=${job.pdb1_name || "-"} | pdb2=${job.pdb2_name || "-"} | pid=${job.pid || "-"} | exit_code=${job.exit_code == null ? "-" : job.exit_code}`;
+    renderMetrics(job.metrics || {});
+    setDebugError(`phase=done\napi=${apiBase}\njob_id=${id}\nstatus=${job.status}\nexit_code=${job.exit_code == null ? "-" : job.exit_code}`);
+  } catch (e) {
+    const m = e && e.message ? e.message : "unknown";
+    setStatus("查询失败：" + m);
+    setDebugError(`phase=${phase}\njob_id=${id}\nerror=${m}`);
+  }
+}
+async function loadLog() {
+  let phase = "resolve_api";
+  const id = (document.getElementById("job_id").value || "").trim();
+  if (!id) return setStatus("请填写任务ID");
+  try {
+    const apiBase = await resolveApiBase();
+    phase = "log";
+    const {json:j} = await fetchJsonWithDetail(apiBase + "/api/tmalign/log/" + encodeURIComponent(id), {}, phase);
+    document.getElementById("log_view").textContent = j.log || "";
+    setStatus("日志已更新");
+    setDebugError(`phase=done\napi=${apiBase}\njob_id=${id}\nlog_size=${(j.log || "").length}`);
+  } catch (e) {
+    const m = e && e.message ? e.message : "unknown";
+    setStatus("日志读取失败：" + m);
+    setDebugError(`phase=${phase}\njob_id=${id}\nerror=${m}`);
+  }
+}
+document.getElementById("submit_btn").addEventListener("click", submitJob);
+document.getElementById("poll_btn").addEventListener("click", pollStatus);
+document.getElementById("log_btn").addEventListener("click", loadLog);
+document.getElementById("batch_run_btn").addEventListener("click", runBatchOneToMany);
+document.getElementById("batch_stop_btn").addEventListener("click", () => {
+  batchRunning = false;
+  setStatus("已请求停止1对多任务");
+});
+</script>
+</body>
+</html>

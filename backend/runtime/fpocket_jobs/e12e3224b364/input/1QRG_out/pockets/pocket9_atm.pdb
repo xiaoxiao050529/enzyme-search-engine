@@ -1,0 +1,40 @@
+HEADER
+HEADER This is a pdb format file writen by the programm fpocket.                 
+HEADER It represents the atoms contacted by the voronoi vertices of the pocket.  
+HEADER                                                                           
+HEADER Information about the pocket     9:
+HEADER 0  - Pocket Score                      : 0.0711
+HEADER 1  - Drug Score                        : 0.0105
+HEADER 2  - Number of alpha spheres           :    16
+HEADER 3  - Mean alpha-sphere radius          : 4.0059
+HEADER 4  - Mean alpha-sphere Solvent Acc.    : 0.6377
+HEADER 5  - Mean B-factor of pocket residues  : 0.1488
+HEADER 6  - Hydrophobicity Score              : 11.8750
+HEADER 7  - Polarity Score                    :     6
+HEADER 8  - Amino Acid based volume Score     : 4.5000
+HEADER 9  - Pocket volume (Monte Carlo)       : 304.9712
+HEADER 10 - Pocket volume (convex hull)       : 12.4057
+HEADER 11 - Charge Score                      :     0
+HEADER 12 - Local hydrophobic density Score   : 12.4286
+HEADER 13 - Number of apolar alpha sphere     :    14
+HEADER 14 - Proportion of apolar alpha sphere : 0.8750
+ATOM   4572  CD1 TYR C 200      30.543  82.337  79.391  0.00  0.00           C 0
+ATOM   4608  CE1 HIS C 204      33.221  83.935  76.787  0.00  0.00           C 0
+ATOM   4598  CG1 VAL C 203      29.846  85.126  73.241  0.00  0.00           C 0
+ATOM   4574  CE1 TYR C 200      31.540  83.146  79.926  0.00  0.00           C 0
+ATOM   3911   CG ASN C 112      20.925  83.478  75.731  0.00  0.00           C 0
+ATOM   4564  CG1 VAL C 199      25.010  81.401  75.377  0.00  0.00           C 0
+ATOM   4039  OD1AASP C 130      20.309  79.257  78.527  0.54  4.29           O 0
+ATOM   3910   CB ASN C 112      20.736  82.021  75.395  0.00  0.00           C 0
+ATOM   4542   CB GLU C 196      24.300  78.387  80.938  0.00  0.00           C 0
+ATOM   4539   CA GLU C 196      24.555  77.883  79.531  0.00  0.00           C 0
+ATOM   4563   CB VAL C 199      25.062  79.876  75.561  0.00  0.00           C 0
+ATOM   4541    O GLU C 196      26.741  78.625  78.937  0.63  2.14           O 0
+ATOM   4597   CB VAL C 203      29.286  83.707  73.152  0.00  0.00           C 0
+ATOM   4566    N TYR C 200      28.092  79.895  76.457  0.00  0.00           N 0
+ATOM   4567   CA TYR C 200      29.347  80.574  76.797  0.00  0.00           C 0
+ATOM   4570   CB TYR C 200      29.775  80.227  78.223  0.00  0.00           C 0
+ATOM   4599  CG2 VAL C 203      27.778  83.746  72.967  0.00  0.00           C 0
+ATOM   3596   CD ARG C  71      24.460  86.729  74.412  0.00  0.00           C 0
+TER
+END

@@ -1,0 +1,5 @@
+CMD: python /root/DiffDock/inference.py --protein_path /root/data-platform/backend/runtime/diffdock_jobs/122c9556d7c9/input/1TXL.pdb --ligand /root/data-platform/backend/runtime/diffdock_jobs/122c9556d7c9/input/rank8_confidence-1.15.sdf --out_dir /root/data-platform/backend/runtime/diffdock_jobs/122c9556d7c9/output --inference_steps 20 --samples_per_complex 10
+Traceback (most recent call last):
+  File "/root/DiffDock/inference.py", line 12, in <module>
+    import yaml
+ModuleNotFoundError: No module named 'yaml'

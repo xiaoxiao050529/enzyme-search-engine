@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>PDB-ZN 挖酶工作流</title>
+<style>
+body { font-family: system-ui, sans-serif; margin: 16px; }
+.top_nav { display: flex; gap: 8px; margin-bottom: 10px; }
+.top_nav a { display: inline-block; padding: 6px 10px; border: 1px solid #d9d9d9; background: #f6f8fa; color: #0b5394; text-decoration: none; border-radius: 6px; font-weight: 600; }
+.top_nav a:hover { background: #eaf2ff; }
+.page_head { display: flex; align-items: center; justify-content: space-between; margin: 6px 0 10px; }
+.page_head h2 { margin: 0; }
+.head_btn { width: auto; padding: 6px 12px; }
+.layout { display: grid; grid-template-columns: 420px 1fr; gap: 14px; align-items: start; }
+.panel { border: 1px solid #ddd; border-radius: 8px; background: #fafafa; padding: 10px; }
+.panel h3 { margin: 0 0 8px; font-size: 16px; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+label { display: block; font-size: 13px; color: #333; }
+input, select, button { width: 100%; box-sizing: border-box; padding: 6px; margin-top: 4px; }
+.actions { display: flex; gap: 8px; margin-top: 10px; }
+.actions button { width: auto; padding: 6px 12px; }
+#status { margin: 8px 0; color: #333; font-weight: 600; }
+.step { border: 1px solid #dbe6f3; border-radius: 8px; margin-bottom: 12px; background: #fff; }
+.step_header { display: flex; justify-content: space-between; gap: 8px; padding: 8px 10px; background: #f5f9ff; border-bottom: 1px solid #e5edf9; font-weight: 600; }
+.step_meta { font-size: 12px; color: #325b88; }
+.table_wrap { overflow: auto; max-height: 340px; }
+table { border-collapse: collapse; width: max-content; min-width: 100%; font-size: 12px; }
+th, td { border: 1px solid #e8e8e8; padding: 4px 6px; white-space: nowrap; text-align: left; }
+th { position: sticky; top: 0; background: #f7f9fc; z-index: 1; }
+#final_box { margin-top: 8px; padding: 8px; border: 1px solid #e1e8f0; background: #f8fbff; border-radius: 8px; }
+#db_box { margin-top: 8px; padding: 8px; border: 1px solid #e1e8f0; background: #f7fbf8; border-radius: 8px; font-size: 12px; color: #234; }
+</style>
+</head>
+<body>
+<div class="top_nav">
+  <a href="./index.html">主页面</a>
+  <a href="./diffdock_compare.html">DiffDock对比</a>
+  <a href="./master_table.html">Master表</a>
+  <a href="./fpocket.html">fpocket</a>
+  <a href="./tmalign.html">TM-align</a>
+  <a href="./pdbzn_workflow.html">PDB-ZN工作流</a>
+</div>
+<div class="page_head">
+  <h2 id="stage_title">PDB-ZN 挖酶工作流 · Step 1</h2>
+  <button id="next_top_btn" class="head_btn" type="button">Next → Step 2</button>
+</div>
+<div class="layout">
+  <div class="panel" id="step1_panel">
+    <h3>Step 1：金属+残基筛选</h3>
+    <label>API地址
+      <input id="api_base" type="text" value="http://127.0.0.1:8135" placeholder="例如 http://127.0.0.1:8135">
+    </label>
+    <label>每步最多返回行数
+      <input id="row_limit" type="number" min="1" value="500">
+    </label>
+    <div class="grid">
+      <label>目标金属离子<input id="s1_metal_ion" type="text" value="ZN"></label>
+      <label>残基要求<input id="s1_residue_requirements" type="text" value="HIS:3"></label>
+      <label>Protein_Name包含<input id="s1_protein_name_contains" type="text"></label>
+      <label>PDB编号包含<input id="s1_pdb_contains" type="text"></label>
+    </div>
+    <div style="margin-top:8px;color:#666;font-size:12px;">残基要求示例：HIS:3 或 HIS:3,ASP:1（英文逗号分隔）</div>
+    <div class="actions">
+      <button id="import_btn" type="button">导入PDB-ZN到数据库</button>
+      <button id="run_btn" type="button">运行工作流</button>
+      <button id="reset_btn" type="button">恢复默认</button>
+    </div>
+  </div>
+  <div class="panel" id="step2_panel" style="display:none;">
+    <h3>Step 2：蛋白聚类</h3>
+    <div class="grid">
+      <label>聚类阈值<input id="s2_cluster_threshold" type="number" min="0" max="1" step="0.01" value="0.7"></label>
+      <label>聚类模式
+        <select id="s2_mode">
+          <option value="recompute_tmalign">recompute_tmalign</option>
+          <option value="preset_clusters" selected>preset_clusters</option>
+          <option value="recompute_neighbor">recompute_neighbor</option>
+        </select>
+      </label>
+    </div>
+    <div class="actions">
+      <button id="cluster_btn" type="button">执行聚类</button>
+      <button id="to_step3_btn" type="button">下一步到Step 3</button>
+      <button id="back_btn" type="button">返回Step 1</button>
+    </div>
+  </div>
+  <div class="panel" id="step3_panel" style="display:none;">
+    <h3>Step 3：第二次筛选</h3>
+    <div class="grid">
+      <label>大配体距离阈值(A)<input id="s3_ligand_distance" type="number" min="0" step="0.1" value="5"></label>
+      <label>其他金属距离阈值(A)<input id="s3_metal_distance" type="number" min="0" step="0.1" value="8"></label>
+      <label>残基数/几聚体上限<input id="s3_max_residue_per_oligomer" type="number" min="1" step="1" value="400"></label>
+    </div>
+    <div class="actions">
+      <button id="filter_btn" type="button">执行第二次筛选</button>
+      <button id="to_step4_btn" type="button">下一步到Step 4</button>
+      <button id="back2_btn" type="button">返回Step 2</button>
+    </div>
+  </div>
+  <div class="panel" id="step4_panel" style="display:none;">
+    <h3>Step 4：综合验证（仅3HIS几何复核）</h3>
+    <div class="grid">
+      <label>TM-align判类阈值(>阈值为同类)<input id="s4_cluster_threshold" type="number" min="0" max="1" step="0.01" value="0.7"></label>
+      <label>必须通过3HIS复核
+        <select id="s4_require_his3">
+          <option value="true" selected>是</option>
+          <option value="false">否</option>
+        </select>
+      </label>
+    </div>
+    <div class="actions">
+      <button id="validate_btn" type="button">执行综合验证</button>
+      <button id="to_step5_btn" type="button">下一步到Step 5</button>
+      <button id="back3_btn" type="button">返回Step 3</button>
+    </div>
+  </div>
+  <div class="panel" id="step5_panel" style="display:none;">
+    <h3>Step 5：导入主表并补全DiffDock/fpocket与3HIS几何信息</h3>
+    <div class="grid">
+      <label>运行fpocket补全
+        <select id="s5_run_fpocket">
+          <option value="true" selected>是</option>
+          <option value="false">否</option>
+        </select>
+      </label>
+      <label>fpocket最大运行数<input id="s5_fpocket_max_runs" type="number" min="0" step="1" value="20"></label>
+      <label>fpocket超时(秒)<input id="s5_fpocket_timeout_sec" type="number" min="10" step="1" value="120"></label>
+      <label>写回主表
+        <select id="s5_write_to_master">
+          <option value="true" selected>是</option>
+          <option value="false">否</option>
+        </select>
+      </label>
+    </div>
+    <div class="actions">
+      <button id="finalize_btn" type="button">执行Step 5收口</button>
+      <button id="back4_btn" type="button">返回Step 4</button>
+    </div>
+  </div>
+  <div>
+    <div id="status">准备就绪</div>
+    <div id="db_box">数据库状态：-</div>
+    <div id="final_box">最终结果：-</div>
+    <div id="steps_wrap"></div>
+  </div>
+</div>
+<script>
+function valNum(id) {
+  const v = document.getElementById(id).value;
+  if (v == null || String(v).trim() === "") return null;
+  const n = Number(v);
+  return Number.isNaN(n) ? null : n;
+}
+function valText(id) {
+  return String(document.getElementById(id).value || "");
+}
+function getApiBase() {
+  return (document.getElementById("api_base").value || "").trim().replace(/\/+$/, "");
+}
+let currentStage = "step1";
+let hasStep1Run = false;
+let hasStep2Run = false;
+let hasStep3Run = false;
+let hasStep4Run = false;
+let hasStep5Run = false;
+function buildApiCandidates() {
+  const inputBase = getApiBase();
+  const candidates = [inputBase, "http://127.0.0.1:8135", "http://127.0.0.1:8015", "http://127.0.0.1:8130", "http://127.0.0.1:8122", "http://127.0.0.1:8121", "http://127.0.0.1:8120", "http://127.0.0.1:8117", "http://127.0.0.1:8017", "http://127.0.0.1:8016", "http://127.0.0.1:8116"].filter(Boolean);
+  const uniq = [];
+  for (const c of candidates) if (!uniq.includes(c)) uniq.push(c);
+  return uniq;
+}
+function resetResultView(text) {
+  document.getElementById("steps_wrap").innerHTML = "";
+  if (text != null) document.getElementById("final_box").textContent = text;
+}
+function setStage(stage) {
+  currentStage = stage === "step5" ? "step5" : (stage === "step4" ? "step4" : (stage === "step3" ? "step3" : (stage === "step2" ? "step2" : "step1")));
+  const isStep2 = currentStage === "step2";
+  const isStep3 = currentStage === "step3";
+  const isStep4 = currentStage === "step4";
+  const isStep5 = currentStage === "step5";
+  document.getElementById("step1_panel").style.display = (!isStep2 && !isStep3 && !isStep4 && !isStep5) ? "" : "none";
+  document.getElementById("step2_panel").style.display = isStep2 ? "" : "none";
+  document.getElementById("step3_panel").style.display = isStep3 ? "" : "none";
+  document.getElementById("step4_panel").style.display = isStep4 ? "" : "none";
+  document.getElementById("step5_panel").style.display = isStep5 ? "" : "none";
+  document.getElementById("next_top_btn").style.display = (isStep4 || isStep5) ? "none" : "";
+  document.getElementById("next_top_btn").textContent = isStep3 ? "Next → Step 4" : (isStep2 ? "Next → Step 3" : "Next → Step 2");
+  document.getElementById("stage_title").textContent = isStep5 ? "PDB-ZN 挖酶工作流 · Step 5 主表收口" : (isStep4 ? "PDB-ZN 挖酶工作流 · Step 4 综合验证" : (isStep3 ? "PDB-ZN 挖酶工作流 · Step 3 二次筛选" : (isStep2 ? "PDB-ZN 挖酶工作流 · Step 2 聚类" : "PDB-ZN 挖酶工作流 · Step 1")));
+  resetResultView(isStep5 ? "Step5准备就绪，等待主表导入与补全结果..." : (isStep4 ? "Step4准备就绪，等待综合验证结果..." : (isStep2 ? "Step2准备就绪，等待聚类结果..." : (isStep3 ? "Step3准备就绪，等待第二次筛选结果..." : "最终结果：-"))));
+}
+function tryParseJson(text) {
+  try { return JSON.parse(text); } catch (_) { return null; }
+}
+async function fetchJsonWithDetail(url, init, phase, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  let r;
+  try {
+    r = await fetch(url, { ...init, signal: controller.signal });
+  } catch (e) {
+    clearTimeout(id);
+    if (e.name === "AbortError") throw new Error(`${phase} 请求超时 (${timeoutMs}ms)`);
+    throw new Error(`${phase} 网络请求失败: ${e.message}`);
+  }
+  clearTimeout(id);
+  const raw = await r.text();
+  const j = tryParseJson(raw);
+  const rawHead = (raw || "").slice(0, 300);
+  const htmlLike = rawHead.includes("<!DOCTYPE") || rawHead.includes("<html");
+  if (!r.ok) throw new Error(`${phase} http_${r.status} ${htmlLike ? "返回了HTML页面（API地址可能填成了前端端口）" : rawHead}`);
+  if (!j || !j.ok) throw new Error(`${phase} ${htmlLike ? "返回了HTML页面（API地址可能填成了前端端口）" : "invalid_json_or_not_ok " + rawHead}`);
+  return {json: j, raw};
+}
+async function resolveApiBase() {
+  const inputBase = getApiBase();
+  const uniq = buildApiCandidates();
+  let bestBase = "";
+  let bestScore = -1;
+  const errors = [];
+  for (const b of uniq) {
+    try {
+      const {json} = await fetchJsonWithDetail(b + "/api/pdbzn/workflow/config", {}, "config", 2000);
+      if (json && json.ok) {
+        const hasStep2 = !!json?.defaults?.step2;
+        const hasStep4 = !!json?.defaults?.step4;
+        const score = hasStep4 ? 3 : (hasStep2 ? 2 : 1);
+        if (score > bestScore) {
+          bestScore = score;
+          bestBase = b;
+        }
+      }
+    } catch (e) {
+      errors.push(`${b} => ${e && e.message ? e.message : "connect_failed"}`);
+    }
+  }
+  if (bestBase) {
+    if (bestBase !== inputBase) document.getElementById("api_base").value = bestBase;
+    return bestBase;
+  }
+  throw new Error("所有API地址均不可用\n" + errors.join("\n"));
+}
+function normalizeStep2FromRunResponse(raw) {
+  const steps = Array.isArray(raw?.steps) ? raw.steps : [];
+  const step2 = steps.find((s) => String(s?.id || "") === "step2_clustering");
+  if (!step2) return null;
+  const summary = raw?.summary || {};
+  const clusterCount = Number(summary.cluster_count ?? summary.final_count ?? step2.total_after_filter ?? 0) || 0;
+  const step1Count = Number(summary.step1_count ?? step2.total_before_filter ?? 0) || 0;
+  return {
+    ok: true,
+    steps: [step2],
+    summary: {
+      final_count: clusterCount,
+      cluster_count: clusterCount,
+      step1_count: step1Count,
+      final_representatives: Array.isArray(summary.final_representatives) ? summary.final_representatives : []
+    }
+  };
+}
+function parseNeighborCountsText(text) {
+  const s = String(text || "").trim();
+  if (!s) return {};
+  try {
+    const j = JSON.parse(s);
+    if (j && typeof j === "object" && !Array.isArray(j)) return j;
+  } catch (_) {}
+  return {};
+}
+function neighborSimilarity(a, b) {
+  const keys = Array.from(new Set([...(Object.keys(a || {})), ...(Object.keys(b || {}))]));
+  if (!keys.length) return 0;
+  let num = 0;
+  let den = 0;
+  for (const k of keys) {
+    const av = Math.max(0, Number((a || {})[k] || 0));
+    const bv = Math.max(0, Number((b || {})[k] || 0));
+    num += Math.min(av, bv);
+    den += Math.max(av, bv);
+  }
+  if (den <= 0) return 0;
+  return Math.max(0, Math.min(1, num / den));
+}
+function clusterRowsLocal(step1Rows, threshold, rowLimit) {
+  const arr = Array.isArray(step1Rows) ? step1Rows : [];
+  const n = arr.length;
+  if (!n) return [];
+  let t = Number(threshold);
+  if (!Number.isFinite(t)) t = 0.7;
+  t = Math.max(0, Math.min(1, t));
+  const parent = Array.from({length: n}, (_, i) => i);
+  const rank = Array.from({length: n}, () => 0);
+  const parsed = arr.map((r) => parseNeighborCountsText(r?.Neighbor_Residue_Counts));
+  function find(x) {
+    while (parent[x] !== x) {
+      parent[x] = parent[parent[x]];
+      x = parent[x];
+    }
+    return x;
+  }
+  function union(a, b) {
+    const ra = find(a);
+    const rb = find(b);
+    if (ra === rb) return;
+    if (rank[ra] < rank[rb]) {
+      parent[ra] = rb;
+      return;
+    }
+    if (rank[ra] > rank[rb]) {
+      parent[rb] = ra;
+      return;
+    }
+    parent[rb] = ra;
+    rank[ra] += 1;
+  }
+  for (let i = 0; i < n; i += 1) {
+    for (let j = i + 1; j < n; j += 1) {
+      if (neighborSimilarity(parsed[i], parsed[j]) >= t) union(i, j);
+    }
+  }
+  const groups = new Map();
+  for (let i = 0; i < n; i += 1) {
+    const r = find(i);
+    if (!groups.has(r)) groups.set(r, []);
+    groups.get(r).push(i);
+  }
+  const sortedGroups = Array.from(groups.values()).sort((a, b) => b.length - a.length || a[0] - b[0]);
+  const clusters = [];
+  let cid = 0;
+  for (const idxs of sortedGroups) {
+    cid += 1;
+    const members = idxs.map((k) => String(arr[k]?.PDB_ID || "")).filter(Boolean);
+    if (!members.length) continue;
+    const leader = idxs.map((k) => ({pdb: String(arr[k]?.PDB_ID || ""), sim: Number(arr[k]?.Similarity_Score)})).sort((x, y) => {
+      const xs = Number.isFinite(x.sim) ? x.sim : -999;
+      const ys = Number.isFinite(y.sim) ? y.sim : -999;
+      return ys - xs || x.pdb.localeCompare(y.pdb);
+    })[0];
+    const sims = idxs.map((k) => Number(arr[k]?.Similarity_Score)).filter((v) => Number.isFinite(v));
+    const mean = sims.length ? Math.round((sims.reduce((a, b) => a + b, 0) / sims.length) * 1e6) / 1e6 : null;
+    clusters.push({
+      Cluster_ID: cid,
+      Size: members.length,
+      Representative: leader?.pdb || "",
+      Members: members.join(","),
+      Mean_Similarity_Score: mean
+    });
+  }
+  const limit = Number.isFinite(Number(rowLimit)) ? Math.max(1, Number(rowLimit)) : 500;
+  return {
+    ok: true,
+    steps: [{
+      id: "step2_clustering",
+      title: "Step 2: 蛋白聚类",
+      columns: ["Cluster_ID", "Size", "Representative", "Members", "Mean_Similarity_Score"],
+      rows: clusters.slice(0, limit),
+      total_before_filter: arr.length,
+      total_after_filter: clusters.length,
+      rows_returned: Math.min(limit, clusters.length),
+      truncated: clusters.length > limit
+    }],
+    summary: {
+      final_count: clusters.length,
+      cluster_count: clusters.length,
+      step1_count: arr.length,
+      final_representatives: clusters.map((c) => String(c.Representative || "")).filter(Boolean).slice(0, 200)
+    }
+  };
+}
+function buildStep1Payload() {
+  return {
+    row_limit: valNum("row_limit") || 500,
+    step1: {
+      metal_ion: valText("s1_metal_ion"),
+      residue_requirements: valText("s1_residue_requirements"),
+      protein_name_contains: valText("s1_protein_name_contains"),
+      pdb_contains: valText("s1_pdb_contains")
+    }
+  };
+}
+function buildStep2Payload() {
+  const p1 = buildStep1Payload();
+  return {
+    row_limit: p1.row_limit,
+    step1: p1.step1,
+    step2: {
+      cluster_threshold: valNum("s2_cluster_threshold"),
+      mode: valText("s2_mode")
+    }
+  };
+}
+function buildStep3Payload() {
+  const p2 = buildStep2Payload();
+  return {
+    row_limit: p2.row_limit,
+    step1: p2.step1,
+    step2: p2.step2,
+    step3: {
+      ligand_distance: valNum("s3_ligand_distance"),
+      metal_distance: valNum("s3_metal_distance"),
+      max_residue_per_oligomer: valNum("s3_max_residue_per_oligomer")
+    }
+  };
+}
+function buildStep4Payload() {
+  const p3 = buildStep3Payload();
+  return {
+    row_limit: p3.row_limit,
+    step1: p3.step1,
+    step2: p3.step2,
+    step3: p3.step3,
+    step4: {
+      cluster_threshold: valNum("s4_cluster_threshold"),
+      require_his3: String(document.getElementById("s4_require_his3").value || "true").toLowerCase() !== "false"
+    }
+  };
+}
+function buildStep5Payload() {
+  const p4 = buildStep4Payload();
+  return {
+    row_limit: p4.row_limit,
+    step1: p4.step1,
+    step2: p4.step2,
+    step3: p4.step3,
+    step4: p4.step4,
+    step5: {
+      run_fpocket: String(document.getElementById("s5_run_fpocket").value || "true").toLowerCase() !== "false",
+      fpocket_max_runs: valNum("s5_fpocket_max_runs"),
+      fpocket_timeout_sec: valNum("s5_fpocket_timeout_sec"),
+      write_to_master: String(document.getElementById("s5_write_to_master").value || "true").toLowerCase() !== "false"
+    }
+  };
+}
+function renderDbStats(stats, sourceDir) {
+  const s = stats || {};
+  document.getElementById("db_box").textContent = `数据库状态：total=${s.total_proteins ?? 0} | with_master=${s.with_master ?? 0} | last_imported_at=${s.last_imported_at ?? 0} | source=${sourceDir || "-"}`;
+}
+function fillDefaults(d) {
+  if (!d) return;
+  document.getElementById("row_limit").value = d.row_limit ?? 500;
+  document.getElementById("s1_metal_ion").value = d.step1?.metal_ion ?? "ZN";
+  document.getElementById("s1_residue_requirements").value = d.step1?.residue_requirements ?? "HIS:3";
+  document.getElementById("s1_protein_name_contains").value = d.step1?.protein_name_contains ?? "";
+  document.getElementById("s1_pdb_contains").value = d.step1?.pdb_contains ?? "";
+  document.getElementById("s2_cluster_threshold").value = d.step2?.cluster_threshold ?? 0.7;
+  document.getElementById("s2_mode").value = d.step2?.mode ?? "preset_clusters";
+  document.getElementById("s3_ligand_distance").value = d.step3?.ligand_distance ?? 5;
+  document.getElementById("s3_metal_distance").value = d.step3?.metal_distance ?? 8;
+  document.getElementById("s3_max_residue_per_oligomer").value = d.step3?.max_residue_per_oligomer ?? 400;
+  document.getElementById("s4_cluster_threshold").value = d.step4?.cluster_threshold ?? 0.7;
+  document.getElementById("s4_require_his3").value = (d.step4?.require_his3 ?? true) ? "true" : "false";
+  document.getElementById("s5_run_fpocket").value = (d.step5?.run_fpocket ?? true) ? "true" : "false";
+  document.getElementById("s5_fpocket_max_runs").value = d.step5?.fpocket_max_runs ?? 20;
+  document.getElementById("s5_fpocket_timeout_sec").value = d.step5?.fpocket_timeout_sec ?? 120;
+  document.getElementById("s5_write_to_master").value = (d.step5?.write_to_master ?? true) ? "true" : "false";
+}
+function renderTable(columns, rows) {
+  const wrap = document.createElement("div");
+  wrap.className = "table_wrap";
+  const table = document.createElement("table");
+  const thead = document.createElement("thead");
+  const trh = document.createElement("tr");
+  for (const c of columns || []) {
+    const th = document.createElement("th");
+    th.textContent = c;
+    trh.appendChild(th);
+  }
+  thead.appendChild(trh);
+  const tbody = document.createElement("tbody");
+  for (const r of rows || []) {
+    const tr = document.createElement("tr");
+    for (const c of columns || []) {
+      const td = document.createElement("td");
+      const v = r && r[c] != null ? String(r[c]) : "";
+      td.textContent = v;
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  }
+  table.appendChild(thead);
+  table.appendChild(tbody);
+  wrap.appendChild(table);
+  return wrap;
+}
+function renderSteps(data) {
+  const stepsWrap = document.getElementById("steps_wrap");
+  stepsWrap.innerHTML = "";
+  const finalCount = data?.summary?.final_count ?? 0;
+  const reps = Array.isArray(data?.summary?.final_representatives) ? data.summary.final_representatives : [];
+  document.getElementById("final_box").textContent = `最终结果：${finalCount} 条；Representative示例：${reps.slice(0, 20).join(", ") || "-"}`;
+  for (const st of (data.steps || [])) {
+    const box = document.createElement("div");
+    box.className = "step";
+    const h = document.createElement("div");
+    h.className = "step_header";
+    const left = document.createElement("div");
+    left.textContent = st.title || st.id || "Step";
+    const right = document.createElement("div");
+    right.className = "step_meta";
+    right.textContent = `过滤前 ${st.total_before_filter} | 过滤后 ${st.total_after_filter} | 返回 ${st.rows_returned}${st.truncated ? " (已截断)" : ""}`;
+    h.appendChild(left);
+    h.appendChild(right);
+    box.appendChild(h);
+    box.appendChild(renderTable(st.columns || [], st.rows || []));
+    stepsWrap.appendChild(box);
+  }
+}
+async function loadConfig() {
+  const apiBase = await resolveApiBase();
+  const {json: j} = await fetchJsonWithDetail(apiBase + "/api/pdbzn/workflow/config", {}, "config");
+  fillDefaults(j.defaults || {});
+  renderDbStats(j.db_stats || {}, j.source_dir || "");
+}
+async function importDatabase() {
+  const status = document.getElementById("status");
+  status.textContent = "正在导入数据库...";
+  const apiBase = await resolveApiBase();
+  const {json: j} = await fetchJsonWithDetail(apiBase + "/api/pdbzn/workflow/import", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({})
+  }, "import");
+  renderDbStats(j.stats || {}, "");
+  status.textContent = `导入完成：files=${j.imported_files} inserted=${j.inserted} updated=${j.updated}`;
+}
+async function runWorkflow() {
+  const status = document.getElementById("status");
+  status.textContent = "筛选中...";
+  const apiBase = await resolveApiBase();
+  const {json: j} = await fetchJsonWithDetail(apiBase + "/api/pdbzn/workflow/run", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(buildStep1Payload())
+  }, "run");
+  renderSteps(j);
+  status.textContent = "筛选完成";
+  hasStep1Run = true;
+  hasStep2Run = false;
+  hasStep3Run = false;
+  hasStep4Run = false;
+  if (j.summary) {
+    document.getElementById("final_box").textContent = `筛选结果：${j.summary.final_count || 0} 条；示例：${(j.summary.final_representatives || []).slice(0, 20).join(", ") || "-"}`;
+  }
+}
+async function runNextStep() {
+  const status = document.getElementById("status");
+  status.textContent = "聚类中...";
+  const payload = buildStep2Payload();
+  const payloadStep1All = buildStep1Payload();
+  payloadStep1All.row_limit = 200000;
+  let j = null;
+  const errors = [];
+  for (const apiBase of buildApiCandidates()) {
+    try {
+      const r1 = await fetchJsonWithDetail(apiBase + "/api/pdbzn/workflow/cluster", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(payload)
+      }, "step2");
+      j = r1.json;
+      document.getElementById("api_base").value = apiBase;
+      break;
+    } catch (e1) {
+      const m1 = e1 && e1.message ? e1.message : "cluster_failed";
+      if (String(m1).includes("http_404")) {
+        try {
+          const r2 = await fetchJsonWithDetail(apiBase + "/api/pdbzn/workflow/run", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(payloadStep1All)
+          }, "step2_fallback");
+          const normalized = normalizeStep2FromRunResponse(r2.json);
+          if (normalized && normalized.ok) {
+            j = normalized;
+            document.getElementById("api_base").value = apiBase;
+            break;
+          }
+          const step1 = Array.isArray(r2?.json?.steps) ? r2.json.steps.find((s) => String(s?.id || "") === "step1_metal_residue") : null;
+          if (step1 && Array.isArray(step1.rows)) {
+            j = clusterRowsLocal(step1.rows, payload?.step2?.cluster_threshold, payload?.row_limit);
+            document.getElementById("api_base").value = apiBase;
+            break;
+          }
+          errors.push(`${apiBase} => step2_fallback missing step2_clustering and no step1 rows`);
+          continue;
+        } catch (e2) {
+          errors.push(`${apiBase} => ${e2 && e2.message ? e2.message : "fallback_failed"}`);
+          continue;
+        }
+      }
+      errors.push(`${apiBase} => ${m1}`);
+    }
+  }
+  if (!j || !j.ok) throw new Error("Step2接口不可用，请重启后端；详情：" + errors.join(" | "));
+  renderSteps(j);
+  status.textContent = "聚类完成";
+  hasStep2Run = true;
+  hasStep3Run = false;
+  hasStep4Run = false;
+  const clusterN = j?.summary?.cluster_count ?? j?.summary?.final_count ?? 0;
+  const step1N = j?.summary?.step1_count ?? 0;
+  document.getElementById("final_box").textContent = `Step2聚类结果：${clusterN} 个簇（Step1输入蛋白 ${step1N} 条）`;
+}
+async function runStep3Filter() {
+  const status = document.getElementById("status");
+  status.textContent = "Step3第二次筛选中...";
+  const payload = buildStep3Payload();
+  let j = null;
+  const errors = [];
+  for (const apiBase of buildApiCandidates()) {
+    try {
+      const r = await fetchJsonWithDetail(apiBase + "/api/pdbzn/workflow/filter", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(payload)
+      }, "step3");
+      j = r.json;
+      document.getElementById("api_base").value = apiBase;
+      break;
+    } catch (e) {
+      errors.push(`${apiBase} => ${e && e.message ? e.message : "step3_failed"}`);
+    }
+  }
+  if (!j || !j.ok) throw new Error("Step3接口不可用；详情：" + errors.join(" | "));
+  renderSteps(j);
+  status.textContent = "Step3第二次筛选完成";
+  const beforeN = j?.summary?.cluster_count_before_step3 ?? 0;
+  const finalN = j?.summary?.final_count ?? 0;
+  const removedN = j?.summary?.removed_count ?? 0;
+  document.getElementById("final_box").textContent = `Step3结果：保留 ${finalN} 个（从 ${beforeN} 个簇中剔除 ${removedN} 个）`;
+  hasStep3Run = true;
+}
+async function runStep4Validate() {
+  const status = document.getElementById("status");
+  status.textContent = "Step4综合验证中...";
+  const payload = buildStep4Payload();
+  const isStep4Result = (resp) => {
+    const steps = Array.isArray(resp?.steps) ? resp.steps : [];
+    const hasStep4 = steps.some((s) => {
+      const sid = String(s?.id || "");
+      return sid === "step4_recluster_validate" || sid === "step4_trihis_validate";
+    });
+    const hasSummary = (resp?.summary?.step4_cluster_count != null) || (resp?.summary?.step4_valid_count != null);
+    return hasStep4 || hasSummary;
+  };
+  let j = null;
+  const errors = [];
+  for (const apiBase of buildApiCandidates()) {
+    try {
+      const r = await fetchJsonWithDetail(apiBase + "/api/pdbzn/workflow/validate", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(payload)
+      }, "step4");
+      if (isStep4Result(r.json)) {
+        j = r.json;
+        document.getElementById("api_base").value = apiBase;
+        break;
+      }
+      errors.push(`${apiBase} => validate接口返回了非Step4结果（可能后端版本过旧）`);
+    } catch (e) {
+      const msg = e && e.message ? e.message : "step4_failed";
+      if (String(msg).includes("http_404")) {
+        try {
+          const r2 = await fetchJsonWithDetail(apiBase + "/api/pdbzn/workflow/filter", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(payload)
+          }, "step4_fallback_filter");
+          if (isStep4Result(r2.json)) {
+            j = r2.json;
+            document.getElementById("api_base").value = apiBase;
+            break;
+          }
+          errors.push(`${apiBase} => filter回退返回了Step3结果（后端未加载Step4兼容逻辑）`);
+          continue;
+        } catch (e2) {
+          errors.push(`${apiBase} => ${e2 && e2.message ? e2.message : "step4_fallback_failed"}`);
+          continue;
+        }
+      }
+      errors.push(`${apiBase} => ${msg}`);
+    }
+  }
+  if (!j || !j.ok) throw new Error("Step4接口不可用；详情：" + errors.join(" | "));
+  renderSteps(j);
+  status.textContent = "Step4综合验证完成";
+  const inN = j?.summary?.step3_kept_count ?? 0;
+  const cN = j?.summary?.step4_cluster_count ?? 0;
+  const vN = j?.summary?.step4_valid_count ?? 0;
+  const rN = j?.summary?.step4_removed_by_geometry_count ?? Math.max(0, cN - vN);
+  document.getElementById("final_box").textContent = `Step4结果：输入 ${inN} 个；3HIS几何复核 ${cN} 个；通过 ${vN} 个；剔除 ${rN} 个`;
+  hasStep4Run = true;
+  hasStep5Run = false;
+}
+async function runStep5Finalize() {
+  const status = document.getElementById("status");
+  status.textContent = "Step5主表导入与补全中（含3HIS几何信息）...";
+  const payload = buildStep5Payload();
+  let j = null;
+  const errors = [];
+  const detailErrors = [];
+  for (const apiBase of buildApiCandidates()) {
+    try {
+      const r = await fetchJsonWithDetail(apiBase + "/api/pdbzn/workflow/finalize", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(payload)
+      }, "step5");
+      j = r.json;
+      document.getElementById("api_base").value = apiBase;
+      break;
+    } catch (e) {
+      const msg = e && e.message ? e.message : "step5_failed";
+      errors.push(`${apiBase} => ${msg}`);
+      detailErrors.push(msg);
+    }
+  }
+  if (!j || !j.ok) {
+    const is404Only = detailErrors.length > 0 && detailErrors.every((x) => String(x).includes("http_404"));
+    if (is404Only) {
+      throw new Error("Step5接口不可用：当前后端缺少 /api/pdbzn/workflow/finalize（后端版本过旧或未重启）。详情：" + errors.join(" | "));
+    }
+    throw new Error("Step5接口不可用；详情：" + errors.join(" | "));
+  }
+  renderSteps(j);
+  status.textContent = "Step5完成，主表收口结束";
+  const n = j?.summary?.appended_count ?? j?.summary?.final_count ?? 0;
+  const triPass = j?.summary?.step5_trihis_pass_count ?? 0;
+  const symPass = j?.summary?.step5_symmetry_pass_count ?? 0;
+  const fp = j?.summary?.fpocket_runs ?? 0;
+  const outFile = j?.summary?.output_file || "-";
+  const writeBack = j?.summary?.written_master ? "已写回主表" : "未写回主表";
+  document.getElementById("final_box").textContent = `Step5结果：追加 ${n} 条；3HIS通过 ${triPass} 条；空间构象通过 ${symPass} 条；fpocket运行 ${fp} 次；${writeBack}；输出=${outFile}`;
+  hasStep5Run = true;
+}
+document.getElementById("import_btn").addEventListener("click", async () => {
+  try {
+    await importDatabase();
+  } catch (e) {
+    showError(e && e.message ? e.message : "unknown error");
+  }
+});
+function showError(msg) {
+  const status = document.getElementById("status");
+  if (status) {
+    status.innerHTML = `<span style="color:red; font-weight:bold;">错误：${msg}</span>`;
+  }
+  alert("发生错误，请检查后端是否正常运行：\n\n" + msg);
+  console.error(msg);
+}
+
+document.getElementById("run_btn").addEventListener("click", async () => {
+  try {
+    await runWorkflow();
+  } catch (e) {
+    showError(e && e.message ? e.message : "unknown error");
+  }
+});
+document.getElementById("next_top_btn").addEventListener("click", async () => {
+  try {
+    if (currentStage === "step1") {
+      if (!hasStep1Run) {
+        await runWorkflow();
+      }
+      setStage("step2");
+      await runNextStep();
+      return;
+    }
+    if (currentStage === "step2") {
+      if (!hasStep2Run) {
+        await runNextStep();
+      }
+      setStage("step3");
+      await runStep3Filter();
+      return;
+    }
+    if (currentStage === "step3") {
+      if (!hasStep3Run) {
+        await runStep3Filter();
+      }
+      setStage("step4");
+      await runStep4Validate();
+      return;
+    }
+    if (currentStage === "step4") {
+      if (!hasStep4Run) {
+        await runStep4Validate();
+      }
+      setStage("step5");
+      await runStep5Finalize();
+      return;
+    }
+  } catch (e) {
+    showError(e && e.message ? e.message : "unknown error");
+  }
+});
+document.getElementById("cluster_btn").addEventListener("click", async () => {
+  try {
+    await runNextStep();
+  } catch (e) {
+    showError(e && e.message ? e.message : "unknown error");
+  }
+});
+document.getElementById("to_step3_btn").addEventListener("click", async () => {
+  try {
+    if (!hasStep2Run) {
+      await runNextStep();
+    }
+    setStage("step3");
+    await runStep3Filter();
+  } catch (e) {
+    showError(e && e.message ? e.message : "unknown error");
+  }
+});
+document.getElementById("back_btn").addEventListener("click", () => {
+  setStage("step1");
+});
+document.getElementById("filter_btn").addEventListener("click", async () => {
+  try {
+    await runStep3Filter();
+  } catch (e) {
+    showError(e && e.message ? e.message : "unknown error");
+  }
+});
+document.getElementById("to_step4_btn").addEventListener("click", async () => {
+  try {
+    if (!hasStep3Run) {
+      await runStep3Filter();
+    }
+    setStage("step4");
+    await runStep4Validate();
+  } catch (e) {
+    showError(e && e.message ? e.message : "unknown error");
+  }
+});
+document.getElementById("back2_btn").addEventListener("click", () => {
+  setStage("step2");
+});
+document.getElementById("validate_btn").addEventListener("click", async () => {
+  try {
+    await runStep4Validate();
+  } catch (e) {
+    showError(e && e.message ? e.message : "unknown error");
+  }
+});
+document.getElementById("to_step5_btn").addEventListener("click", async () => {
+  try {
+    if (!hasStep4Run) {
+      await runStep4Validate();
+    }
+    setStage("step5");
+    await runStep5Finalize();
+  } catch (e) {
+    showError(e && e.message ? e.message : "unknown error");
+  }
+});
+document.getElementById("back3_btn").addEventListener("click", () => {
+  setStage("step3");
+});
+document.getElementById("finalize_btn").addEventListener("click", async () => {
+  try {
+    await runStep5Finalize();
+  } catch (e) {
+    showError(e && e.message ? e.message : "unknown error");
+  }
+});
+document.getElementById("back4_btn").addEventListener("click", () => {
+  setStage("step4");
+});
+document.getElementById("reset_btn").addEventListener("click", async () => {
+  try {
+    await loadConfig();
+    hasStep1Run = false;
+    hasStep2Run = false;
+    hasStep3Run = false;
+    hasStep4Run = false;
+    hasStep5Run = false;
+    setStage("step1");
+    document.getElementById("status").textContent = "已恢复默认参数";
+  } catch (e) {
+    showError(e && e.message ? e.message : "unknown error");
+  }
+});
+window.addEventListener("load", async () => {
+  try {
+    setStage("step1");
+    await loadConfig();
+  } catch (e) {
+    showError(e && e.message ? e.message : "unknown error");
+  }
+});
+</script>
+</body>
+</html>

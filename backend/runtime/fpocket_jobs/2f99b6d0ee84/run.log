@@ -1,0 +1,10 @@
+CMD: /root/miniconda3/bin/fpocket -f /root/data-platform/backend/runtime/fpocket_jobs/2f99b6d0ee84/input/test.pdb
+***** POCKET HUNTING BEGINS ***** 
+QH6214 qhull input error: not enough points(4) to construct initial simplex (need 5)
+
+While executing: rbox D3 | qvoronoi p i Pp Qz Qt
+Options selected for Qhull 2015.2 2016/01/18:
+  run-id 373699123  voronoi  _bbound-last  _coplanar-keep  points  incidence
+  Pprecision-ignore  Qz-infinity-point  Qtriangulate  _pre-merge  _zero-centrum
+Error in creating clustering tree, return NULL pointer...breaking upno pockets found
+***** POCKET HUNTING ENDS ***** 

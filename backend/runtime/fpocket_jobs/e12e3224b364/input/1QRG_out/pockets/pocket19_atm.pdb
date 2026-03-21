@@ -1,0 +1,40 @@
+HEADER
+HEADER This is a pdb format file writen by the programm fpocket.                 
+HEADER It represents the atoms contacted by the voronoi vertices of the pocket.  
+HEADER                                                                           
+HEADER Information about the pocket    19:
+HEADER 0  - Pocket Score                      : 0.0312
+HEADER 1  - Drug Score                        : 0.0108
+HEADER 2  - Number of alpha spheres           :    28
+HEADER 3  - Mean alpha-sphere radius          : 4.1756
+HEADER 4  - Mean alpha-sphere Solvent Acc.    : 0.5738
+HEADER 5  - Mean B-factor of pocket residues  : 0.1679
+HEADER 6  - Hydrophobicity Score              : 54.6667
+HEADER 7  - Polarity Score                    :     1
+HEADER 8  - Amino Acid based volume Score     : 5.0000
+HEADER 9  - Pocket volume (Monte Carlo)       : 127.4464
+HEADER 10 - Pocket volume (convex hull)       : 0.3752
+HEADER 11 - Charge Score                      :     0
+HEADER 12 - Local hydrophobic density Score   : 24.0000
+HEADER 13 - Number of apolar alpha sphere     :    25
+HEADER 14 - Proportion of apolar alpha sphere : 0.8929
+ATOM    234  NE2 GLN A  37      28.850  76.001  51.664  0.61  3.28           N 0
+ATOM   3131   CZ PHE C   8      31.452  76.769  48.075  0.00  0.00           C 0
+ATOM   3351   CG GLN C  37      33.659  74.402  54.241  0.00  0.00           C 0
+ATOM    231   CG GLN A  37      28.401  74.980  49.561  0.00  0.00           C 0
+ATOM    230   CB GLN A  37      27.537  73.730  49.624  0.00  0.00           C 0
+ATOM   1794  NE2 GLN B  37      30.978  70.171  47.962  0.79  3.28           N 0
+ATOM   1790   CB GLN B  37      33.018  68.858  50.233  0.00  0.00           C 0
+ATOM   1918   SD MET B  55      29.088  68.386  52.227  0.00  0.00           S 0
+ATOM   3350   CB GLN C  37      32.409  74.339  55.105  0.00  0.00           C 0
+ATOM   3349    O GLN C  37      29.540  74.275  55.299  0.00  0.00           O 0
+ATOM    358   SD MET A  55      27.065  71.736  53.554  0.00  0.00           S 0
+ATOM   3478   SD MET C  55      30.415  70.409  55.577  0.00  0.00           S 0
+ATOM   3354  NE2 GLN C  37      34.680  72.299  53.792  0.74  3.28           N 0
+ATOM   1789    O GLN B  37      32.954  68.664  53.102  0.00  0.00           O 0
+ATOM   1791   CG GLN B  37      33.081  69.722  48.983  0.00  0.00           C 0
+ATOM   1571   CZ PHE B   8      35.448  75.888  51.190  0.00  0.00           C 0
+ATOM    229    O GLN A  37      27.343  70.861  49.688  0.50  1.07           O 0
+ATOM     11   CZ PHE A   8      34.567  72.773  47.194  0.00  0.00           C 0
+TER
+END

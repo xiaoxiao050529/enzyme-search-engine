@@ -1,0 +1,24 @@
+CMD: /root/tools/TMalign /root/data-platform/backend/runtime/tmalign_jobs/3e878d8e3e29/input/best.pdb /root/data-platform/backend/runtime/tmalign_jobs/3e878d8e3e29/input/2OBA.pdb
+
+ *********************************************************************
+ * TM-align (Version 20220412): protein structure alignment          *
+ * References: Y Zhang, J Skolnick. Nucl Acids Res 33, 2302-9 (2005) *
+ * Please email comments and suggestions to yangzhanglab@umich.edu   *
+ *********************************************************************
+
+Name of Chain_1: /root/data-platform/backend/runtime/tmalign_jobs/3e878d8e3e29/input/best.pdb (to be superimposed onto Chain_2)
+Name of Chain_2: /root/data-platform/backend/runtime/tmalign_jobs/3e878d8e3e29/input/2OBA.pdb
+Length of Chain_1: 89 residues
+Length of Chain_2: 119 residues
+
+Aligned length= 54, RMSD=   4.83, Seq_ID=n_identical/n_aligned= 0.093
+TM-score= 0.27595 (if normalized by length of Chain_1, i.e., LN=89, d0=3.41)
+TM-score= 0.23637 (if normalized by length of Chain_2, i.e., LN=119, d0=4.03)
+(You should use TM-score normalized by length of the reference structure)
+
+(":" denotes residue pairs of d <  5.0 Angstrom, "." denotes other aligned residues)
+----------LHALETINE----EGEPIEDNIVEVDGKEYAVYIGNNVSLAHQSQVHGPAILTPEMSAAL-------------A-TLPPEVRARAD-YS-------L--L------PLGISGEEAAALLRALA---------------------
+          ::::..       ..::::...       .:.::                 : :  :::              . .:.: :::::: .:       .  .      ::::...:.::. :.                       
+SHELFKEFTFESAHRL---PHVPEGHKCGRLH-------GHSFR-----------------V-A--IHI-EGEVDPHTGWIRDFAEIKA-IFKPIYEQLDHNYLNDIPGLENPTSENLCRWIWQQLKP-LL--PELSKVRVHETCTSGCEYRGD
+
+Total CPU time is  0.01 seconds

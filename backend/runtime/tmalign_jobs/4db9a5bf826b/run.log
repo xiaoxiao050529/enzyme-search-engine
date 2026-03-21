@@ -1,0 +1,24 @@
+CMD: /root/tools/TMalign /root/data-platform/backend/runtime/tmalign_jobs/4db9a5bf826b/input/1KOP.pdb /root/data-platform/backend/runtime/tmalign_jobs/4db9a5bf826b/input/6J4C.pdb
+
+ *********************************************************************
+ * TM-align (Version 20220412): protein structure alignment          *
+ * References: Y Zhang, J Skolnick. Nucl Acids Res 33, 2302-9 (2005) *
+ * Please email comments and suggestions to yangzhanglab@umich.edu   *
+ *********************************************************************
+
+Name of Chain_1: /root/data-platform/backend/runtime/tmalign_jobs/4db9a5bf826b/input/1KOP.pdb (to be superimposed onto Chain_2)
+Name of Chain_2: /root/data-platform/backend/runtime/tmalign_jobs/4db9a5bf826b/input/6J4C.pdb
+Length of Chain_1: 223 residues
+Length of Chain_2: 123 residues
+
+Aligned length= 63, RMSD=   4.63, Seq_ID=n_identical/n_aligned= 0.143
+TM-score= 0.19615 (if normalized by length of Chain_1, i.e., LN=223, d0=5.55)
+TM-score= 0.30560 (if normalized by length of Chain_2, i.e., LN=123, d0=4.11)
+(You should use TM-score normalized by length of the reference structure)
+
+(":" denotes residue pairs of d <  5.0 Angstrom, "." denotes other aligned residues)
+HTHWGYTGHDSPESWGNLSEEFRLCSTGKNQSPVNITETVSGKLPAIKVNYKP----SMV-DV-ENN------GHTIQV-NYP--EGGNTLTVNGRTYTLKQFHFHVPSENQIKGR--TFPMEAHFVH---------LDENKQPLVLAVLYEAGKTNGRLSSIWNVMPMTAGKVKLNQPFDASTLL------------------PKRLKYYRFA--GSLTTPPCTEGVSWLVLKTYDH----IDQAQAEKFTRAVGSENNRPVQPLNARVVIE----------
+                                                         ... .: :::      :::::: :::  :::          :: :::::::.         .                  .    ::::::::::::.                                                 .   ..::.:  ::.:.                     ..: :.  .                                
+-----------------------------------------------------PADPEIVEGLPIPLAVAGHHQPAPFYLTADMFGGL----------PV-QLAGGELS-------TLV---------GKPVAAPHTH----PVDELYLLVSPNK-------------------------------GGARIEVQLDGRRHELLSP---AVMRIPAGSEHCF-----------------LTLEAEV-GS--Y----------------------CFGILLGDRL
+
+Total CPU time is  0.03 seconds

@@ -1,0 +1,43 @@
+HEADER
+HEADER This is a pdb format file writen by the programm fpocket.                 
+HEADER It represents the atoms contacted by the voronoi vertices of the pocket.  
+HEADER                                                                           
+HEADER Information about the pocket     7:
+HEADER 0  - Pocket Score                      : 0.2602
+HEADER 1  - Drug Score                        : 0.0157
+HEADER 2  - Number of alpha spheres           :    20
+HEADER 3  - Mean alpha-sphere radius          : 3.9672
+HEADER 4  - Mean alpha-sphere Solvent Acc.    : 0.6045
+HEADER 5  - Mean B-factor of pocket residues  : 0.1591
+HEADER 6  - Hydrophobicity Score              : 8.9000
+HEADER 7  - Polarity Score                    :     5
+HEADER 8  - Amino Acid based volume Score     : 4.5000
+HEADER 9  - Pocket volume (Monte Carlo)       : 375.5036
+HEADER 10 - Pocket volume (convex hull)       : 25.9606
+HEADER 11 - Charge Score                      :     4
+HEADER 12 - Local hydrophobic density Score   : 7.0000
+HEADER 13 - Number of apolar alpha sphere     :     8
+HEADER 14 - Proportion of apolar alpha sphere : 0.4000
+ATOM   2095    O GLY A 279      -0.073  25.338  81.441  0.48  8.57           O 0
+ATOM   2097   CAALYS A 280       2.652  25.008  81.676  0.00  0.00           C 0
+ATOM   1310   CG PRO A 183       0.443  27.539  77.778  0.00  0.00           C 0
+ATOM   2101   CBALYS A 280       3.179  25.766  82.913  0.00  0.00           C 0
+ATOM   2114    O VAL A 281       6.811  27.008  79.937  0.46  3.21           O 0
+ATOM   2041  NH2AARG A 271       7.002  27.071  73.710  0.00  0.00           N 0
+ATOM   1329    O LYS A 186       6.899  29.730  72.707  0.00  0.00           O 0
+ATOM   2128    O GLN A 283      10.591  26.357  76.350  0.00  0.00           O 0
+ATOM   1332   CD LYS A 186       4.545  32.478  75.682  0.00  0.00           C 0
+ATOM   1330   CB LYS A 186       4.285  30.844  73.823  0.00  0.00           C 0
+ATOM   1308    O PRO A 183       4.145  26.820  75.043  0.00  0.00           O 0
+ATOM   2146  CG2 VAL A 285      11.015  29.467  71.707  0.00  0.00           C 0
+ATOM   2135   CA LYS A 284      13.058  27.548  76.090  0.00  0.00           C 0
+ATOM   2116  CG1 VAL A 281       6.797  24.865  77.100  0.00  0.00           C 0
+ATOM   1309   CB PRO A 183       1.747  26.886  77.334  0.00  0.00           C 0
+ATOM   2111    N VAL A 281       4.584  25.277  80.232  0.72  2.19           N 0
+ATOM   2039  NH1AARG A 271       9.053  26.047  73.653  0.00  0.00           N 0
+ATOM   2140    N VAL A 285      12.807  28.070  73.693  0.00  0.00           N 0
+ATOM   1333   CE LYS A 186       4.195  33.881  76.143  0.00  0.00           C 0
+ATOM   1291    O VAL A 181       0.429  31.140  74.557  0.63  2.14           O 0
+ATOM   1306   CA PRO A 183       2.109  27.600  76.030  0.00  0.00           C 0
+TER
+END

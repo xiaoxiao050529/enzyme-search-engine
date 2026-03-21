@@ -1,0 +1,79 @@
+HEADER
+HEADER This is a pdb format file writen by the programm fpocket.                 
+HEADER It represents the atoms contacted by the voronoi vertices of the pocket.  
+HEADER                                                                           
+HEADER Information about the pocket     1:
+HEADER 0  - Pocket Score                      : 0.2129
+HEADER 1  - Drug Score                        : 0.0887
+HEADER 2  - Number of alpha spheres           :    79
+HEADER 3  - Mean alpha-sphere radius          : 3.8374
+HEADER 4  - Mean alpha-sphere Solvent Acc.    : 0.5300
+HEADER 5  - Mean B-factor of pocket residues  : 0.2012
+HEADER 6  - Hydrophobicity Score              : 16.0000
+HEADER 7  - Polarity Score                    :     7
+HEADER 8  - Amino Acid based volume Score     : 4.0000
+HEADER 9  - Pocket volume (Monte Carlo)       : 779.8549
+HEADER 10 - Pocket volume (convex hull)       : 291.9063
+HEADER 11 - Charge Score                      :     0
+HEADER 12 - Local hydrophobic density Score   : 9.2000
+HEADER 13 - Number of apolar alpha sphere     :    20
+HEADER 14 - Proportion of apolar alpha sphere : 0.2532
+ATOM    924  CD1 LEU B  13      36.724  45.747  13.896  0.00  0.00           C 0
+ATOM    946   CB ASN B  16      34.274  41.259  11.665  0.00  0.00           C 0
+ATOM    955   CG LYS B  17      32.413  46.402  11.327  0.00  0.00           C 0
+ATOM    921    O LEU B  13      35.139  44.758  10.503  0.00  0.00           O 0
+ATOM    979  OD2 ASP B  20      27.977  42.578  14.645  0.75  7.50           O 0
+ATOM    951   CA LYS B  17      31.117  44.444  10.308  0.00  0.00           C 0
+ATOM    945    O ASN B  16      31.154  41.738  10.941  0.64  6.43           O 0
+ATOM    801  OG1 THR A 118      32.821  38.553  16.429  0.59  4.29           O 0
+ATOM    802  CG2 THR A 118      34.749  39.662  17.388  0.00  0.00           C 0
+ATOM    800   CB THR A 118      33.583  38.718  17.641  0.00  0.00           C 0
+ATOM    779   CA ALA A 115      29.644  39.512  19.631  0.00  0.00           C 0
+ATOM   1750    O ALA B 115      34.911  32.966   0.926  0.00  0.00           O 0
+ATOM   1769   CB THR B 118      35.730  32.713   4.473  0.00  0.00           C 0
+ATOM   1771  CG2 THR B 118      36.665  31.682   5.119  0.00  0.00           C 0
+ATOM   1778  OD1 ASP B 119      38.023  30.774   0.588  0.00  0.00           O 0
+ATOM     87  OD1 ASN A  16      35.846  31.025   9.497  0.52  4.29           O 0
+ATOM     85   CB ASN A  16      33.768  30.058  10.055  0.00  0.00           C 0
+ATOM     63  CD1 LEU A  13      36.680  25.498   8.913  0.00  0.00           C 0
+ATOM    118  OD2 ASP A  20      29.017  29.337   5.336  0.00  0.00           O 0
+ATOM   1770  OG1 THR B 118      34.622  32.947   5.350  0.00  0.00           O 0
+ATOM    971  CD1 ILE B  19      29.996  37.487   7.480  0.00  0.00           C 0
+ATOM     88  ND2 ASN A  16      34.589  32.114  11.038  0.56  1.09           N 0
+ATOM    109  CG2 ILE A  19      28.313  34.130   9.783  0.00  0.00           C 0
+ATOM    108  CG1 ILE A  19      29.609  33.475  11.860  0.00  0.00           C 0
+ATOM    781    O ALA A 115      31.583  38.569  20.698  0.00  0.00           O 0
+ATOM    809  OD1 ASP A 119      34.557  40.513  22.072  0.00  0.00           O 0
+ATOM   1800   NZ LYS B 121      35.703  36.772   9.006  0.68  3.28           N 0
+ATOM    831   NZ LYS A 121      34.763  34.616  13.305  0.61  6.56           N 0
+ATOM   1761   CB LEU B 117      33.790  37.490   3.434  0.00  0.00           C 0
+ATOM    782   CB ALA A 115      28.966  40.614  20.466  0.00  0.00           C 0
+ATOM    968   CB ILE B  19      29.362  38.972   9.484  0.00  0.00           C 0
+ATOM    970  CG2 ILE B  19      28.496  37.860  10.103  0.00  0.00           C 0
+ATOM    944    C ASN B  16      32.198  42.244  10.558  0.00  0.00           C 0
+ATOM    978  OD1 ASP B  20      27.451  40.669  13.668  0.74  2.14           O 0
+ATOM    778    N ALA A 115      28.672  38.852  18.739  0.00  0.00           N 0
+ATOM    792   CB LEU A 117      31.022  34.130  17.885  0.00  0.00           C 0
+ATOM    110  CD1 ILE A  19      28.843  34.390  12.791  0.00  0.00           C 0
+ATOM    107   CB ILE A  19      28.816  32.944  10.658  0.00  0.00           C 0
+ATOM   1748   CA ALA B 115      32.647  32.214   1.257  0.00  0.00           C 0
+ATOM   1751   CB ALA B 115      32.190  31.164   0.229  0.00  0.00           C 0
+ATOM   1747    N ALA B 115      31.498  32.963   1.779  0.00  0.00           N 0
+ATOM   1743    O THR B 114      32.655  34.078   3.375  0.58  1.07           O 0
+ATOM   1745  OG1 THR B 114      29.084  32.677   3.749  0.80  2.14           O 0
+ATOM    969  CG1 ILE B  19      30.476  38.364   8.622  0.00  0.00           C 0
+ATOM    950    N LYS B  17      32.294  43.548  10.283  0.00  0.00           N 0
+ATOM    775   CB THR A 114      27.555  37.958  15.777  0.00  0.00           C 0
+ATOM    774    O THR A 114      30.219  37.631  17.621  0.00  0.00           O 0
+ATOM     94   CG LYS A  17      31.696  25.254   9.857  0.00  0.00           C 0
+ATOM     84    O ASN A  16      30.740  29.925   9.670  0.70  3.21           O 0
+ATOM     86   CG ASN A  16      34.819  31.108  10.183  0.00  0.00           C 0
+ATOM    117  OD1 ASP A  20      28.343  31.323   6.058  0.61  1.07           O 0
+ATOM    949  ND2 ASN B  16      35.337  39.227  10.735  0.63  1.09           N 0
+ATOM    943   CA ASN B  16      33.450  41.372  10.365  0.00  0.00           C 0
+ATOM   1744   CB THR B 114      29.518  33.977   4.186  0.00  0.00           C 0
+ATOM     90   CA LYS A  17      30.287  27.310  10.393  0.00  0.00           C 0
+ATOM     89    N LYS A  17      31.434  28.107  10.811  0.00  0.00           N 0
+ATOM     83    C ASN A  16      31.507  29.392  10.486  0.00  0.00           C 0
+TER
+END

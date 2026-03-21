@@ -1,0 +1,43 @@
+HEADER
+HEADER This is a pdb format file writen by the programm fpocket.                 
+HEADER It represents the atoms contacted by the voronoi vertices of the pocket.  
+HEADER                                                                           
+HEADER Information about the pocket    13:
+HEADER 0  - Pocket Score                      : 0.0247
+HEADER 1  - Drug Score                        : 0.0001
+HEADER 2  - Number of alpha spheres           :    24
+HEADER 3  - Mean alpha-sphere radius          : 3.9490
+HEADER 4  - Mean alpha-sphere Solvent Acc.    : 0.5489
+HEADER 5  - Mean B-factor of pocket residues  : 0.2961
+HEADER 6  - Hydrophobicity Score              : 5.9091
+HEADER 7  - Polarity Score                    :     6
+HEADER 8  - Amino Acid based volume Score     : 4.3636
+HEADER 9  - Pocket volume (Monte Carlo)       : 366.6325
+HEADER 10 - Pocket volume (convex hull)       : 34.0517
+HEADER 11 - Charge Score                      :     2
+HEADER 12 - Local hydrophobic density Score   : 3.0000
+HEADER 13 - Number of apolar alpha sphere     :     4
+HEADER 14 - Proportion of apolar alpha sphere : 0.1667
+ATOM    180    N GLU A  20     -14.558  -6.963  31.199  0.83  3.28           N 0
+ATOM    181   CA GLU A  20     -13.964  -7.834  32.228  0.00  0.00           C 0
+ATOM    169    O VAL A  18     -13.491  -3.339  30.966  0.89  7.50           O 0
+ATOM    187  OE1 GLU A  20     -14.321  -7.874  35.545  0.00  0.00           O 0
+ATOM    221    O GLY A  25      -7.376  -4.145  34.668  0.55  6.43           O 0
+ATOM    152    O PRO A  16     -12.887   0.188  33.748  0.00  0.00           O 0
+ATOM    176    O PRO A  19     -12.612  -6.097  30.432  0.00  0.00           O 0
+ATOM    183    O GLU A  20     -11.767  -8.843  32.425  0.42  5.36           O 0
+ATOM    219   CA GLY A  25      -7.753  -3.774  32.344  0.00  0.00           C 0
+ATOM    150   CA PRO A  16     -10.702   1.113  34.022  0.00  0.00           C 0
+ATOM    144    O LEU A  15      -8.998  -0.799  32.700  0.49  3.21           O 0
+ATOM    137   NE ARG A  14      -6.512  -2.757  37.031  0.63  1.09           N 0
+ATOM    136   CD ARG A  14      -5.761  -1.562  37.367  0.00  0.00           C 0
+ATOM    153   CB PRO A  16     -10.929   2.445  34.766  0.00  0.00           C 0
+ATOM    135   CG ARG A  14      -5.628  -0.631  36.180  0.00  0.00           C 0
+ATOM    220    C GLY A  25      -7.071  -4.448  33.524  0.00  0.00           C 0
+ATOM    227   CG ARG A  26      -5.932  -8.362  33.411  0.00  0.00           C 0
+ATOM    196    O HIS A  22      -8.199  -6.880  30.470  0.00  0.00           O 0
+ATOM    140  NH2 ARG A  14      -7.443  -4.847  37.458  0.00  0.00           N 0
+ATOM    623  ND2 ASN A  72      -5.555   3.213  36.254  0.64  2.19           N 0
+ATOM    607   OH TYR A  70      -4.185   0.810  39.058  0.59  7.50           O 0
+TER
+END

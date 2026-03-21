@@ -1,0 +1,38 @@
+HEADER
+HEADER This is a pdb format file writen by the programm fpocket.                 
+HEADER It represents the atoms contacted by the voronoi vertices of the pocket.  
+HEADER                                                                           
+HEADER Information about the pocket     2:
+HEADER 0  - Pocket Score                      : -0.0026
+HEADER 1  - Drug Score                        : 0.0015
+HEADER 2  - Number of alpha spheres           :    19
+HEADER 3  - Mean alpha-sphere radius          : 3.7983
+HEADER 4  - Mean alpha-sphere Solvent Acc.    : 0.3565
+HEADER 5  - Mean B-factor of pocket residues  : 0.2306
+HEADER 6  - Hydrophobicity Score              : 40.0000
+HEADER 7  - Polarity Score                    :     4
+HEADER 8  - Amino Acid based volume Score     : 3.9000
+HEADER 9  - Pocket volume (Monte Carlo)       : 208.1953
+HEADER 10 - Pocket volume (convex hull)       : 5.1887
+HEADER 11 - Charge Score                      :     2
+HEADER 12 - Local hydrophobic density Score   : 5.0000
+HEADER 13 - Number of apolar alpha sphere     :     6
+HEADER 14 - Proportion of apolar alpha sphere : 0.3158
+ATOM    889   CZ TYR A 137       9.507  26.463  36.177  0.00  0.00           C 0
+ATOM    890   OH TYR A 137      10.197  26.501  34.983  0.69  5.36           O 0
+ATOM    887  CE1 TYR A 137       8.574  27.453  36.464  0.00  0.00           C 0
+ATOM   1127  CE1 HIS A 166      15.430  32.757  36.162  0.00  0.00           C 0
+ATOM   1125  ND1 HIS A 166      14.419  33.460  35.685  0.29  4.37           N 0
+ATOM    929   CA GLY A 143       8.208  30.559  34.011  0.00  0.00           C 0
+ATOM    922    O LYS A 142       7.504  31.898  36.317  0.65  7.50           O 0
+ATOM   1143  CG2 ILE A 168       7.739  35.200  30.464  0.00  0.00           C 0
+ATOM    127  CE2 PHE A  44       5.696  33.782  33.939  0.00  0.00           C 0
+ATOM     92    O ALA A  39       8.528  36.232  35.599  0.59  2.14           O 0
+ATOM   1110   OG SER A 164      13.616  29.202  32.182  0.09  7.50           O 0
+ATOM   1119    N HIS A 166      14.038  33.939  32.411  0.28  1.09           N 0
+ATOM    932    N VAL A 144       8.640  30.596  31.627  0.56  2.19           N 0
+ATOM   1120   CA HIS A 166      13.198  34.878  33.150  0.00  0.00           C 0
+ATOM     97    O ALA A  40      11.485  35.999  37.467  0.36  3.21           O 0
+ATOM   1121    C HIS A 166      12.586  35.963  32.261  0.00  0.00           C 0
+TER
+END

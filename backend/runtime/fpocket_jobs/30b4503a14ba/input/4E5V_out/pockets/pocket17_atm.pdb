@@ -1,0 +1,36 @@
+HEADER
+HEADER This is a pdb format file writen by the programm fpocket.                 
+HEADER It represents the atoms contacted by the voronoi vertices of the pocket.  
+HEADER                                                                           
+HEADER Information about the pocket    17:
+HEADER 0  - Pocket Score                      : 0.1120
+HEADER 1  - Drug Score                        : 0.0004
+HEADER 2  - Number of alpha spheres           :    16
+HEADER 3  - Mean alpha-sphere radius          : 3.8925
+HEADER 4  - Mean alpha-sphere Solvent Acc.    : 0.5556
+HEADER 5  - Mean B-factor of pocket residues  : 0.0651
+HEADER 6  - Hydrophobicity Score              : -3.0000
+HEADER 7  - Polarity Score                    :     5
+HEADER 8  - Amino Acid based volume Score     : 3.6667
+HEADER 9  - Pocket volume (Monte Carlo)       : 158.6798
+HEADER 10 - Pocket volume (convex hull)       : 1.8537
+HEADER 11 - Charge Score                      :    -1
+HEADER 12 - Local hydrophobic density Score   : 1.0000
+HEADER 13 - Number of apolar alpha sphere     :     2
+HEADER 14 - Proportion of apolar alpha sphere : 0.1250
+ATOM   2860   CA GLY B  91      11.531  31.368  19.742  0.00  0.00           C 0
+ATOM   2859    N GLY B  91      11.271  31.963  21.051  0.00  0.00           N 0
+ATOM   2857  OD1 ASN B  90       8.826  30.038  23.194  0.76  2.14           O 0
+ATOM   3260  OE2 GLU B 138      14.500  29.937  23.358  0.61  3.21           O 0
+ATOM   3100   CB ASN B 120      11.942  29.843  27.860  0.00  0.00           C 0
+ATOM   2856   CG ASN B  90       9.113  30.749  24.170  0.00  0.00           C 0
+ATOM   3102  OD1 ASN B 120      10.705  27.931  28.496  0.00  0.00           O 0
+ATOM   3257   CG GLU B 138      15.417  28.158  24.614  0.00  0.00           C 0
+ATOM   2858  ND2 ASN B  90       8.652  30.497  25.389  0.00  0.00           N 0
+ATOM   2430  ND2 ASN B  38       7.979  25.735  25.747  0.26  2.19           N 0
+ATOM   3242   CB TRP B 137      13.476  25.512  28.877  0.00  0.00           C 0
+ATOM   3252    N GLU B 138      15.720  25.921  26.962  0.00  0.00           N 0
+ATOM   2427   CB ASN B  38       7.274  26.230  23.489  0.00  0.00           C 0
+ATOM   2428   CG ASN B  38       7.486  26.661  24.919  0.00  0.00           C 0
+TER
+END

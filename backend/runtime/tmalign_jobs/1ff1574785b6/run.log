@@ -1,0 +1,24 @@
+CMD: /root/tools/TMalign /root/data-platform/backend/runtime/tmalign_jobs/1ff1574785b6/input/1PS6.pdb /root/data-platform/backend/runtime/tmalign_jobs/1ff1574785b6/input/2FQP.pdb
+
+ *********************************************************************
+ * TM-align (Version 20220412): protein structure alignment          *
+ * References: Y Zhang, J Skolnick. Nucl Acids Res 33, 2302-9 (2005) *
+ * Please email comments and suggestions to yangzhanglab@umich.edu   *
+ *********************************************************************
+
+Name of Chain_1: /root/data-platform/backend/runtime/tmalign_jobs/1ff1574785b6/input/1PS6.pdb (to be superimposed onto Chain_2)
+Name of Chain_2: /root/data-platform/backend/runtime/tmalign_jobs/1ff1574785b6/input/2FQP.pdb
+Length of Chain_1: 328 residues
+Length of Chain_2: 92 residues
+
+Aligned length= 76, RMSD=   4.69, Seq_ID=n_identical/n_aligned= 0.079
+TM-score= 0.16771 (if normalized by length of Chain_1, i.e., LN=328, d0=6.62)
+TM-score= 0.41500 (if normalized by length of Chain_2, i.e., LN=92, d0=3.48)
+(You should use TM-score normalized by length of the reference structure)
+
+(":" denotes residue pairs of d <  5.0 Angstrom, "." denotes other aligned residues)
+VKT-QRVVITPGEPAGIGPDLVVQLAQREWPVELVVCADATLLTNRAAMLGLPLTLRPYSPNSPAQPQTAGTLTLLPVALRAPVTAGQLAVENGHYVVETLARACDGCLNGEFAALITG---P--VHKGVINDAGIPFTGHTEFFEERSQAKKVVMMLATEELRVALATTHLPLRDIADAITPALLHEVIAILHHDLRTKFGIAEPRILVCGLNPHAGEGGHMGTEEIDTIIPVLNELRAQGMKLNGPLPADTLFQPKYLDNADAVLAMYHDQGLPVL------KYQG--FGRGVNITLGLPFIRT-SVD-HGTALELAGRGKADVGSFITALNLAIKMIVNTQ
+    ..:.:::::::                                                                     :::..    .  ..  .  ..  ..    .:.:.    .  ...          ::  :  .       ::::::::.::::: :::                                                                                                                 .     ::::::::::::. .  .   .::: ::                          
+---KRPGAIPTVQID---------------------------------------------------------------------NERVK----V--TE--W--RF--PP----GGETG-WHRHSDYVV----------VP--T--T-------GPLLLETPEGSVTS-QLT-----------------------------------------------------------------------------------------------------------RGVSYTR---PEGVEHNVINPSDTE-F-VF--VEIEI-KA--------------------------
+
+Total CPU time is  0.02 seconds

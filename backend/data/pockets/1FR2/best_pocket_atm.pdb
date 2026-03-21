@@ -1,0 +1,39 @@
+HEADER
+HEADER This is a pdb format file writen by the programm fpocket.                 
+HEADER It represents the atoms contacted by the voronoi vertices of the pocket.  
+HEADER                                                                           
+HEADER Information about the pocket     8:
+HEADER 0  - Pocket Score                      : 0.1849
+HEADER 1  - Drug Score                        : 0.0035
+HEADER 2  - Number of alpha spheres           :    19
+HEADER 3  - Mean alpha-sphere radius          : 4.0266
+HEADER 4  - Mean alpha-sphere Solvent Acc.    : 0.5540
+HEADER 5  - Mean B-factor of pocket residues  : 0.2579
+HEADER 6  - Hydrophobicity Score              : 7.1429
+HEADER 7  - Polarity Score                    :     4
+HEADER 8  - Amino Acid based volume Score     : 3.5714
+HEADER 9  - Pocket volume (Monte Carlo)       : 291.3268
+HEADER 10 - Pocket volume (convex hull)       : 8.8233
+HEADER 11 - Charge Score                      :     3
+HEADER 12 - Local hydrophobic density Score   : 6.0000
+HEADER 13 - Number of apolar alpha sphere     :     7
+HEADER 14 - Proportion of apolar alpha sphere : 0.3684
+ATOM   1677  CE1 HIS B 131      15.827  13.122  34.006  0.00  0.00           C 0
+ATOM   1447   CB HIS B 103      10.761  14.663  29.725  0.00  0.00           C 0
+HETATM 1695   ZN ZN  B 301      13.171  11.683  33.792  0.00  0.00          ZN 0
+ATOM    682  NH2 ARG B   5      10.127  17.824  34.996  0.00  0.00           N 0
+ATOM   1490   OG SER B 108      17.256  20.602  31.406  0.00  0.00           O 0
+ATOM   1489   CB SER B 108      16.402  21.536  32.043  0.00  0.00           C 0
+ATOM   1474   CB PRO B 106      16.257  17.544  29.827  0.00  0.00           C 0
+ATOM   1675  ND1 HIS B 131      17.051  12.950  34.476  0.71  4.37           N 0
+ATOM   1475   CG PRO B 106      17.089  16.427  29.307  0.00  0.00           C 0
+ATOM   1449  ND1 HIS B 103       9.008  15.148  31.475  0.00  0.00           N 0
+ATOM   1443    N HIS B 103      10.776  12.424  30.796  0.00  0.00           N 0
+ATOM   1477    N ILE B 107      13.073  18.720  29.956  0.59  1.09           N 0
+ATOM   1471   CA PRO B 106      14.856  17.213  29.309  0.00  0.00           C 0
+ATOM   1482  CG1 ILE B 107      10.180  18.866  30.693  0.00  0.00           C 0
+ATOM   1485    N SER B 108      14.341  20.953  30.838  0.65  2.19           N 0
+ATOM   1446    O HIS B 103      13.297  13.067  29.391  0.69  1.07           O 0
+ATOM   1481   CB ILE B 107      11.219  19.943  31.030  0.00  0.00           C 0
+TER
+END

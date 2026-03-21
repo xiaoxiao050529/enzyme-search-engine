@@ -1,0 +1,40 @@
+HEADER
+HEADER This is a pdb format file writen by the programm fpocket.                 
+HEADER It represents the atoms contacted by the voronoi vertices of the pocket.  
+HEADER                                                                           
+HEADER Information about the pocket    38:
+HEADER 0  - Pocket Score                      : -0.1153
+HEADER 1  - Drug Score                        : 0.0008
+HEADER 2  - Number of alpha spheres           :    19
+HEADER 3  - Mean alpha-sphere radius          : 3.8293
+HEADER 4  - Mean alpha-sphere Solvent Acc.    : 0.5484
+HEADER 5  - Mean B-factor of pocket residues  : 0.3711
+HEADER 6  - Hydrophobicity Score              : 28.1250
+HEADER 7  - Polarity Score                    :     3
+HEADER 8  - Amino Acid based volume Score     : 4.3750
+HEADER 9  - Pocket volume (Monte Carlo)       : 255.3026
+HEADER 10 - Pocket volume (convex hull)       : 8.2397
+HEADER 11 - Charge Score                      :    -1
+HEADER 12 - Local hydrophobic density Score   : 8.0000
+HEADER 13 - Number of apolar alpha sphere     :     9
+HEADER 14 - Proportion of apolar alpha sphere : 0.4737
+ATOM   2236  CD1 ILE B  97      41.129  66.512  80.367  0.00  0.00           C 0
+ATOM   2285   CB GLU B 104      44.740  62.954  78.149  0.00  0.00           C 0
+ATOM   1980    O MET B  64      41.878  67.726  74.480  0.45  6.43           O 0
+ATOM   2289  OE2 GLU B 104      44.973  64.670  80.218  0.00  0.00           O 0
+ATOM   2234  CG1 ILE B  97      40.140  65.711  79.531  0.00  0.00           C 0
+ATOM   2235  CG2 ILE B  97      41.360  63.495  79.438  0.00  0.00           C 0
+ATOM   2154  CG1 ILE B  86      42.457  72.535  79.064  0.00  0.00           C 0
+ATOM   1991   CD PRO B  65      43.585  65.925  73.289  0.00  0.00           C 0
+ATOM   2284    O GLU B 104      44.771  63.001  75.079  0.50  7.50           O 0
+ATOM   2290    N TYR B 105      42.773  62.120  75.695  0.00  0.00           N 0
+ATOM   2292    C TYR B 105      40.740  63.199  74.833  0.00  0.00           C 0
+ATOM   2147  OG1 THR B  85      39.964  69.700  76.368  0.66  1.07           O 0
+ATOM   2146   CB THR B  85      39.441  68.873  77.412  0.00  0.00           C 0
+ATOM   2145    O THR B  85      40.226  70.081  79.985  0.00  0.00           O 0
+ATOM   2156  CD1 ILE B  86      43.169  72.348  80.396  0.00  0.00           C 0
+ATOM   2193   CB PRO B  92      42.663  69.253  83.063  0.00  0.00           C 0
+ATOM   2194   CG PRO B  92      43.707  69.912  83.912  0.00  0.00           C 0
+ATOM   2283    C GLU B 104      44.078  62.393  75.875  0.00  0.00           C 0
+TER
+END

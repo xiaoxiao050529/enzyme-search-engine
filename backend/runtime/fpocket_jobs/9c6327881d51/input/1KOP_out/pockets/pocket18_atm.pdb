@@ -1,0 +1,40 @@
+HEADER
+HEADER This is a pdb format file writen by the programm fpocket.                 
+HEADER It represents the atoms contacted by the voronoi vertices of the pocket.  
+HEADER                                                                           
+HEADER Information about the pocket    18:
+HEADER 0  - Pocket Score                      : 0.1042
+HEADER 1  - Drug Score                        : 0.0004
+HEADER 2  - Number of alpha spheres           :    18
+HEADER 3  - Mean alpha-sphere radius          : 4.0744
+HEADER 4  - Mean alpha-sphere Solvent Acc.    : 0.6528
+HEADER 5  - Mean B-factor of pocket residues  : 0.3929
+HEADER 6  - Hydrophobicity Score              : 2.3333
+HEADER 7  - Polarity Score                    :     5
+HEADER 8  - Amino Acid based volume Score     : 4.0000
+HEADER 9  - Pocket volume (Monte Carlo)       : 299.1942
+HEADER 10 - Pocket volume (convex hull)       : 7.4606
+HEADER 11 - Charge Score                      :    -1
+HEADER 12 - Local hydrophobic density Score   : 0.6667
+HEADER 13 - Number of apolar alpha sphere     :     3
+HEADER 14 - Proportion of apolar alpha sphere : 0.1667
+ATOM    900    N GLU A 117      -8.026 -15.503  26.685  0.52  1.09           N 0
+ATOM    651  OG1 THR A  87      -3.419 -16.648  22.098  0.00  0.00           O 0
+ATOM    901   CA GLU A 117      -8.996 -14.557  26.135  0.00  0.00           C 0
+ATOM    895    O ASP A 116      -6.502 -13.943  27.247  0.71  7.50           O 0
+ATOM    667   CD LYS A  89       0.061 -12.077  24.160  0.00  0.00           C 0
+ATOM    668   CE LYS A  89       0.153 -10.634  23.687  0.00  0.00           C 0
+ATOM    669   NZ LYS A  89      -0.572 -10.436  22.399  0.00  0.00           N 0
+ATOM    890  CD1 LEU A 115      -1.721 -10.872  27.809  0.00  0.00           C 0
+ATOM    888   CB LEU A 115      -2.486 -13.226  27.774  0.00  0.00           C 0
+ATOM    887    O LEU A 115      -3.676 -15.647  26.325  0.74  3.21           O 0
+ATOM    894    C ASP A 116      -6.855 -15.123  27.182  0.00  0.00           C 0
+ATOM    650   CB THR A  87      -2.248 -16.089  22.708  0.00  0.00           C 0
+ATOM    652  CG2 THR A  87      -1.334 -15.535  21.621  0.00  0.00           C 0
+ATOM    905   CG GLU A 117     -10.088 -16.734  25.266  0.00  0.00           C 0
+ATOM    630    O THR A  85      -6.129 -19.480  25.788  0.46  2.14           O 0
+ATOM    633  CG2 THR A  85      -5.423 -21.430  22.925  0.00  0.00           C 0
+ATOM    631   CB THR A  85      -6.557 -21.813  23.864  0.00  0.00           C 0
+ATOM    908  OE2 GLU A 117      -8.876 -18.613  26.121  0.84  4.29           O 0
+TER
+END

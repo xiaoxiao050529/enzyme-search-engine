@@ -1,0 +1,24 @@
+CMD: /root/tools/TMalign /root/data-platform/backend/runtime/tmalign_jobs/960c164f4529/input/best.pdb /root/data-platform/backend/runtime/tmalign_jobs/960c164f4529/input/1M65.pdb
+
+ *********************************************************************
+ * TM-align (Version 20220412): protein structure alignment          *
+ * References: Y Zhang, J Skolnick. Nucl Acids Res 33, 2302-9 (2005) *
+ * Please email comments and suggestions to yangzhanglab@umich.edu   *
+ *********************************************************************
+
+Name of Chain_1: /root/data-platform/backend/runtime/tmalign_jobs/960c164f4529/input/best.pdb (to be superimposed onto Chain_2)
+Name of Chain_2: /root/data-platform/backend/runtime/tmalign_jobs/960c164f4529/input/1M65.pdb
+Length of Chain_1: 89 residues
+Length of Chain_2: 234 residues
+
+Aligned length= 63, RMSD=   5.59, Seq_ID=n_identical/n_aligned= 0.063
+TM-score= 0.28682 (if normalized by length of Chain_1, i.e., LN=89, d0=3.41)
+TM-score= 0.16092 (if normalized by length of Chain_2, i.e., LN=234, d0=5.67)
+(You should use TM-score normalized by length of the reference structure)
+
+(":" denotes residue pairs of d <  5.0 Angstrom, "." denotes other aligned residues)
+L----HALETINEEGE-PIEDN----IV-EVDGK-E--YAV----------------------------YIGNNVSL---------------------------------------------------------------------------------A--HQSQVHGPAILTPEMSAA------LAT--LPPEVRARADYSLL-------PLGISGEEAAALLRALA--------------------------------
+     .::::::..   .::      .. ::::. .  ::.                            ..                                                                                       .  :::::....               .    .::: ::.:.::..       .:::...::::. :.                                  
+-YPVDLHMHTVAST--HAYS--TLSDYIAQAKQKGIKLFAITDHGPDMEDAPHHWHFINMRIWPRVVDGVG------ILRGIEANIKNVDGEIDCSGKMFDSLDLIIAGFHEPVFAPHDKATNTQAMIATIASGNVHIISHPGNPKYEIDVKAVAEAAAKHQVALEINNS---------SNCREVA--AAVRDA-GGWVALGSDSHTAFTMGEFEECLKILDA-VD--FPPERILNVSPRRLLNFLESRGMAPIAEFADL
+
+Total CPU time is  0.01 seconds

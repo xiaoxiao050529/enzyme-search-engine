@@ -1,0 +1,39 @@
+HEADER
+HEADER This is a pdb format file writen by the programm fpocket.                 
+HEADER It represents the atoms contacted by the voronoi vertices of the pocket.  
+HEADER                                                                           
+HEADER Information about the pocket     4:
+HEADER 0  - Pocket Score                      : -0.0119
+HEADER 1  - Drug Score                        : 0.0019
+HEADER 2  - Number of alpha spheres           :    17
+HEADER 3  - Mean alpha-sphere radius          : 3.8890
+HEADER 4  - Mean alpha-sphere Solvent Acc.    : 0.5489
+HEADER 5  - Mean B-factor of pocket residues  : 0.4105
+HEADER 6  - Hydrophobicity Score              : -0.5000
+HEADER 7  - Polarity Score                    :     5
+HEADER 8  - Amino Acid based volume Score     : 4.8333
+HEADER 9  - Pocket volume (Monte Carlo)       : 296.5030
+HEADER 10 - Pocket volume (convex hull)       : 10.1559
+HEADER 11 - Charge Score                      :    -2
+HEADER 12 - Local hydrophobic density Score   : 9.0000
+HEADER 13 - Number of apolar alpha sphere     :    10
+HEADER 14 - Proportion of apolar alpha sphere : 0.5882
+ATOM   1341    O GLU A 193      19.506  21.618  39.241  0.59  2.14           O 0
+ATOM    533    O TYR A  95      21.418  24.045  42.707  0.48  1.07           O 0
+ATOM   1342   CB GLU A 193      17.687  19.232  40.254  0.00  0.00           C 0
+ATOM    568   CB LYS A  98      21.886  20.267  41.998  0.00  0.00           C 0
+ATOM    499    O GLU A  91      21.315  24.700  48.897  0.00  0.00           O 0
+ATOM    526   CB ASP A  94      23.628  21.853  48.074  0.00  0.00           C 0
+ATOM    497   CA GLU A  91      21.768  24.374  51.224  0.00  0.00           C 0
+ATOM    572   NZ LYS A  98      20.147  18.221  46.138  0.00  0.00           N 0
+ATOM    530    N TYR A  95      22.142  23.889  46.063  0.00  0.00           N 0
+ATOM    570   CD LYS A  98      20.949  18.936  43.889  0.00  0.00           C 0
+ATOM   1345  OE1 GLU A 193      17.466  16.786  41.527  0.72  4.29           O 0
+ATOM    531   CA TYR A  95      21.092  24.160  45.089  0.00  0.00           C 0
+ATOM    534   CB TYR A  95      20.187  25.280  45.607  0.00  0.00           C 0
+ATOM   1333    O MET A 192      15.407  22.359  39.282  0.55  4.29           O 0
+ATOM    538  CE1 TYR A  95      17.120  25.535  43.345  0.00  0.00           C 0
+ATOM   1339   CA GLU A 193      17.407  20.494  39.446  0.00  0.00           C 0
+ATOM    536  CD1 TYR A  95      18.052  25.055  44.262  0.00  0.00           C 0
+TER
+END

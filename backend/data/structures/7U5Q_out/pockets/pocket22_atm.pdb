@@ -1,0 +1,39 @@
+HEADER
+HEADER This is a pdb format file writen by the programm fpocket.                 
+HEADER It represents the atoms contacted by the voronoi vertices of the pocket.  
+HEADER                                                                           
+HEADER Information about the pocket    22:
+HEADER 0  - Pocket Score                      : -0.0886
+HEADER 1  - Drug Score                        : 0.0129
+HEADER 2  - Number of alpha spheres           :    21
+HEADER 3  - Mean alpha-sphere radius          : 4.1427
+HEADER 4  - Mean alpha-sphere Solvent Acc.    : 0.4921
+HEADER 5  - Mean B-factor of pocket residues  : 0.4530
+HEADER 6  - Hydrophobicity Score              : 46.7500
+HEADER 7  - Polarity Score                    :     3
+HEADER 8  - Amino Acid based volume Score     : 4.6250
+HEADER 9  - Pocket volume (Monte Carlo)       : 405.1817
+HEADER 10 - Pocket volume (convex hull)       : 9.5999
+HEADER 11 - Charge Score                      :     2
+HEADER 12 - Local hydrophobic density Score   : 18.0000
+HEADER 13 - Number of apolar alpha sphere     :    19
+HEADER 14 - Proportion of apolar alpha sphere : 0.9048
+ATOM   1980   CB LEU B  87      50.715  -2.778 -31.381  0.00  0.00           C 0
+ATOM   1965   CB ARG B  84      55.333  -3.651 -27.596  0.00  0.00           C 0
+ATOM   1964    O ARG B  84      52.073  -3.109 -27.725  0.66  1.07           O 0
+ATOM   2099  CG2 THR B 104      51.542  -6.735 -34.943  0.00  0.00           C 0
+ATOM   1979    O LEU B  87      47.680  -3.513 -30.407  0.58  1.07           O 0
+ATOM   2065   CB VAL B  98      48.618  -9.546 -33.347  0.00  0.00           C 0
+ATOM   1978    C LEU B  87      48.721  -3.103 -29.880  0.00  0.00           C 0
+ATOM   1984    N ILE B  88      49.125  -3.534 -28.681  0.00  0.00           N 0
+ATOM   1989  CG1 ILE B  88      50.212  -5.733 -26.854  0.00  0.00           C 0
+ATOM      1    N ARG A  41      44.256 -12.279 -25.270  0.00  0.00           N 0
+ATOM      5   CB ARG A  41      46.117 -13.860 -25.002  0.00  0.00           C 0
+ATOM   1962   CA ARG B  84      54.370  -2.679 -28.281  0.00  0.00           C 0
+ATOM   1982  CD1 LEU B  87      52.511  -2.698 -33.135  0.00  0.00           C 0
+ATOM   1985   CA ILE B  88      48.295  -4.458 -27.905  0.00  0.00           C 0
+ATOM   2015   CB ALA B  91      45.288  -6.229 -30.558  0.00  0.00           C 0
+ATOM   1990  CG2 ILE B  88      48.023  -5.589 -25.670  0.00  0.00           C 0
+ATOM   2052  CG2 VAL B  96      46.135  -4.029 -33.668  0.00  0.00           C 0
+TER
+END

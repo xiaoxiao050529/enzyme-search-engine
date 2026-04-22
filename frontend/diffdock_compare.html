@@ -348,6 +348,17 @@ function resolveDataUrl(ref) {
   }
   return `../backend/data/${rel}`;
 }
+function resolveDataUrlCandidates(ref) {
+  const rel = normalizeDataRelPath(ref);
+  if (!rel) {
+    const raw = String(ref || "").trim();
+    return raw ? [raw] : [];
+  }
+  const out = [];
+  if (localApiBase) out.push(`${localApiBase}/api/data/file?path=${encodeURIComponent(rel)}`);
+  out.push(`../backend/data/${rel}`);
+  return [...new Set(out)];
+}
 function dataUrlCandidates(relPath) {
   const out = [];
   if (localApiBase) out.push(`${localApiBase}/api/data/file?path=${encodeURIComponent(relPath)}`);
@@ -422,10 +433,19 @@ function parseSdfAtoms(text) {
   }
   return atoms;
 }
-async function fetchText(url) {
-  const r = await fetch(appendNoCache(url));
-  if (!r.ok) throw new Error(url + "加载失败");
-  return await r.text();
+async function fetchText(ref) {
+  const urls = Array.isArray(ref) ? ref : resolveDataUrlCandidates(ref);
+  let lastErr = null;
+  for (const url of urls) {
+    try {
+      const r = await fetch(appendNoCache(url));
+      if (!r.ok) throw new Error(url + ` -> http_${r.status}`);
+      return await r.text();
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr || new Error("加载失败");
 }
 function findHisCoordinatedZn(atoms) {
   const znAtoms = atoms.filter(a => a.elem === "ZN" || (a.atom || "").toUpperCase() === "ZN");
@@ -731,7 +751,7 @@ async function initData() {
   localDataViaApi = Boolean(localApiBase) && [diffRes.url, masterRes.url].some(u => String(u || "").startsWith(`${localApiBase}/api/data/file`));
   for (const it of (diffdockIndex.items || [])) {
     for (const p of (it.poses || [])) {
-      p.file = resolveDataUrl(p.file || "");
+      p.file = normalizeDataRelPath(p.file || "");
     }
   }
   renderPdbOptions();
@@ -819,8 +839,7 @@ function structureCandidates(id) {
   const m = getMasterItem(id) || {};
   const cands = [];
   for (const ref of [m.receptor_rel, m.receptor_pdb, `structures/${id}.pdb`, `structures/${id}.cif`]) {
-    const resolved = resolveDataUrl(ref);
-    if (resolved) cands.push(resolved);
+    cands.push(...resolveDataUrlCandidates(ref));
   }
   return [...new Set(cands.filter(Boolean))];
 }
@@ -852,9 +871,7 @@ async function loadOne(viewer, id, poseFile, ligandColor) {
   const fmts = cands.map(x => x.toLowerCase().endsWith(".cif") ? "cif" : "pdb");
   const loadedRec = await tryLoadModel(viewer, cands, fmts);
   if (!loadedRec.url) throw new Error("受体结构未找到: " + id + (loadedRec.errors.length ? "；尝试: " + loadedRec.errors.join(" | ") : ""));
-  const r = await fetch(poseFile + "?t=" + Date.now());
-  if (!r.ok) throw new Error(`pose加载失败: ${poseFile} -> http_${r.status}`);
-  const sdf = await r.text();
+  const sdf = await fetchText(poseFile);
   const lig = viewer.addModel(sdf, "sdf");
   state.ligModel = lig;
   state.ligColor = ligandColor;

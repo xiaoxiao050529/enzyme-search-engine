@@ -19,6 +19,8 @@ body { font-family: system-ui, sans-serif; margin: 16px; }
 .sort_row { grid-template-columns: minmax(220px, 1.2fr) minmax(120px, 0.6fr) auto auto; }
 .display_row { grid-template-columns: minmax(260px, 1fr) auto; }
 .rowkeep_row { grid-template-columns: minmax(320px, 1fr) auto; }
+.edit_row { grid-template-columns: minmax(220px, 1.1fr) minmax(160px, 0.9fr) auto auto; }
+.fill_row { grid-template-columns: minmax(220px, 1fr) minmax(180px, 0.8fr) minmax(220px, 1fr) auto; }
 label { display: block; font-size: 13px; color: #333; }
 input, select, button, textarea { padding: 6px; box-sizing: border-box; width: 100%; margin-top: 4px; }
 button { width: auto; white-space: nowrap; }
@@ -31,6 +33,9 @@ th, td { border: 1px solid #e5e5e5; padding: 6px 8px; text-align: left; white-sp
 th { position: sticky; top: 0; background: #f7f9fc; cursor: pointer; z-index: 2; }
 tbody tr:nth-child(even) { background: #fcfcfc; }
 tbody tr:hover { background: #eef6ff; }
+.editable_cell { cursor: cell; }
+.editable_cell:hover { background: rgba(255, 208, 102, 0.18); }
+.edited_cell { background: rgba(255, 236, 184, 0.72); }
 </style>
 <link rel="stylesheet" href="./theme.css">
 </head>
@@ -105,6 +110,36 @@ tbody tr:hover { background: #eef6ff; }
       </div>
     </div>
   </div>
+  <div class="control_block">
+    <div class="block_title">编辑</div>
+    <div class="block_hint">支持新增自定义列、给当前表批量填写数字，或双击单元格直接修改。编辑结果保存在当前浏览器，可继续导出 Excel。</div>
+    <div class="control_row edit_row">
+      <label>新增列名
+        <input id="new_col_name" type="text" placeholder="例如 ManualScore">
+      </label>
+      <label>默认值
+        <input id="new_col_default" type="text" placeholder="可留空">
+      </label>
+      <button id="add_col_btn" type="button">新增列</button>
+      <button id="clear_draft_btn" type="button">清空本地编辑</button>
+    </div>
+    <div class="control_row fill_row">
+      <label>填写列
+        <select id="edit_col"></select>
+      </label>
+      <label>填写范围
+        <select id="edit_scope">
+          <option value="filtered">当前筛选结果</option>
+          <option value="kept">保留行</option>
+          <option value="all">整张表</option>
+        </select>
+      </label>
+      <label>填写值
+        <input id="edit_value" type="text" placeholder="例如 1.25">
+      </label>
+      <button id="apply_edit_btn" type="button">批量填写</button>
+    </div>
+  </div>
 </div>
 <div id="status">正在加载数据...</div>
 <div class="table_wrap">
@@ -125,6 +160,9 @@ let masterSourceLabel = "未知";
 let tableRegistry = [];
 let currentTable = null;
 let keptRowSet = null;
+let baseHeader = [];
+let draftState = {addedColumns: [], editedCells: {}};
+const DRAFT_PREFIX = "master_table_draft::";
 
 function asText(v) {
   if (v == null) return "";
@@ -206,6 +244,10 @@ function getRowJumpId(r) {
   return (idVal || repVal || pdbFromPath).toUpperCase();
 }
 
+function getRowKey(r, idx = 0) {
+  return asText(r && r.__rowKey ? r.__rowKey : (getRowJumpId(r) || `ROW_${idx + 1}`)).trim().toUpperCase();
+}
+
 function parseKeepTokens(text) {
   return [...new Set(
     asText(text)
@@ -266,16 +308,12 @@ function renderTable() {
   for (const r of filteredRows) {
     const tr = document.createElement("tr");
     const jumpId = getRowJumpId(r);
-    if (jumpId) {
-      tr.style.cursor = "pointer";
-      tr.addEventListener("click", () => {
-        const ds = currentTable && currentTable.id ? `&dataset=${encodeURIComponent(currentTable.id)}` : "";
-        window.location.href = `./index.html?pdb=${encodeURIComponent(jumpId)}${ds}`;
-      });
-    }
     for (const h of visibleHeader) {
       const td = document.createElement("td");
       const val = asText(r[h]);
+      const isLinkCell = (h === "_id" || h === "Representative" || h === "Receptor_PDB") && jumpId;
+      const rowKey = getRowKey(r);
+      if ((draftState.editedCells[rowKey] || {})[h] !== undefined) td.classList.add("edited_cell");
       if ((h === "_id" || h === "Representative" || h === "Receptor_PDB") && jumpId) {
         const a = document.createElement("a");
         const ds = currentTable && currentTable.id ? `&dataset=${encodeURIComponent(currentTable.id)}` : "";
@@ -285,6 +323,15 @@ function renderTable() {
         td.appendChild(a);
       } else {
         td.textContent = val;
+      }
+      if (!isLinkCell) {
+        td.classList.add("editable_cell");
+        td.title = "双击编辑";
+        td.addEventListener("dblclick", (ev) => {
+          ev.preventDefault();
+          ev.stopPropagation();
+          editCellValue(r, h);
+        });
       }
       tr.appendChild(td);
     }
@@ -353,6 +400,19 @@ function renderVisibleColumnOptions() {
   }
 }
 
+function renderEditColumnOptions() {
+  const sel = document.getElementById("edit_col");
+  const prev = sel.value;
+  sel.innerHTML = "";
+  for (const h of fullHeader) {
+    const op = document.createElement("option");
+    op.value = h;
+    op.textContent = h;
+    sel.appendChild(op);
+  }
+  if (fullHeader.includes(prev)) sel.value = prev;
+}
+
 function renderTableOptions() {
   const sel = document.getElementById("table_select");
   const current = sel.value;
@@ -404,14 +464,18 @@ async function loadCurrentTable() {
   const j = ret.json;
   localDataViaApi = Boolean(localApiBase) && String(ret.url || "").startsWith(`${localApiBase}/api/data/file`);
   masterSourceLabel = localDataViaApi ? `${localApiBase}/api/data/file` : `静态 backend/data/${currentTable.full || "master_full.json"}`;
-  fullHeader = Array.isArray(j.header) ? j.header : [];
+  baseHeader = Array.isArray(j.header) ? j.header.slice() : [];
+  fullHeader = baseHeader.slice();
+  fullRows = Array.isArray(j.rows) ? j.rows.map((row, idx) => ({...row, __rowKey: getRowKey(row, idx)})) : [];
+  draftState = loadDraftState();
+  applyDraftState();
   visibleHeader = fullHeader.slice();
-  fullRows = Array.isArray(j.rows) ? j.rows : [];
   keptRowSet = null;
   document.getElementById("row_keep_input").value = "";
   filteredRows = fullRows.slice();
   initColumnSelectors();
   renderVisibleColumnOptions();
+  renderEditColumnOptions();
   renderTableMeta();
   applyFilters();
   renderHeader();
@@ -440,6 +504,7 @@ function clearAll() {
   visibleHeader = fullHeader.slice();
   initColumnSelectors();
   renderVisibleColumnOptions();
+  renderEditColumnOptions();
   applyFilters();
   renderHeader();
 }
@@ -490,6 +555,7 @@ function applyVisibleColumns() {
   }
   visibleHeader = fullHeader.filter((h) => selected.includes(h));
   initColumnSelectors();
+  renderEditColumnOptions();
   applyFilters();
   renderHeader();
 }
@@ -498,6 +564,7 @@ function showAllColumns() {
   visibleHeader = fullHeader.slice();
   initColumnSelectors();
   renderVisibleColumnOptions();
+  renderEditColumnOptions();
   applyFilters();
   renderHeader();
 }
@@ -512,6 +579,135 @@ function clearKeptRows() {
   keptRowSet = null;
   document.getElementById("row_keep_input").value = "";
   applyFilters();
+}
+
+function currentDraftStorageKey() {
+  return `${DRAFT_PREFIX}${currentTable && currentTable.id ? currentTable.id : "table1"}`;
+}
+
+function loadDraftState() {
+  try {
+    const raw = localStorage.getItem(currentDraftStorageKey());
+    if (!raw) return {addedColumns: [], editedCells: {}};
+    const j = JSON.parse(raw);
+    return {
+      addedColumns: Array.isArray(j.addedColumns) ? j.addedColumns.map((x) => asText(x).trim()).filter(Boolean) : [],
+      editedCells: j && typeof j.editedCells === "object" && j.editedCells ? j.editedCells : {}
+    };
+  } catch (_) {
+    return {addedColumns: [], editedCells: {}};
+  }
+}
+
+function saveDraftState() {
+  try {
+    localStorage.setItem(currentDraftStorageKey(), JSON.stringify(draftState));
+  } catch (_) {}
+}
+
+function applyDraftState() {
+  for (const c of draftState.addedColumns) {
+    if (!fullHeader.includes(c)) fullHeader.push(c);
+  }
+  for (const row of fullRows) {
+    for (const c of draftState.addedColumns) {
+      if (!(c in row)) row[c] = "";
+    }
+    const rowDraft = draftState.editedCells[getRowKey(row)] || {};
+    for (const [col, value] of Object.entries(rowDraft)) {
+      if (!fullHeader.includes(col)) fullHeader.push(col);
+      row[col] = value;
+    }
+  }
+}
+
+function ensureColumnExists(colName, defaultValue = "") {
+  const col = asText(colName).trim();
+  if (!col) throw new Error("列名不能为空");
+  if (!fullHeader.includes(col)) fullHeader.push(col);
+  if (!baseHeader.includes(col) && !draftState.addedColumns.includes(col)) draftState.addedColumns.push(col);
+  for (const row of fullRows) {
+    if (!(col in row)) row[col] = defaultValue;
+  }
+}
+
+function setDraftCell(rowKey, col, value) {
+  const key = asText(rowKey).trim().toUpperCase();
+  if (!key) return;
+  if (!draftState.editedCells[key]) draftState.editedCells[key] = {};
+  draftState.editedCells[key][col] = value;
+}
+
+function editCellValue(row, col) {
+  const current = asText(row[col]);
+  const rowKey = getRowKey(row);
+  const next = window.prompt(`编辑 ${rowKey} / ${col}`, current);
+  if (next === null) return;
+  row[col] = next;
+  setDraftCell(rowKey, col, next);
+  saveDraftState();
+  applyFilters();
+  renderHeader();
+  renderTable();
+  document.getElementById("status").textContent = `已更新 ${rowKey} / ${col}`;
+}
+
+function addCustomColumn() {
+  try {
+    const col = document.getElementById("new_col_name").value.trim();
+    const defaultValue = document.getElementById("new_col_default").value;
+    ensureColumnExists(col, defaultValue);
+    saveDraftState();
+    document.getElementById("new_col_name").value = "";
+    initColumnSelectors();
+    renderVisibleColumnOptions();
+    renderEditColumnOptions();
+    applyFilters();
+    renderHeader();
+    renderTable();
+    document.getElementById("edit_col").value = col;
+    document.getElementById("status").textContent = `已新增列 ${col}`;
+  } catch (e) {
+    document.getElementById("status").textContent = e && e.message ? e.message : "新增列失败";
+  }
+}
+
+function getEditTargetRows(scope) {
+  if (scope === "all") return fullRows;
+  if (scope === "kept") return keptRowSet ? fullRows.filter((r) => keptRowSet.has(getRowKey(r))) : [];
+  return filteredRows;
+}
+
+function applyBatchEdit() {
+  const col = document.getElementById("edit_col").value;
+  const value = document.getElementById("edit_value").value;
+  const scope = document.getElementById("edit_scope").value;
+  if (!col) {
+    document.getElementById("status").textContent = "请选择要填写的列";
+    return;
+  }
+  ensureColumnExists(col, "");
+  const targets = getEditTargetRows(scope);
+  if (!targets.length) {
+    document.getElementById("status").textContent = "当前范围内没有可填写的行";
+    return;
+  }
+  for (const row of targets) {
+    row[col] = value;
+    setDraftCell(getRowKey(row), col, value);
+  }
+  saveDraftState();
+  applyFilters();
+  renderHeader();
+  renderTable();
+  document.getElementById("status").textContent = `已对 ${targets.length} 行填写 ${col}=${value}`;
+}
+
+async function clearDraftEdits() {
+  draftState = {addedColumns: [], editedCells: {}};
+  try { localStorage.removeItem(currentDraftStorageKey()); } catch (_) {}
+  await loadCurrentTable();
+  document.getElementById("status").textContent = "已清空本地编辑";
 }
 
 document.getElementById("table_select").addEventListener("change", async () => {
@@ -538,6 +734,15 @@ document.getElementById("apply_cols_btn").addEventListener("click", applyVisible
 document.getElementById("show_all_cols_btn").addEventListener("click", showAllColumns);
 document.getElementById("apply_rows_btn").addEventListener("click", applyKeptRows);
 document.getElementById("clear_rows_btn").addEventListener("click", clearKeptRows);
+document.getElementById("add_col_btn").addEventListener("click", addCustomColumn);
+document.getElementById("apply_edit_btn").addEventListener("click", applyBatchEdit);
+document.getElementById("clear_draft_btn").addEventListener("click", async () => {
+  try {
+    await clearDraftEdits();
+  } catch (e) {
+    document.getElementById("status").textContent = "清空本地编辑失败：" + (e && e.message ? e.message : "unknown");
+  }
+});
 
 window.addEventListener("load", async () => {
   try {

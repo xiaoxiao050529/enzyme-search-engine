@@ -13,9 +13,13 @@ body { font-family: system-ui, sans-serif; margin: 16px; }
 .row { display: grid; grid-template-columns: 360px 1fr; gap: 16px; align-items: start; }
 #controls { width: 360px; border: 1px solid #ddd; padding: 8px; background: #fafafa; position: relative; z-index: 2; }
 #viewer_col { display: flex; flex-direction: column; gap: 8px; }
-#seq_panel { min-height: 74px; max-height: 180px; border: 1px solid #ddd; background: #fff; padding: 8px; overflow: auto; }
+#seq_panel { min-height: 74px; max-height: 220px; border: 1px solid #ddd; background: #fff; padding: 8px; overflow: auto; }
 #seq_title { font-weight: 700; margin-bottom: 6px; color: #333; }
 #seq_content { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; line-height: 1.6; word-break: break-all; font-size: 13px; color: #555; }
+.seq_chain { margin-bottom: 10px; }
+.seq_chain:last-child { margin-bottom: 0; }
+.seq_chain_head { display: inline-block; min-width: 68px; margin: 0 0 6px; padding: 2px 8px; border-radius: 999px; background: rgba(46, 126, 214, 0.1); color: #21425e; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; }
+.seq_chain_body { display: flex; flex-wrap: wrap; gap: 2px; align-items: flex-start; }
 .seq_aa { display: inline-block; min-width: 10px; text-align: center; border-radius: 3px; padding: 0 1px; cursor: pointer; transition: background 140ms ease, color 140ms ease; }
 .seq_aa:hover { background: rgba(255, 196, 84, 0.28); color: #1d2a34; }
 .seq_aa.active { color: #fff; background: #d62828; }
@@ -149,7 +153,7 @@ let ligandModelRef = null;
 let znMarkerModelRef = null;
 let znVisibleShapes = [];
 let znVisibleLabels = [];
-let seqState = {text:"", residueMap:new Map(), indexMap:new Map(), residueInfo:new Map(), selectedKey:"", hoverKey:""};
+let seqState = {text:"", residueMap:new Map(), indexMap:new Map(), residueInfo:new Map(), chainBlocks:[], selectedKey:"", hoverKey:""};
 const routeParams = new URLSearchParams(window.location.search);
 const routePdb = (routeParams.get("pdb") || "").trim();
 const routeDataset = (routeParams.get("dataset") || "").trim().toLowerCase();
@@ -427,9 +431,72 @@ function residueKey(chain, resi) {
 function setSequenceStatus(text) {
   document.getElementById("seq_content").textContent = text;
 }
+function residueOneLetter(resn) {
+  const key = String(resn || "").toUpperCase();
+  const table = {
+    ALA: "A", ARG: "R", ASN: "N", ASP: "D", CYS: "C",
+    GLN: "Q", GLU: "E", GLY: "G", HIS: "H", HID: "H",
+    HIE: "H", HIP: "H", HSD: "H", HSE: "H", HSP: "H",
+    ILE: "I", LEU: "L", LYS: "K", MET: "M", PHE: "F",
+    PRO: "P", SER: "S", THR: "T", TRP: "W", TYR: "Y",
+    VAL: "V", SEC: "U", PYL: "O", ASX: "B", GLX: "Z",
+    MSE: "M"
+  };
+  return table[key] || "X";
+}
+function getStructureResidues() {
+  const model = structureModelRef && structureModelRef.selectedAtoms ? structureModelRef : null;
+  if (!model || !model.selectedAtoms) return [];
+  const caAtoms = model.selectedAtoms({atom:"CA"}) || [];
+  const source = caAtoms.length ? caAtoms : (model.selectedAtoms({}) || []);
+  const uniq = new Map();
+  for (const a of source) {
+    if (!a) continue;
+    const resn = String(a.resn || "").toUpperCase();
+    if (resn === "HOH" || resn === "WAT" || resn === "ZN") continue;
+    const key = residueKey(a.chain, a.resi);
+    const prev = uniq.get(key);
+    if (!prev || a.atom === "CA") uniq.set(key, a);
+  }
+  const residues = Array.from(uniq.values());
+  residues.sort((a, b)=>{
+    const ca = String(a.chain || "");
+    const cb = String(b.chain || "");
+    if (ca !== cb) return ca.localeCompare(cb);
+    const ra = parseResiOrder(a.resi);
+    const rb = parseResiOrder(b.resi);
+    if (ra.n !== rb.n) return ra.n - rb.n;
+    return ra.s.localeCompare(rb.s);
+  });
+  return residues;
+}
 function renderSequenceText(seqText) {
   const content = document.getElementById("seq_content");
   content.innerHTML = "";
+  if (Array.isArray(seqState.chainBlocks) && seqState.chainBlocks.length) {
+    for (const block of seqState.chainBlocks) {
+      const wrap = document.createElement("div");
+      wrap.className = "seq_chain";
+      const head = document.createElement("div");
+      head.className = "seq_chain_head";
+      head.textContent = `Chain ${block.chain || "?"}`;
+      wrap.appendChild(head);
+      const body = document.createElement("div");
+      body.className = "seq_chain_body";
+      for (const item of block.residues) {
+        const span = document.createElement("span");
+        span.className = "seq_aa";
+        span.dataset.idx = String(item.index);
+        span.dataset.key = item.key;
+        span.title = `${item.chain}:${item.resn}${item.resi}`;
+        span.textContent = item.letter;
+        body.appendChild(span);
+      }
+      wrap.appendChild(body);
+      content.appendChild(wrap);
+    }
+    return;
+  }
   if (!seqText) {
     content.textContent = "无序列信息";
     return;
@@ -444,12 +511,20 @@ function renderSequenceText(seqText) {
 }
 function highlightSequenceResidues() {
   const content = document.getElementById("seq_content");
-  const active = new Set();
-  if (seqState.selectedKey && seqState.residueMap.has(seqState.selectedKey)) active.add(seqState.residueMap.get(seqState.selectedKey));
-  if (seqState.hoverKey && seqState.residueMap.has(seqState.hoverKey)) active.add(seqState.residueMap.get(seqState.hoverKey));
+  const activeKeys = new Set();
+  if (seqState.selectedKey) activeKeys.add(seqState.selectedKey);
+  if (seqState.hoverKey) activeKeys.add(seqState.hoverKey);
   const spans = content.querySelectorAll(".seq_aa");
   for (const s of spans) {
+    const key = String(s.dataset.key || "");
+    if (key) {
+      s.classList.toggle("active", activeKeys.has(key));
+      continue;
+    }
     const idx = Number(s.dataset.idx || "0");
+    const active = new Set();
+    if (seqState.selectedKey && seqState.residueMap.has(seqState.selectedKey)) active.add(seqState.residueMap.get(seqState.selectedKey));
+    if (seqState.hoverKey && seqState.residueMap.has(seqState.hoverKey)) active.add(seqState.residueMap.get(seqState.hoverKey));
     s.classList.toggle("active", active.has(idx));
   }
 }
@@ -463,35 +538,37 @@ function buildResidueMapFromModel() {
   seqState.residueMap = new Map();
   seqState.indexMap = new Map();
   seqState.residueInfo = new Map();
-  const model = structureModelRef && structureModelRef.selectedAtoms ? structureModelRef : null;
-  if (!model || !model.selectedAtoms) return;
-  const caAtoms = model.selectedAtoms({atom:"CA"}) || [];
-  const source = caAtoms.length ? caAtoms : (model.selectedAtoms({}) || []);
-  const uniq = new Map();
-  for (const a of source) {
+  seqState.chainBlocks = [];
+  const residues = getStructureResidues();
+  if (!residues.length) return;
+  const blocks = [];
+  const byChain = new Map();
+  let idx = 0;
+  for (const a of residues) {
+    idx += 1;
     const key = residueKey(a.chain, a.resi);
-    if (!uniq.has(key)) uniq.set(key, a);
-  }
-  const residues = Array.from(uniq.values());
-  residues.sort((a, b)=>{
-    const ca = String(a.chain || "");
-    const cb = String(b.chain || "");
-    if (ca !== cb) return ca.localeCompare(cb);
-    const ra = parseResiOrder(a.resi);
-    const rb = parseResiOrder(b.resi);
-    if (ra.n !== rb.n) return ra.n - rb.n;
-    return ra.s.localeCompare(rb.s);
-  });
-  const len = seqState.text.length;
-  const n = Math.min(len, residues.length);
-  for (let i = 0; i < n; i++) {
-    const a = residues[i];
-    const key = residueKey(a.chain, a.resi);
-    const idx = i + 1;
     seqState.residueMap.set(key, idx);
     seqState.indexMap.set(idx, key);
     seqState.residueInfo.set(key, {key, index: idx, atom: a});
+    const chain = String(a.chain || "?");
+    let block = byChain.get(chain);
+    if (!block) {
+      block = {chain, residues: []};
+      byChain.set(chain, block);
+      blocks.push(block);
+    }
+    block.residues.push({
+      key,
+      index: idx,
+      chain,
+      resi: a.resi,
+      resn: a.resn,
+      atom: a,
+      letter: residueOneLetter(a.resn)
+    });
   }
+  seqState.chainBlocks = blocks;
+  renderSequenceText(seqState.text);
 }
 async function resolveSequenceText(it) {
   if (it && typeof it.monomer_seq === "string" && it.monomer_seq.trim()) return it.monomer_seq.trim();
@@ -518,6 +595,7 @@ async function renderSequenceForItem(it) {
   seqState.residueMap = new Map();
   seqState.indexMap = new Map();
   seqState.residueInfo = new Map();
+  seqState.chainBlocks = [];
   seqState.selectedKey = "";
   seqState.hoverKey = "";
   renderSequenceText(seqState.text);
@@ -647,6 +725,14 @@ function focusResidueBySequenceIndex(idx) {
   const info = seqState.residueInfo.get(key);
   if (!info || !info.atom) {
     document.getElementById("status").textContent = `序列位置 ${idx} 没有可点击的结构坐标`;
+    return;
+  }
+  focusResidueNeighborhood(info.atom, "sequence");
+}
+function focusResidueBySequenceKey(key) {
+  const info = seqState.residueInfo.get(String(key || ""));
+  if (!info || !info.atom) {
+    document.getElementById("status").textContent = "该序列残基暂无结构映射";
     return;
   }
   focusResidueNeighborhood(info.atom, "sequence");
@@ -1521,6 +1607,11 @@ document.getElementById("measure_clear_btn").addEventListener("click", ()=>{
 document.getElementById("seq_content").addEventListener("click", (e)=>{
   const span = e.target && e.target.closest ? e.target.closest(".seq_aa") : null;
   if (!span) return;
+  const key = String(span.dataset.key || "");
+  if (key) {
+    focusResidueBySequenceKey(key);
+    return;
+  }
   const idx = Number(span.dataset.idx || "0");
   if (!idx) return;
   focusResidueBySequenceIndex(idx);

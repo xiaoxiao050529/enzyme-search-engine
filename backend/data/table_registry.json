@@ -5,11 +5,66 @@
       "label": "Table 1 (72 proteins)",
       "full": "table1_master_full.json",
       "data": "table1_data.json",
-      "row_count": 72
+      "csv": "table1_master_table.csv",
+      "ids": "table1_ids.json",
+      "row_count": 72,
+      "description": "主表快照（Table 1）"
+    },
+    {
+      "id": "1jdi",
+      "label": "1JDI",
+      "full": "1jdi_master_full.json",
+      "data": "1jdi_data.json",
+      "csv": "1jdi_master_table.csv",
+      "ids": "1jdi_ids.json",
+      "row_count": 1,
+      "stage": "step5_finalize",
+      "description": "PDB 工作流生成结果（包含 DiffDock / fpocket / 3HIS 几何补全）",
+      "updated_at": 1776860089,
+      "updated_at_text": "2026-04-22 20:14:49"
+    },
+    {
+      "id": "my_new_table_3",
+      "label": "My New Table (3)",
+      "full": "my_new_table_3_master_full.json",
+      "data": "my_new_table_3_data.json",
+      "csv": "my_new_table_3_master_table.csv",
+      "ids": "my_new_table_3_ids.json",
+      "row_count": 0,
+      "stage": "step5_finalize",
+      "description": "PDB 工作流生成结果（包含 DiffDock / fpocket / 3HIS 几何补全）",
+      "updated_at": 1776852486,
+      "updated_at_text": "2026-04-22 18:08:06"
+    },
+    {
+      "id": "my_new_table_2",
+      "label": "My New Table (2)",
+      "full": "my_new_table_2_master_full.json",
+      "data": "my_new_table_2_data.json",
+      "csv": "my_new_table_2_master_table.csv",
+      "ids": "my_new_table_2_ids.json",
+      "row_count": 0,
+      "stage": "step5_finalize",
+      "description": "PDB 工作流生成结果（包含 DiffDock / fpocket / 3HIS 几何补全）",
+      "updated_at": 1776852477,
+      "updated_at_text": "2026-04-22 18:07:57"
+    },
+    {
+      "id": "my_new_table",
+      "label": "My New Table",
+      "full": "my_new_table_master_full.json",
+      "data": "my_new_table_data.json",
+      "csv": "my_new_table_master_table.csv",
+      "ids": "my_new_table_ids.json",
+      "row_count": 0,
+      "stage": "step5_finalize",
+      "description": "PDB 工作流生成结果（包含 DiffDock / fpocket / 3HIS 几何补全）",
+      "updated_at": 1776852354,
+      "updated_at_text": "2026-04-22 18:05:54"
     },
     {
       "id": "table2",
-      "label": "Step5 FPocket Smoke / Table 2",
+      "label": "x / Table 2",
       "full": "table2_master_full.json",
       "data": "table2_data.json",
       "csv": "table2_master_table.csv",
@@ -17,12 +72,12 @@
       "row_count": 1,
       "stage": "step4_validate",
       "description": "Step 4 几何验证通过候选（未执行 Step 5 fpocket 收口）",
-      "updated_at": 1776844144,
-      "updated_at_text": "2026-04-22 15:49:04"
+      "updated_at": 1776851983,
+      "updated_at_text": "2026-04-22 17:59:43"
     },
     {
       "id": "table3",
-      "label": "Step5 FPocket Smoke / Table 3",
+      "label": "x / Table 3",
       "full": "table3_master_full.json",
       "data": "table3_data.json",
       "csv": "table3_master_table.csv",
@@ -30,8 +85,8 @@
       "row_count": 1,
       "stage": "step5_finalize",
       "description": "Step 5 收口结果（包含 DiffDock / fpocket / 3HIS 几何补全）",
-      "updated_at": 1776844144,
-      "updated_at_text": "2026-04-22 15:49:04"
+      "updated_at": 1776851983,
+      "updated_at_text": "2026-04-22 17:59:43"
     }
   ]
 }

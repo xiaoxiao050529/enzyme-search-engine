@@ -77,9 +77,11 @@
 | `Zn_CoordNonHisCount` | `Zn_CoordResidueCount - Zn_CoordHisCount`，即非组氨酸配位残基数量。 |
 | `Zn_CoordResidues` | 参与 Zn 配位的残基明细，包含残基标签和距离。 |
 | `Zn_CoordSite` | 采用的 Zn 位点标识，通常为 `chain:seq`。 |
+| `Zn_CoordNote` | 若结构中存在多个 Zn 位点，这里记录未被主列采用的其他 Zn 位点明细。 |
 
 ## 补充说明
 
 - `Zn_Coord*` 这组列是基于结构文件重新计算得到的，不依赖 `Step5_*` 列。
 - 当前配位残基识别规则使用蛋白常见供体原子，并按 `Zn` 周围 `3.2 Å` 以内筛选。
+- 如果一个结构中有多个 `Zn`，主列优先写入 `Zn_CoordNonHisCount` 最少的那个位点；其余 Zn 位点写入 `Zn_CoordNote`。
 - 若后续加入 `table2`、`table3`，建议继续沿用同一套列定义，这样前端表格和导出逻辑不用再改。

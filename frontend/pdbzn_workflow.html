@@ -147,7 +147,7 @@ th { position: sticky; top: 0; background: #f7f9fc; z-index: 1; }
     </div>
   </div>
   <div class="panel" id="step5_panel" style="display:none;">
-    <h3>Step 5：生成命名结果表（Table 2 / Table 3）并补全 DiffDock / fpocket / 3HIS 几何信息</h3>
+    <h3>Step 5：生成新的命名结果表并补全 DiffDock / fpocket / 3HIS 几何信息</h3>
     <div class="grid">
       <label>结果表名称
         <input id="s5_table_label" type="text" placeholder="例如：Zn-HIS Round A">
@@ -396,8 +396,8 @@ function setStage(stage) {
   document.getElementById("step5_panel").style.display = isStep5 ? "" : "none";
   document.getElementById("next_top_btn").style.display = (isStep4 || isStep5) ? "none" : "";
   document.getElementById("next_top_btn").textContent = isStep3 ? "Next → Step 4" : (isStep2 ? "Next → Step 3" : "Next → Step 2");
-  document.getElementById("stage_title").textContent = isStep5 ? "PDB-ZN 挖酶工作流 · Step 5 结果表生成" : (isStep4 ? "PDB-ZN 挖酶工作流 · Step 4 综合验证" : (isStep3 ? "PDB-ZN 挖酶工作流 · Step 3 二次筛选" : (isStep2 ? "PDB-ZN 挖酶工作流 · Step 2 聚类" : "PDB-ZN 挖酶工作流 · Step 1")));
-  resetResultView(isStep5 ? "Step5准备就绪，等待 Table 2 / Table 3 生成结果..." : (isStep4 ? "Step4准备就绪，等待综合验证结果..." : (isStep2 ? "Step2准备就绪，等待聚类结果..." : (isStep3 ? "Step3准备就绪，等待第二次筛选结果..." : "最终结果：-"))));
+  document.getElementById("stage_title").textContent = isStep5 ? "PDB-ZN 挖酶工作流 · Step 5 新表生成" : (isStep4 ? "PDB-ZN 挖酶工作流 · Step 4 综合验证" : (isStep3 ? "PDB-ZN 挖酶工作流 · Step 3 二次筛选" : (isStep2 ? "PDB-ZN 挖酶工作流 · Step 2 聚类" : "PDB-ZN 挖酶工作流 · Step 1")));
+  resetResultView(isStep5 ? "Step5准备就绪，等待新表生成结果..." : (isStep4 ? "Step4准备就绪，等待综合验证结果..." : (isStep2 ? "Step2准备就绪，等待聚类结果..." : (isStep3 ? "Step3准备就绪，等待第二次筛选结果..." : "最终结果：-"))));
   refreshWorkflowProgress();
 }
 function tryParseJson(text) {
@@ -945,8 +945,10 @@ async function runStep4Validate() {
   finishWorkflowStepProgress(4, "Step 4 完成");
 }
 async function runStep5Finalize() {
+  const label = valText("s5_table_label").trim();
+  if (!label) throw new Error("请先填写新表名称");
   const status = document.getElementById("status");
-  status.textContent = "Step5结果表生成中（Table 2 / Table 3）...";
+  status.textContent = "Step5新表生成中...";
   startWorkflowStepProgress(5, "Step 5 结果表生成中...");
   const payload = buildStep5Payload();
   const fpocketRuns = payload?.step5?.run_fpocket ? Math.max(0, Number(payload?.step5?.fpocket_max_runs) || 0) : 0;
@@ -979,16 +981,14 @@ async function runStep5Finalize() {
     throw new Error("Step5接口不可用；详情：" + errors.join(" | "));
   }
   renderSteps(j);
-  status.textContent = "Step5完成，已生成 Table 2 / Table 3";
+  status.textContent = "Step5完成，已生成新的命名结果表";
   const n = j?.summary?.appended_count ?? j?.summary?.final_count ?? 0;
-  const n2 = j?.summary?.table2_count ?? 0;
   const triPass = j?.summary?.step5_trihis_pass_count ?? 0;
   const symPass = j?.summary?.step5_symmetry_pass_count ?? 0;
   const fp = j?.summary?.fpocket_runs ?? 0;
   const outFile = j?.summary?.output_file || "-";
-  const table2 = j?.summary?.table2?.label || "Table 2";
-  const table3 = j?.summary?.table3?.label || "Table 3";
-  document.getElementById("final_box").textContent = `Step5结果：${table2}=${n2} 条；${table3}=${n} 条；3HIS通过 ${triPass} 条；空间构象通过 ${symPass} 条；fpocket运行 ${fp} 次；输出=${outFile}`;
+  const tableName = j?.summary?.generated_table?.label || j?.summary?.table_label || label;
+  document.getElementById("final_box").textContent = `Step5结果：新表 ${tableName}，共 ${n} 条；3HIS通过 ${triPass} 条；空间构象通过 ${symPass} 条；fpocket运行 ${fp} 次；输出=${outFile}`;
   hasStep5Run = true;
   finishWorkflowStepProgress(5, "Step 5 完成");
 }

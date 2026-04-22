@@ -30,6 +30,7 @@ IMPORT_STRUCT_DIR = RUNTIME_DIR / "import_structures"
 
 _pdbzn_tmalign_cache = {}
 _pdbzn_tmalign_cache_lock = threading.Lock()
+_pdbzn_table_registry_lock = threading.Lock()
 
 IMPORT_STRUCT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -2255,9 +2256,10 @@ def _pdbzn_base_table_rows():
 
 def _pdbzn_registry_sort_key(entry):
     table_id = str((entry or {}).get("id", "") or "")
-    m = re.search(r"(\d+)$", table_id)
-    order = int(m.group(1)) if m else 10**9
-    return (order, table_id)
+    if table_id == "table1":
+        return (0, 0, table_id)
+    updated = int((entry or {}).get("updated_at", 0) or 0)
+    return (1, -updated, table_id)
 
 
 def _pdbzn_load_table_registry():
@@ -2299,6 +2301,28 @@ def _pdbzn_upsert_registry_entry(entry):
     _pdbzn_save_table_registry(tables)
 
 
+def _pdbzn_label_slug(label):
+    raw = safe_name(str(label or "").strip().lower()).strip("._-")
+    return raw or "workflow_table"
+
+
+def _pdbzn_unique_table_identity(label):
+    base_label = str(label or "").strip() or time.strftime("Step5 %Y-%m-%d %H:%M:%S", time.localtime())
+    base_slug = _pdbzn_label_slug(base_label)
+    tables = _pdbzn_load_table_registry()
+    used_ids = {str((t or {}).get("id", "") or "").strip().lower() for t in tables}
+    used_labels = {str((t or {}).get("label", "") or "").strip() for t in tables}
+    if base_slug not in used_ids and base_label not in used_labels:
+        return base_slug, base_label
+    idx = 2
+    while True:
+        cand_id = f"{base_slug}_{idx}"
+        cand_label = f"{base_label} ({idx})"
+        if cand_id not in used_ids and cand_label not in used_labels:
+            return cand_id, cand_label
+        idx += 1
+
+
 def _pdbzn_receptor_rel(rep, receptor_path):
     rid = str(rep or "").strip().upper()
     receptor_file = _pdbzn_resolve_receptor_pdb_path(rid, receptor_path)
@@ -2338,42 +2362,41 @@ def _pdbzn_dataset_item_from_row(row):
     }
 
 
-def _pdbzn_write_named_table(table_id, label, header, rows, stage, description):
-    safe_id = str(table_id or "").strip().lower()
-    if not safe_id:
-        raise ValueError("table_id required")
-    clean_rows = []
-    ids = []
-    for src in rows or []:
-        row = {c: (src or {}).get(c, "") for c in header}
-        clean_rows.append(row)
-        rep = _pdbzn_table_rep_or_id(row)
-        if rep and rep not in ids:
-            ids.append(rep)
-    full_name = f"{safe_id}_master_full.json"
-    data_name = f"{safe_id}_data.json"
-    csv_name = f"{safe_id}_master_table.csv"
-    ids_name = f"{safe_id}_ids.json"
-    data_items = [_pdbzn_dataset_item_from_row(r) for r in clean_rows if _pdbzn_table_rep_or_id(r)]
-    _pdbzn_write_json(DATA_DIR / full_name, {"rows": clean_rows, "header": list(header or [])})
-    _pdbzn_write_json(DATA_DIR / data_name, {"items": data_items})
-    _pdbzn_write_json(DATA_DIR / ids_name, {"table_id": safe_id, "label": label, "ids": ids})
-    _pdbzn_write_table(DATA_DIR / csv_name, ["_id"] + list(header or []), [{"_id": _pdbzn_table_rep_or_id(r), **r} for r in clean_rows])
-    entry = {
-        "id": safe_id,
-        "label": label,
-        "full": full_name,
-        "data": data_name,
-        "csv": csv_name,
-        "ids": ids_name,
-        "row_count": len(clean_rows),
-        "stage": stage,
-        "description": description,
-        "updated_at": now_ts(),
-        "updated_at_text": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
-    }
-    _pdbzn_upsert_registry_entry(entry)
-    return entry
+def _pdbzn_write_named_table(label, header, rows, stage, description):
+    with _pdbzn_table_registry_lock:
+        safe_id, unique_label = _pdbzn_unique_table_identity(label)
+        clean_rows = []
+        ids = []
+        for src in rows or []:
+            row = {c: (src or {}).get(c, "") for c in header}
+            clean_rows.append(row)
+            rep = _pdbzn_table_rep_or_id(row)
+            if rep and rep not in ids:
+                ids.append(rep)
+        full_name = f"{safe_id}_master_full.json"
+        data_name = f"{safe_id}_data.json"
+        csv_name = f"{safe_id}_master_table.csv"
+        ids_name = f"{safe_id}_ids.json"
+        data_items = [_pdbzn_dataset_item_from_row(r) for r in clean_rows if _pdbzn_table_rep_or_id(r)]
+        _pdbzn_write_json(DATA_DIR / full_name, {"rows": clean_rows, "header": list(header or [])})
+        _pdbzn_write_json(DATA_DIR / data_name, {"items": data_items})
+        _pdbzn_write_json(DATA_DIR / ids_name, {"table_id": safe_id, "label": unique_label, "ids": ids})
+        _pdbzn_write_table(DATA_DIR / csv_name, ["_id"] + list(header or []), [{"_id": _pdbzn_table_rep_or_id(r), **r} for r in clean_rows])
+        entry = {
+            "id": safe_id,
+            "label": unique_label,
+            "full": full_name,
+            "data": data_name,
+            "csv": csv_name,
+            "ids": ids_name,
+            "row_count": len(clean_rows),
+            "stage": stage,
+            "description": description,
+            "updated_at": now_ts(),
+            "updated_at_text": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
+        }
+        _pdbzn_upsert_registry_entry(entry)
+        return entry
 
 
 def _pdbzn_table_by_rep(path: Path):
@@ -2670,7 +2693,6 @@ def _pdbzn_step5_finalize_workflow(filters):
     diffdock_by_rep = _pdbzn_table_by_rep(diffdock_path) if diffdock_path else {}
     fpocket_run_count = 0
     fpocket_status_count = {}
-    table2_rows = []
     appended_rows = []
     for s4 in step4_rows:
         rep = str((s4 or {}).get("Representative", "") or "").strip().upper()
@@ -2726,9 +2748,6 @@ def _pdbzn_step5_finalize_workflow(filters):
         receptor_file = _pdbzn_resolve_receptor_pdb_path(rep, receptor_path)
         if receptor_file is not None:
             row["Receptor_PDB"] = str(receptor_file)
-        table2_row = dict(row)
-        table2_row["Step5_Source"] = "step4_validate"
-        table2_rows.append(table2_row)
         row["Step5_Source"] = "step5_finalize"
         if run_fpocket and receptor_file and fpocket_run_count < fpocket_max_runs and str(row.get("Step5_FPocket_BestScore", "")).strip() == "":
             fp_res = _pdbzn_run_fpocket_quick(receptor_file, fpocket_timeout_sec)
@@ -2748,23 +2767,12 @@ def _pdbzn_step5_finalize_workflow(filters):
             fpocket_status_count["not_run"] = int(fpocket_status_count.get("not_run", 0) or 0) + 1
         row["Step5_FinalScore"] = _pdbzn_step5_final_score(row)
         appended_rows.append(row)
-    table2_label = f"{table_label} / Table 2"
-    table3_label = f"{table_label} / Table 3"
-    table2_entry = _pdbzn_write_named_table(
-        "table2",
-        table2_label,
-        master_cols,
-        table2_rows,
-        "step4_validate",
-        "Step 4 几何验证通过候选（未执行 Step 5 fpocket 收口）",
-    )
-    table3_entry = _pdbzn_write_named_table(
-        "table3",
-        table3_label,
+    generated_table = _pdbzn_write_named_table(
+        table_label,
         master_cols,
         appended_rows,
         "step5_finalize",
-        "Step 5 收口结果（包含 DiffDock / fpocket / 3HIS 几何补全）",
+        "PDB 工作流生成结果（包含 DiffDock / fpocket / 3HIS 几何补全）",
     )
     _pdbzn_write_table(output_path, master_cols, appended_rows)
     written_master = False
@@ -2796,7 +2804,7 @@ def _pdbzn_step5_finalize_workflow(filters):
         "Best_SDF",
     ]
     step_rows = [{c: r.get(c, "") for c in step_cols} for r in appended_rows]
-    step5 = _pdbzn_step_payload("step5_master_finalize", "Step 5: 生成 Table 2 / Table 3 并补全 DiffDock / fpocket 信息", step_cols, step_rows, len(step4_rows), row_limit)
+    step5 = _pdbzn_step_payload("step5_master_finalize", "Step 5: 生成新的命名结果表并补全 DiffDock / fpocket 信息", step_cols, step_rows, len(step4_rows), row_limit)
     return {
         "ok": True,
         "db_path": str(PDBZN_DB_PATH),
@@ -2818,7 +2826,6 @@ def _pdbzn_step5_finalize_workflow(filters):
         "steps": [step5],
         "summary": {
             "step4_valid_count": len(step4_rows),
-            "table2_count": len(table2_rows),
             "appended_count": len(appended_rows),
             "step5_trihis_pass_count": len([x for x in appended_rows if str(x.get("Step5_TriHis_Recheck_Pass", "")).strip().lower() in {"true", "1", "yes"}]),
             "step5_symmetry_pass_count": len([x for x in appended_rows if str(x.get("Step5_Symmetry_Spatial_Filter_Pass", "")).strip().lower() in {"true", "1", "yes"}]),
@@ -2829,9 +2836,8 @@ def _pdbzn_step5_finalize_workflow(filters):
             "master_file": str(master_path) if master_path else "",
             "output_file": str(output_path),
             "written_master": written_master,
-            "table_label": table_label,
-            "table2": table2_entry,
-            "table3": table3_entry,
+            "table_label": generated_table.get("label", table_label),
+            "generated_table": generated_table,
             "table_registry_file": str(TABLE_REGISTRY_PATH),
         },
     }

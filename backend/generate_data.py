@@ -52,6 +52,7 @@ COORD_COLUMN_HIS = "Zn_CoordHisCount"
 COORD_COLUMN_NON_HIS = "Zn_CoordNonHisCount"
 COORD_COLUMN_RESIDUES = "Zn_CoordResidues"
 COORD_COLUMN_SITE = "Zn_CoordSite"
+COORD_COLUMN_NOTE = "Zn_CoordNote"
 DROP_PREFIXES = ("STEP5_",)
 
 def load_master():
@@ -109,11 +110,34 @@ def donor_atom_allowed(atom):
     return atom_name in PROTEIN_DONOR_ATOMS.get(comp, set())
 
 
-def select_best_zn_site(atoms):
+def site_sort_key(site):
+    return (
+        -int(site.get("his_count", 0)),
+        int(site.get("non_his_count", 10**9)),
+        int(site.get("residue_count", 10**9)),
+        float(site.get("dist_sum", 9999.0)),
+        str(site.get("site", "")),
+        int(site.get("index", 10**9)),
+    )
+
+
+def summarize_site(site):
+    if not site:
+        return ""
+    return (
+        f"Zn{site.get('index', '?')}@{site.get('site', '?')}: "
+        f"total={site.get('residue_count', 0)}, "
+        f"his={site.get('his_count', 0)}, "
+        f"non_his={site.get('non_his_count', 0)}, "
+        f"residues={site.get('residues_text', '') or '-'}"
+    )
+
+
+def collect_zn_sites(atoms):
     zn_atoms = [a for a in atoms if str(a.get("comp") or "").upper() == "ZN" or str(a.get("element") or "").upper() == "ZN"]
     donor_atoms = [a for a in atoms if donor_atom_allowed(a)]
-    best = None
-    for zn in zn_atoms:
+    sites = []
+    for idx, zn in enumerate(zn_atoms, start=1):
         nearest = {}
         for atom in donor_atoms:
             d = _pdbzn_dist(zn, atom)
@@ -126,32 +150,22 @@ def select_best_zn_site(atoms):
         his_count = sum(1 for rk in nearest if rk[3] in HIS_RESIDUES)
         total_count = len(nearest)
         dist_sum = sum(sorted(x["distance"] for x in nearest.values())[:3]) if nearest else 9999.0
-        candidate = {
+        ordered = sorted(nearest.items(), key=lambda kv: (kv[1]["distance"], residue_label(kv[0])))
+        residue_labels = [f"{residue_label(rk)}:{round(item['distance'], 3)}" for rk, item in ordered]
+        site = {
+            "index": idx,
             "zn": zn,
             "nearest": nearest,
+            "ordered": ordered,
             "his_count": his_count,
-            "total_count": total_count,
+            "residue_count": total_count,
+            "non_his_count": max(0, total_count - his_count),
             "dist_sum": dist_sum,
+            "site": f"{str(zn.get('chain') or '?')}:{str(zn.get('seq') or '?')}",
+            "residues_text": "; ".join(residue_labels),
         }
-        if best is None:
-            best = candidate
-            continue
-        better = (
-            candidate["his_count"] > best["his_count"]
-            or (
-                candidate["his_count"] == best["his_count"]
-                and (
-                    candidate["total_count"] > best["total_count"]
-                    or (
-                        candidate["total_count"] == best["total_count"]
-                        and candidate["dist_sum"] < best["dist_sum"]
-                    )
-                )
-            )
-        )
-        if better:
-            best = candidate
-    return best
+        sites.append(site)
+    return sorted(sites, key=site_sort_key)
 
 
 def coordination_metrics(rep):
@@ -163,6 +177,7 @@ def coordination_metrics(rep):
             COORD_COLUMN_NON_HIS: 0,
             COORD_COLUMN_RESIDUES: "",
             COORD_COLUMN_SITE: "",
+            COORD_COLUMN_NOTE: "",
         }
     atoms = _pdbzn_structure_atom_rows(fp)
     if not atoms:
@@ -172,28 +187,59 @@ def coordination_metrics(rep):
             COORD_COLUMN_NON_HIS: 0,
             COORD_COLUMN_RESIDUES: "",
             COORD_COLUMN_SITE: "",
+            COORD_COLUMN_NOTE: "",
         }
-    best = select_best_zn_site(atoms)
-    if not best:
+    sites = collect_zn_sites(atoms)
+    if not sites:
         return {
             COORD_COLUMN_RESIDUE: 0,
             COORD_COLUMN_HIS: 0,
             COORD_COLUMN_NON_HIS: 0,
             COORD_COLUMN_RESIDUES: "",
             COORD_COLUMN_SITE: "",
+            COORD_COLUMN_NOTE: "",
         }
-    nearest = best["nearest"]
-    ordered = sorted(nearest.items(), key=lambda kv: kv[1]["distance"])
-    residue_count = len(ordered)
-    his_count = sum(1 for rk, _ in ordered if rk[3] in HIS_RESIDUES)
-    residue_labels = [f"{residue_label(rk)}:{round(item['distance'], 3)}" for rk, item in ordered]
-    zn = best["zn"]
+    is_multi_zn = len(sites) > 1
+    if is_multi_zn:
+        qualified = [s for s in sites if int(s.get("his_count", 0)) >= 3]
+        if qualified:
+            best = sorted(
+                qualified,
+                key=lambda s: (
+                    int(s.get("non_his_count", 10**9)),
+                    -int(s.get("his_count", 0)),
+                    int(s.get("residue_count", 10**9)),
+                    float(s.get("dist_sum", 9999.0)),
+                    str(s.get("site", "")),
+                    int(s.get("index", 10**9)),
+                ),
+            )[0]
+            non_his_value = best["non_his_count"]
+            note_sites = sorted(
+                qualified,
+                key=lambda s: (
+                    int(s.get("non_his_count", 10**9)),
+                    -int(s.get("his_count", 0)),
+                    str(s.get("site", "")),
+                    int(s.get("index", 10**9)),
+                ),
+            )
+        else:
+            best = sorted(sites, key=site_sort_key)[0]
+            non_his_value = ""
+            note_sites = sorted(sites, key=site_sort_key)
+    else:
+        best = sorted(sites, key=site_sort_key)[0]
+        non_his_value = best["non_his_count"]
+        note_sites = sites
+    others = [s for s in note_sites if s is not best]
     return {
-        COORD_COLUMN_RESIDUE: residue_count,
-        COORD_COLUMN_HIS: his_count,
-        COORD_COLUMN_NON_HIS: max(0, residue_count - his_count),
-        COORD_COLUMN_RESIDUES: "; ".join(residue_labels),
-        COORD_COLUMN_SITE: f"{str(zn.get('chain') or '?')}:{str(zn.get('seq') or '?')}",
+        COORD_COLUMN_RESIDUE: best["residue_count"],
+        COORD_COLUMN_HIS: best["his_count"],
+        COORD_COLUMN_NON_HIS: non_his_value,
+        COORD_COLUMN_RESIDUES: best["residues_text"],
+        COORD_COLUMN_SITE: best["site"],
+        COORD_COLUMN_NOTE: " | ".join(summarize_site(site) for site in others),
     }
 
 
@@ -341,7 +387,7 @@ def main():
     master_path, rows = load_master()
     raw_header = rows[0]
     header = [name for name in raw_header if keep_column(name)]
-    for extra in [COORD_COLUMN_RESIDUE, COORD_COLUMN_HIS, COORD_COLUMN_NON_HIS, COORD_COLUMN_RESIDUES, COORD_COLUMN_SITE]:
+    for extra in [COORD_COLUMN_RESIDUE, COORD_COLUMN_HIS, COORD_COLUMN_NON_HIS, COORD_COLUMN_RESIDUES, COORD_COLUMN_SITE, COORD_COLUMN_NOTE]:
         if extra not in header:
             header.append(extra)
     idx = {name: i for i, name in enumerate(raw_header)}

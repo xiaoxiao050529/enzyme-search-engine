@@ -1,0 +1,20 @@
+{
+  "items": [
+    {
+      "id": "1JDI",
+      "name": "",
+      "cluster": "1",
+      "receptor_pdb": "/tmp/enzyme-search-engine/backend/runtime/import_structures/1JDI.pdb",
+      "receptor_rel": "",
+      "best_sdf": "",
+      "species": "",
+      "monomer_seq": "",
+      "residue_length": "",
+      "oligomer": "",
+      "monomer_length": "",
+      "zn_coord_residue_count": "",
+      "zn_coord_his_count": "3",
+      "zn_coord_non_his_count": ""
+    }
+  ]
+}

@@ -1,17 +1,17 @@
 {
   "items": [
     {
-      "id": "1QRG",
-      "name": "A CLOSER LOOK AND THE ACTIVE SITE OF GAMMA-CARBONIC ANHYDRASES: HIGH RESOLUTION CRYSTALLOGRAPHIC STUDIES OF THE CARBONIC ANHYDRASE FROM METHANOSARCINA THERMOPHILA",
-      "cluster": "0",
-      "receptor_pdb": "/tmp/enzyme-search-engine/backend/data/structures/1QRG.pdb",
-      "receptor_rel": "../backend/data/structures/1QRG.pdb",
-      "best_sdf": "/root/PDB_ZN/diffdock_outputs/1QRG/1QRG/rank1_confidence-0.65.sdf",
-      "species": "Methanosarcina thermophila",
-      "monomer_seq": "FSNIRENPVTPWNPEPSAPVIDPTAYIDPQASVIGEVTIGANVMVSPMASIRSDEGMPIFVGDRSNVQDGVVLHALETINEEGEPIEDNIVEVDGKEYAVYIGNNVSLAHQSQVHGPAAVGDDTFIGMQAFVFKSKVGNNCVLEPRSAAIGVTIPDGRYIPAGMVVTSQAEADKLPEVTDDYAYSHTNEAVVYVNVHLAEGYKETS",
-      "residue_length": 618,
-      "oligomer": 3,
-      "monomer_length": 206,
+      "id": "9FLN",
+      "name": "Crystal structure of the C-terminal domain of VldE H373A from Streptococcus pneumoniae",
+      "cluster": "2",
+      "receptor_pdb": "/tmp/enzyme-search-engine/backend/data/structures/9FLN.pdb",
+      "receptor_rel": "../backend/data/structures/9FLN.pdb",
+      "best_sdf": "/root/PDB_ZN/diffdock_outputs/9FLN/9FLN/rank9_confidence-3.02.sdf",
+      "species": "Streptococcus pneumoniae R6",
+      "monomer_seq": "NAGLQPQTAAFKEEIANLFGITSFSGYRPGDSGDHGKGLAIDFMVPERSELGDKIAEYAIQNMASRGISYIIWKQRFYAPFDSKYGPANTWNPMPDRGSVTENHYDAVHVSMNG",
+      "residue_length": 114,
+      "oligomer": 1,
+      "monomer_length": 114,
       "zn_coord_residue_count": "",
       "zn_coord_his_count": "3",
       "zn_coord_non_his_count": ""

@@ -29,6 +29,11 @@ select, input, button { width: 100%; padding: 6px; box-sizing: border-box; }
 .tool_hint { margin: 10px 0 8px; font-size: 12px; color: #52636d; }
 .tool_actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0 14px; }
 .tool_actions button { margin: 0; }
+.legend_box { margin: 0 0 14px; padding: 10px 12px; border: 1px solid #d9e0e6; border-radius: 12px; background: rgba(255,255,255,0.82); }
+.legend_title { font-size: 12px; color: #52636d; margin-bottom: 8px; font-weight: 700; }
+.legend_items { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.legend_item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #24323b; }
+.legend_swatch { width: 12px; height: 12px; border-radius: 999px; flex: 0 0 12px; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08); }
 .list { background: #fff; }
 #status { margin-top: 10px; color: #333; }
 #zn_error { margin-top: 6px; color: #8a1f11; background: #fff8f4; border: 1px solid #f3d2c7; padding: 6px; white-space: pre-wrap; word-break: break-word; max-height: 120px; overflow: auto; }
@@ -37,6 +42,7 @@ select, input, button { width: 100%; padding: 6px; box-sizing: border-box; }
 #hover_info { position: absolute; right: 8px; bottom: 8px; background: rgba(0,0,0,0.7); color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 12px; z-index: 5; }
 @media (max-width: 760px) {
   .tool_actions { grid-template-columns: 1fr; }
+  .legend_items { grid-template-columns: 1fr; }
 }
 </style>
 <link rel="stylesheet" href="./theme.css">
@@ -81,10 +87,18 @@ select, input, button { width: 100%; padding: 6px; box-sizing: border-box; }
     <div class="tool_actions">
       <button id="zn_mode_btn" type="button">ZN邻域模式：关</button>
       <button id="res_label_btn" type="button">残基标签：关</button>
-      <button id="fivea_mode_btn" type="button">5Å相互作用+标签：关</button>
       <button id="measure_mode_btn" type="button">测量模式：关</button>
       <button id="measure_clear_btn" type="button">清空测量</button>
-      <button id="pocket_mode_btn" type="button">口袋包锌可视化：开</button>
+
+    </div>
+    <div class="legend_box">
+      <div class="legend_title">Zn 相互作用配色</div>
+      <div class="legend_items">
+        <div class="legend_item"><span class="legend_swatch" style="background:#ff9a1f;"></span><span>HIS 配位</span></div>
+        <div class="legend_item"><span class="legend_swatch" style="background:#dd5555;"></span><span>ASP / GLU 配位</span></div>
+        <div class="legend_item"><span class="legend_swatch" style="background:#22a06b;"></span><span>CYS 配位</span></div>
+        <div class="legend_item"><span class="legend_swatch" style="background:#2e7ed6;"></span><span>其他 5Å 邻域残基</span></div>
+      </div>
     </div>
     <div class="list" id="list"></div>
   </div>
@@ -132,6 +146,7 @@ let currentStructureFmt = "";
 let currentStructureZnAtoms = [];
 let structureModelRef = null;
 let ligandModelRef = null;
+let znMarkerModelRef = null;
 let znVisibleShapes = [];
 let znVisibleLabels = [];
 let seqState = {text:"", residueMap:new Map(), indexMap:new Map(), residueInfo:new Map(), selectedKey:"", hoverKey:""};
@@ -141,6 +156,7 @@ const routeDataset = (routeParams.get("dataset") || "").trim().toLowerCase();
 let routeHandled = false;
 let tableRegistry = [];
 let currentDatasetEntry = null;
+let detectedApiBase = "";
 try {
   if (window.$3Dmol) {
     viewer = $3Dmol.createViewer("viewer", {backgroundColor:"white"});
@@ -153,6 +169,32 @@ try {
 function datasetPath(entry, key) {
   const file = entry && entry[key] ? String(entry[key]) : "";
   return file ? `../backend/data/${file}` : "";
+}
+function getApiBaseCandidates() {
+  const h = window.location.hostname || "127.0.0.1";
+  return [...new Set([
+    `http://${h}:8015`,
+    `http://${h}:8017`,
+    `http://${h}:8016`,
+    "http://127.0.0.1:8015",
+    "http://127.0.0.1:8017",
+    "http://127.0.0.1:8016"
+  ])];
+}
+async function detectApiBase() {
+  if (detectedApiBase) return detectedApiBase;
+  for (const base of getApiBaseCandidates()) {
+    try {
+      const res = await fetch(base + "/api/pdbzn/workflow/config?t=" + Date.now());
+      if (!res.ok) continue;
+      const obj = await res.json();
+      if (obj && obj.ok) {
+        detectedApiBase = base;
+        return detectedApiBase;
+      }
+    } catch (_) {}
+  }
+  return "";
 }
 function getSelectedDatasetEntry() {
   const id = String(document.getElementById("dataset").value || "").trim();
@@ -526,14 +568,28 @@ function interactionLabelText(atom, distanceValue) {
 }
 function addInteractionLabel(targetList, atom, anchorAtom, distanceValue) {
   if (!viewer.addLabel || !atom) return;
+  const style = interactionStyleForResidue(atom, distanceValue);
   const lb = viewer.addLabel(interactionLabelText(atom, distanceValue), {
     position: offsetLabelPos(atom, anchorAtom),
-    backgroundColor: "rgba(255, 196, 84, 0.95)",
-    fontColor: "#2f1800",
+    backgroundColor: style.labelBg,
+    fontColor: style.labelFg,
     fontSize: 15,
     inFront: true
   });
   targetList.push(lb);
+}
+function interactionStyleForResidue(atom, distanceValue) {
+  const resn = String(atom?.resn || "").toUpperCase();
+  if (resn === "HIS" || resn === "HID" || resn === "HIE" || resn === "HIP" || resn === "HSD" || resn === "HSE" || resn === "HSP") {
+    return {line: distanceValue <= 3.2 ? "#ff8a00" : "#ffb347", labelBg: "rgba(255, 204, 122, 0.96)", labelFg: "#422100"};
+  }
+  if (resn === "ASP" || resn === "GLU") {
+    return {line: distanceValue <= 3.2 ? "#d94f4f" : "#ef7d7d", labelBg: "rgba(239, 125, 125, 0.96)", labelFg: "#3a0f0f"};
+  }
+  if (resn === "CYS" || resn === "CYX" || resn === "CYM") {
+    return {line: distanceValue <= 3.2 ? "#20a36a" : "#5dcf98", labelBg: "rgba(93, 207, 152, 0.96)", labelFg: "#093120"};
+  }
+  return {line: distanceValue <= 3.2 ? "#2a7fd6" : "#78aee8", labelBg: "rgba(120, 174, 232, 0.96)", labelFg: "#102235"};
 }
 function focusResidueNeighborhood(atom, source = "viewer") {
   if (!atom || !Number.isFinite(atom.x) || !Number.isFinite(atom.y) || !Number.isFinite(atom.z)) return;
@@ -560,8 +616,15 @@ function focusZnNeighborhood(atom) {
   const targetZn = toZnLikeAtom(atom, 0);
   const targetSel = znAtomSelection(targetZn);
   if (structureModelRef && structureModelRef.setStyle) {
-    structureModelRef.setStyle({within:{distance:5.0, sel:targetSel}}, {stick:{colorscheme:"yellowCarbon", radius:0.24}});
-    structureModelRef.setStyle(targetSel, {sphere:{radius:1.15, color:"#c100ff"}, stick:{radius:0.26, color:"#c100ff"}});
+    const near = collectNearResiduesByAtom(targetZn, 5.0);
+    for (const item of near) {
+      const a = item.atom;
+      structureModelRef.setStyle({chain:a.chain, resi:a.resi}, {stick:{colorscheme:"yellowCarbon", radius:0.28}});
+    }
+  }
+  if (znMarkerModelRef && znMarkerModelRef.setStyle) {
+    znMarkerModelRef.setStyle({}, {sphere:{radius:0.58, color:"#c100ff", opacity:0.82}});
+    znMarkerModelRef.setStyle(targetSel, {sphere:{radius:0.72, color:"#c100ff", opacity:1.0}});
   }
   drawZnInteractionsAndLabels({force:true, emphasize:true, targetZnAtom: targetZn});
   setPickedResidueLabel(atom, "Zn", "#7a0088");
@@ -569,7 +632,7 @@ function focusZnNeighborhood(atom) {
   seqState.selectedKey = "";
   highlightSequenceResidues();
   try {
-    viewer.zoomTo({within:{distance:5.0, sel:targetSel}});
+    viewer.zoomTo({within:{distance:5.0, sel:{x:targetZn.x, y:targetZn.y, z:targetZn.z}}});
   } catch (_) {
     viewer.zoomTo();
   }
@@ -652,6 +715,36 @@ async function loadStructureForItem(it) {
       return true;
     } catch (_) {}
   }
+  if (rid) {
+    try {
+      const apiBase = await detectApiBase();
+      if (apiBase) {
+        const apiUrl = `${apiBase}/api/pdbzn/structure/${encodeURIComponent(rid)}`;
+        const res = await fetch(apiUrl + "?t=" + Date.now());
+        if (res.ok) {
+          const rawTxt = await res.text();
+          const fmt = apiUrl.toLowerCase().includes(".cif") || rawTxt.includes("_atom_site.") ? "cif" : "pdb";
+          const txt = fmt === "pdb" ? normalizePdbElementColumns(rawTxt) : rawTxt;
+          const m = viewer.addModel(txt, fmt);
+          try {
+            viewer.render();
+          } catch (_) {
+            if (viewer.removeModel && m) {
+              try { viewer.removeModel(m); } catch (_) {}
+            }
+            throw new Error("render failed");
+          }
+          currentStructureText = txt;
+          currentStructureFmt = fmt;
+          currentStructureZnAtoms = fmt === "cif" ? extractZnAtomsFromCifText(txt) : extractZnAtomsFromPdbText(txt);
+          structureModelRef = m || null;
+          status.textContent = `已加载：${it.id || ""}（通过后端结构 API）`;
+          setDebugError(`phase=structure_loaded\nrid=${it.id || ""}\nsource=${apiUrl}\nfmt=${fmt}\ntext_size=${txt.length}`);
+          return true;
+        }
+      }
+    } catch (_) {}
+  }
   status.textContent = `结构加载失败：${it.id || ""}，未找到对应PDB/CIF`;
   return false;
 }
@@ -692,7 +785,6 @@ async function loadLigandForItem(it) {
 function applyBaseStyles() {
   if (structureModelRef && structureModelRef.setStyle) {
     structureModelRef.setStyle({}, {cartoon:{color:"#7f97af", opacity:0.78}});
-    structureModelRef.setStyle({elem:"ZN"}, {sphere:{radius:1.0, color:"magenta"}, stick:{radius:0.2, color:"magenta"}});
     structureModelRef.setStyle({within:{distance:3.0, sel:{elem:"ZN"}}}, {stick:{colorscheme:"greenCarbon", radius:0.18}});
     structureModelRef.setStyle({within:{distance:5.0, sel:{elem:"ZN"}}, byres:true}, {stick:{colorscheme:"yellowCarbon", radius:0.22}});
   }
@@ -700,7 +792,52 @@ function applyBaseStyles() {
     ligandModelRef.setStyle({}, {stick:{colorscheme:"cyanCarbon", radius:0.2}});
   }
 }
+function buildZnMarkerPdbText() {
+  const znAtoms = getStructureZnAtoms();
+  const lines = [];
+  for (let i = 0; i < znAtoms.length; i++) {
+    const z = znAtoms[i];
+    if (!Number.isFinite(z.x) || !Number.isFinite(z.y) || !Number.isFinite(z.z)) continue;
+    const serial = String(i + 1).padStart(5, " ");
+    const resi = String(i + 1).padStart(4, " ");
+    const x = Number(z.x).toFixed(3).padStart(8, " ");
+    const y = Number(z.y).toFixed(3).padStart(8, " ");
+    const zz = Number(z.z).toFixed(3).padStart(8, " ");
+    lines.push(`HETATM${serial} ZN   ZN Z${resi}    ${x}${y}${zz}  1.00 20.00          ZN`);
+  }
+  return lines.join("\n") + (lines.length ? "\nEND\n" : "");
+}
+function rebuildZnMarkerModel() {
+  if (znMarkerModelRef && viewer.removeModel) {
+    try { viewer.removeModel(znMarkerModelRef); } catch (_) {}
+  }
+  znMarkerModelRef = null;
+  const pdbText = buildZnMarkerPdbText();
+  if (!pdbText.trim() || !viewer.addModel) return 0;
+  try {
+    const model = viewer.addModel(pdbText, "pdb");
+    if (!model) return 0;
+    znMarkerModelRef = model;
+    if (model.setStyle) {
+      model.setStyle({}, {sphere:{radius:0.58, color:"#c100ff", opacity:0.98}});
+    }
+    if (model.setClickable) {
+      model.setClickable({}, true, function(atom) {
+        if (!atom) return;
+        focusZnNeighborhood(atom);
+      });
+    }
+    return getStructureZnAtoms().length;
+  } catch (_) {
+    znMarkerModelRef = null;
+    return 0;
+  }
+}
 function clearZnVisibleAtoms() {
+  if (znMarkerModelRef && viewer.removeModel) {
+    try { viewer.removeModel(znMarkerModelRef); } catch (_) {}
+  }
+  znMarkerModelRef = null;
   if (viewer.removeShape) {
     for (const s of znVisibleShapes) {
       try { viewer.removeShape(s); } catch (_) {}
@@ -722,36 +859,8 @@ function drawZnVisibleAtoms(forceFocus) {
     setDebugError(`phase=zn_display\nerror=no_zn_coordinates\nfmt=${currentStructureFmt || "-"}\nstructure_size=${(currentStructureText || "").length}`);
     return 0;
   }
-  let drawOk = 0;
-  let drawFail = 0;
-  if (viewer.addSphere) {
-    for (const z of znAtoms) {
-      try {
-        const s1 = viewer.addSphere({center:{x:z.x,y:z.y,z:z.z}, radius:1.25, color:"#ff00ff", alpha:1.0});
-        const s2 = viewer.addSphere({center:{x:z.x,y:z.y,z:z.z}, radius:1.85, color:"#ff66ff", alpha:0.28});
-        if (s1) znVisibleShapes.push(s1);
-        if (s2) znVisibleShapes.push(s2);
-        drawOk += 1;
-      } catch (_) {
-        drawFail += 1;
-      }
-    }
-  }
-  if (viewer.addLabel) {
-    for (let i = 0; i < Math.min(znAtoms.length, 3); i++) {
-      const z = znAtoms[i];
-      try {
-        const lb = viewer.addLabel("Zn", {
-          position: {x:z.x, y:z.y, z:z.z},
-          backgroundColor: "rgba(255,0,255,0.85)",
-          fontColor: "white",
-          fontSize: 16,
-          inFront: true
-        });
-        if (lb) znVisibleLabels.push(lb);
-      } catch (_) {}
-    }
-  }
+  const drawOk = rebuildZnMarkerModel();
+  const drawFail = 0;
   if (drawOk <= 0) {
     setZnError(`Zn显示异常：坐标已解析(${znAtoms.length})，但绘制失败`);
     setDebugError(`phase=zn_display\nerror=draw_failed\nzn_count=${znAtoms.length}\nshape_api=${viewer.addSphere ? "yes" : "no"}`);
@@ -1094,12 +1203,13 @@ function drawZnInteractionsAndLabels(options = {}) {
     const a = hit.interactionAtom;
     const zn = hit.closestZn;
     if (!a || !zn || !viewer.addLine) continue;
+    const style = interactionStyleForResidue(a, hit.minDist);
     const line = viewer.addLine({
       start: {x: zn.x, y: zn.y, z: zn.z},
       end: {x: a.x, y: a.y, z: a.z},
-      color: hit.minDist <= 3.2 ? "#ff8a00" : "#d7a22a",
+      color: style.line,
       dashed: emphasize,
-      linewidth: emphasize ? (hit.minDist <= 3.2 ? 5 : 4) : (hit.minDist <= 3.2 ? 3 : 2)
+      linewidth: emphasize ? (hit.minDist <= 3.2 ? 6 : 5) : (hit.minDist <= 3.2 ? 4 : 3)
     });
     znInteractionShapes.push(line);
     interactionCount += 1;
@@ -1112,7 +1222,7 @@ function drawZnInteractionsAndLabels(options = {}) {
     }
   }
   document.getElementById("status").textContent = emphasize
-    ? `已选中 Zn：5Å 范围残基相互作用线 ${interactionCount} 条，残基标签 ${residueLabelMode ? znResidueLabels.length : 0} 个`
+    ? `已选中 Zn：5Å 范围残基相互作用线 ${interactionCount} 条，残基标签 ${residueLabelMode ? znResidueLabels.length : 0} 个；颜色：HIS=橙，ASP/GLU=红，CYS=绿，其他=蓝`
     : `已显示5Å邻域：残基相互作用线 ${interactionCount} 条，残基标签 ${residueLabelMode ? znResidueLabels.length : 0} 个`;
 }
 function labelResiduesInSelection(sel) {

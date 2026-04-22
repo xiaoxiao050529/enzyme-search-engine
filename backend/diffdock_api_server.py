@@ -13,6 +13,8 @@ import time
 import traceback
 import uuid
 import csv
+import urllib.error
+import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
@@ -23,9 +25,13 @@ PROJECT_DIR = BASE_DIR.parent
 DATA_DIR = BASE_DIR / "data"
 RUNTIME_DIR = BASE_DIR / "runtime"
 TABLE_REGISTRY_PATH = DATA_DIR / "table_registry.json"
+IMPORT_SELECTION_PATH = RUNTIME_DIR / "import_selection.json"
+IMPORT_STRUCT_DIR = RUNTIME_DIR / "import_structures"
 
 _pdbzn_tmalign_cache = {}
 _pdbzn_tmalign_cache_lock = threading.Lock()
+
+IMPORT_STRUCT_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def _env_dir(name):
@@ -476,9 +482,171 @@ def _pdbzn_candidate_files(name):
     return out
 
 
+def _pdbzn_parse_uploaded_ids(raw):
+    ids = []
+    seen = set()
+    text = str(raw or "")
+    if not text.strip():
+        return ids
+    for raw_line in text.splitlines():
+        line = str(raw_line or "").strip()
+        if not line or line.startswith("#"):
+            continue
+        for token in re.split(r"[\s,;]+", line):
+            seg = str(token or "").strip().strip("\"'`")
+            if not seg or seg.startswith("#"):
+                continue
+            name = Path(seg).name
+            lower = name.lower()
+            for suffix in [".cif.gz", ".pdb.gz", ".ent.gz", ".cif", ".pdb", ".ent"]:
+                if lower.endswith(suffix):
+                    name = name[: -len(suffix)]
+                    break
+            pid = _pdbzn_guess_pdb_id(name)
+            if not pid or pid in seen:
+                continue
+            seen.add(pid)
+            ids.append(pid)
+    return ids
+
+
+def _pdbzn_active_import_selection():
+    hit = _safe_existing_file(IMPORT_SELECTION_PATH)
+    if hit is None:
+        return None
+    obj = _pdbzn_read_json(hit)
+    if not isinstance(obj, dict):
+        return None
+    ids = []
+    seen = set()
+    for item in obj.get("ids", []) or []:
+        pid = _pdbzn_guess_pdb_id(str(item or ""))
+        if not pid or pid in seen:
+            continue
+        seen.add(pid)
+        ids.append(pid)
+    if not ids:
+        return None
+    obj["ids"] = ids
+    return obj
+
+
+def _pdbzn_write_import_selection(ids, source_name=""):
+    payload = {
+        "mode": "upload_list",
+        "source_name": str(source_name or "").strip(),
+        "ids": list(ids or []),
+        "count": len(list(ids or [])),
+        "updated_at": now_ts(),
+        "updated_at_text": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
+    }
+    _pdbzn_write_json(IMPORT_SELECTION_PATH, payload)
+    return payload
+
+
+def _pdbzn_clear_import_selection():
+    try:
+        IMPORT_SELECTION_PATH.unlink()
+    except FileNotFoundError:
+        pass
+    except Exception:
+        pass
+
+
+def _pdbzn_structure_roots():
+    roots = [IMPORT_STRUCT_DIR, PDBZN_PDB_DIR, DATA_DIR / "structures", PDBZN_BASE_DIR]
+    out = []
+    seen = set()
+    for root in roots:
+        if not root:
+            continue
+        try:
+            path = Path(root)
+        except Exception:
+            continue
+        key = str(path)
+        if key in seen:
+            continue
+        seen.add(key)
+        if path.exists() and path.is_dir():
+            out.append(path)
+    return out
+
+
+def _pdbzn_local_structure_path(pdb_id, prefer_pdb=False):
+    pid = str(pdb_id or "").strip().upper()
+    if not pid:
+        return None
+    suffixes = [".pdb", ".ent", ".cif.gz", ".cif"] if prefer_pdb else [".cif.gz", ".cif", ".pdb", ".ent"]
+    candidates = []
+    for root in _pdbzn_structure_roots():
+        for stem in [pid, pid.lower()]:
+            for suffix in suffixes:
+                candidates.append(root / f"{stem}{suffix}")
+    seen = set()
+    for cand in candidates:
+        key = str(cand)
+        if key in seen:
+            continue
+        seen.add(key)
+        hit = _safe_existing_file(cand)
+        if hit is not None:
+            return hit
+    return None
+
+
+def _pdbzn_download_structure_file(pdb_id):
+    pid = str(pdb_id or "").strip().upper()
+    if not pid:
+        return None
+    IMPORT_STRUCT_DIR.mkdir(parents=True, exist_ok=True)
+    attempts = [
+        (f"{pid}.pdb", f"https://files.rcsb.org/download/{pid}.pdb"),
+        (f"{pid}.cif.gz", f"https://files.rcsb.org/download/{pid}.cif.gz"),
+        (f"{pid}.cif", f"https://files.rcsb.org/download/{pid}.cif"),
+    ]
+    for fname, url in attempts:
+        out_path = IMPORT_STRUCT_DIR / fname
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "Codex-PDBZN/1.0"})
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                data = resp.read()
+            if not data:
+                continue
+            out_path.write_bytes(data)
+            return out_path
+        except Exception:
+            try:
+                out_path.unlink()
+            except Exception:
+                pass
+            continue
+    return None
+
+
+def _pdbzn_resolve_import_file_map(ids, allow_download=False):
+    file_map = {}
+    missing = []
+    for pid in ids or []:
+        hit = _pdbzn_local_structure_path(pid, prefer_pdb=True)
+        if hit is None and allow_download:
+            hit = _pdbzn_download_structure_file(pid)
+        if hit is None:
+            missing.append(pid)
+            continue
+        file_map[pid] = hit
+    return file_map, missing
+
+
 def _pdbzn_source_structure_files():
+    selection = _pdbzn_active_import_selection()
+    if selection and selection.get("ids"):
+        file_map, _ = _pdbzn_resolve_import_file_map(selection.get("ids") or [], allow_download=False)
+        out = list(file_map.values())
+        out.sort(key=lambda p: p.name.lower())
+        return out
     source_dirs = []
-    for d in [PDBZN_PDB_DIR, DATA_DIR / "structures", PDBZN_BASE_DIR]:
+    for d in _pdbzn_structure_roots():
         if d.exists() and d.is_dir():
             source_dirs.append(d)
     preferred = {}
@@ -507,30 +675,7 @@ def _pdbzn_source_structure_files():
 
 
 def _pdbzn_find_structure_path(pdb_id):
-    pid = str(pdb_id or "").strip().upper()
-    if not pid:
-        return None
-    candidates = []
-    for root in [PDBZN_PDB_DIR, DATA_DIR / "structures", PDBZN_BASE_DIR]:
-        candidates.extend(
-            [
-                root / f"{pid}.cif.gz",
-                root / f"{pid}.cif",
-                root / f"{pid}.pdb",
-                root / f"{pid.lower()}.cif.gz",
-                root / f"{pid.lower()}.cif",
-                root / f"{pid.lower()}.pdb",
-            ]
-        )
-    seen = set()
-    for p in candidates:
-        key = str(p)
-        if key in seen:
-            continue
-        seen.add(key)
-        if p.exists() and p.is_file():
-            return p
-    return None
+    return _pdbzn_local_structure_path(pdb_id, prefer_pdb=False)
 
 
 def _pdbzn_existing_file(candidates):
@@ -1245,22 +1390,7 @@ def _pdbzn_step3_structure_reasons(pdb_id, ligand_distance, metal_distance):
 
 
 def _pdbzn_find_tmalign_pdb_path(pdb_id):
-    pid = str(pdb_id or "").strip().upper()
-    if not pid:
-        return None
-    cands = [
-        PDBZN_PDB_DIR / f"{pid}.pdb",
-        DATA_DIR / "structures" / f"{pid}.pdb",
-        PDBZN_BASE_DIR / f"{pid}.pdb",
-        PDBZN_PDB_DIR / f"{pid.lower()}.pdb",
-        DATA_DIR / "structures" / f"{pid.lower()}.pdb",
-        PDBZN_BASE_DIR / f"{pid.lower()}.pdb",
-    ]
-    for p in cands:
-        hit = _safe_existing_file(p)
-        if hit is not None:
-            return hit
-    return None
+    return _pdbzn_local_structure_path(pdb_id, prefer_pdb=True)
 
 
 def _pdbzn_tmalign_score(p1: Path, p2: Path):
@@ -1442,11 +1572,53 @@ def _pdbzn_source_total_count():
         return 0
 
 
-def _pdbzn_import_database():
-    files_all = list(_pdbzn_source_structure_files())
-    if not files_all:
-        return {"ok": False, "error": f"未找到可导入的结构文件（.pdb/.cif）: {PDBZN_PDB_DIR}"}
-    all_map = {(_pdbzn_guess_pdb_id(p.name)): p for p in files_all}
+def _pdbzn_import_database(import_options=None):
+    options = import_options if isinstance(import_options, dict) else {}
+    upload_ids = []
+    if isinstance(options.get("pdb_ids"), list):
+        for item in options.get("pdb_ids") or []:
+            pid = _pdbzn_guess_pdb_id(str(item or ""))
+            if pid and pid not in upload_ids:
+                upload_ids.append(pid)
+    if not upload_ids:
+        upload_ids = _pdbzn_parse_uploaded_ids(options.get("pdb_list_text", ""))
+    source_name = str(options.get("source_name", "") or "").strip()
+    clear_selection = bool(options.get("clear_selection", False))
+    if clear_selection:
+        _pdbzn_clear_import_selection()
+    if upload_ids:
+        all_map, missing = _pdbzn_resolve_import_file_map(upload_ids, allow_download=True)
+        if missing:
+            return {
+                "ok": False,
+                "error": "部分 PDB 结构无法从本地库或 RCSB 获取",
+                "missing_ids": missing,
+                "resolved_count": len(all_map),
+            }
+        selection = _pdbzn_write_import_selection(upload_ids, source_name)
+        source_mode = "upload_list"
+    else:
+        active_selection = _pdbzn_active_import_selection()
+        if active_selection and active_selection.get("ids"):
+            all_map, missing = _pdbzn_resolve_import_file_map(active_selection.get("ids") or [], allow_download=True)
+            if missing:
+                return {
+                    "ok": False,
+                    "error": "当前上传列表中存在无法解析的结构文件",
+                    "missing_ids": missing,
+                    "resolved_count": len(all_map),
+                }
+            selection = active_selection
+            source_mode = "saved_upload_list"
+        else:
+            files_all = list(_pdbzn_source_structure_files())
+            if not files_all:
+                return {"ok": False, "error": f"未找到可导入的结构文件（.pdb/.cif）: {PDBZN_PDB_DIR}"}
+            all_map = {(_pdbzn_guess_pdb_id(p.name)): p for p in files_all}
+            selection = None
+            source_mode = "all_structure_files"
+    if not all_map:
+        return {"ok": False, "error": "入库范围为空：未解析到可用结构文件"}
     cluster_flags = {}
     f_opt = _pdbzn_existing_file(["optimized-main1.csv"])
     if f_opt and f_opt.exists():
@@ -1459,9 +1631,6 @@ def _pdbzn_import_database():
             flag = str(r.get("Has_ZN_HIS_Cluster", "") or "").strip().upper()
             cluster_flags[rep] = 1 if flag in {"YES", "Y", "TRUE", "1"} else 0
     file_map = dict(all_map)
-    source_mode = "all_cif_files"
-    if not file_map:
-        return {"ok": False, "error": "入库范围为空：PDB_ZN目录下未匹配到可用CIF"}
     master_rows = {}
     f_master = _pdbzn_existing_file(["zn_his_master_table7.csv", "zn_his_master_table.csv"])
     if f_master and f_master.exists():
@@ -1543,6 +1712,10 @@ def _pdbzn_import_database():
         "updated": updated,
         "deleted": deleted,
         "source_mode": source_mode,
+        "source_dir": str(PDBZN_BASE_DIR),
+        "selection": selection,
+        "selection_count": len(selection.get("ids") or []) if isinstance(selection, dict) else 0,
+        "missing_ids": [],
         "stats": stats,
     }
 
@@ -3013,12 +3186,21 @@ class Handler(BaseHTTPRequestHandler):
             self._write_json(200, {"ok": True, "service": "tmalign-api", "tmalign_bin": discover_tmalign_bin()})
             return
         if path == "/api/pdbzn/workflow/config":
+            selection = _pdbzn_active_import_selection()
             self._write_json(200, {
                 "ok": True,
                 "defaults": _pdbzn_workflow_defaults(),
                 "db_path": str(PDBZN_DB_PATH),
                 "db_stats": _pdbzn_db_stats(),
                 "source_dir": str(PDBZN_BASE_DIR),
+                "source_total": _pdbzn_source_total_count(),
+                "import_selection": {
+                    "active": bool(selection and selection.get("ids")),
+                    "source_name": str((selection or {}).get("source_name", "") or ""),
+                    "count": len((selection or {}).get("ids") or []),
+                    "updated_at_text": str((selection or {}).get("updated_at_text", "") or ""),
+                    "ids_preview": list((selection or {}).get("ids") or [])[:20],
+                },
                 "files": {k: (str(v) if v else "") for k, v in _pdbzn_file_map().items()},
             })
             return
@@ -3027,6 +3209,17 @@ class Handler(BaseHTTPRequestHandler):
             file_path = resolve_under(DATA_DIR, rel_path)
             if (not file_path) or (not file_path.exists()) or (not file_path.is_file()):
                 self._write_json(404, {"ok": False, "error": "data file not found"})
+                return
+            self._write_file(file_path)
+            return
+        if path.startswith("/api/pdbzn/structure/"):
+            pdb_id = _pdbzn_guess_pdb_id(path.split("/")[-1])
+            if not pdb_id:
+                self._write_json(400, {"ok": False, "error": "invalid pdb id"})
+                return
+            file_path = _pdbzn_find_structure_path(pdb_id) or _pdbzn_find_tmalign_pdb_path(pdb_id)
+            if file_path is None:
+                self._write_json(404, {"ok": False, "error": "structure not found"})
                 return
             self._write_file(file_path)
             return
@@ -3339,7 +3532,7 @@ class Handler(BaseHTTPRequestHandler):
             self._write_json(400, result)
             return
         if parsed.path == "/api/pdbzn/workflow/import":
-            result = _pdbzn_import_database()
+            result = _pdbzn_import_database(payload)
             if result.get("ok"):
                 self._write_json(200, result)
                 return

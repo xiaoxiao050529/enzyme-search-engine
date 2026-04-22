@@ -21,7 +21,7 @@ body { font-family: system-ui, sans-serif; margin: 16px; }
 .panel h3 { margin: 0 0 8px; font-size: 16px; }
 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 label { display: block; font-size: 13px; color: #333; }
-input, select, button { width: 100%; box-sizing: border-box; padding: 6px; margin-top: 4px; }
+input, select, textarea, button { width: 100%; box-sizing: border-box; padding: 6px; margin-top: 4px; }
 .actions { display: flex; gap: 8px; margin-top: 10px; }
 .actions button { width: auto; padding: 6px 12px; }
 .muted { margin-top: 8px; color: #666; font-size: 12px; }
@@ -71,19 +71,29 @@ th { position: sticky; top: 0; background: #f7f9fc; z-index: 1; }
     <label>每步最多返回行数
       <input id="row_limit" type="number" min="1" value="500">
     </label>
+    <label>上传待导入 PDB 列表（txt）
+      <input id="import_file" type="file" accept=".txt,.lst,text/plain">
+    </label>
+    <label>或直接粘贴 PDB 列表
+      <textarea id="import_ids_text" rows="5" placeholder="1QRG.pdb&#10;1ROP.pdb"></textarea>
+    </label>
+    <div class="actions">
+      <button id="clear_import_scope_btn" type="button">切回全库导入</button>
+    </div>
     <div class="grid">
       <label>目标金属离子<input id="s1_metal_ion" type="text" value="ZN"></label>
       <label>残基要求<input id="s1_residue_requirements" type="text" value="HIS:3"></label>
       <label>Protein_Name包含<input id="s1_protein_name_contains" type="text" list="protein_name_options"></label>
       <label>PDB编号包含<input id="s1_pdb_contains" type="text" list="protein_pdb_options"></label>
     </div>
+    <div class="muted">上传/粘贴示例：每行一个 PDB 文件名，如 1QRG.pdb、1ROP.pdb。后端会优先从本地全库提取，缺失时再从 RCSB 自动补取。</div>
     <div class="muted">残基要求示例：HIS:3 或 HIS:3,ASP:1（英文逗号分隔）</div>
     <div class="muted">蛋白筛选输入框支持下拉候选，可直接选 PDB 或蛋白名称。</div>
     <datalist id="protein_catalog"></datalist>
     <datalist id="protein_name_options"></datalist>
     <datalist id="protein_pdb_options"></datalist>
     <div class="actions">
-      <button id="import_btn" type="button">导入PDB-ZN到数据库</button>
+      <button id="import_btn" type="button">上传列表并导入数据库</button>
       <button id="run_btn" type="button">运行工作流</button>
       <button id="reset_btn" type="button">恢复默认</button>
     </div>
@@ -172,6 +182,25 @@ function valNum(id) {
 }
 function valText(id) {
   return String(document.getElementById(id).value || "");
+}
+async function readImportListText() {
+  const parts = [];
+  let sourceName = "";
+  const fileInput = document.getElementById("import_file");
+  const file = fileInput && fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+  if (file) {
+    parts.push(await file.text());
+    sourceName = file.name || "";
+  }
+  const pasted = valText("import_ids_text").trim();
+  if (pasted) {
+    parts.push(pasted);
+    if (!sourceName) sourceName = "manual_input.txt";
+  }
+  return {
+    text: parts.join("\n").trim(),
+    sourceName,
+  };
 }
 function getApiBase() {
   return (document.getElementById("api_base").value || "").trim().replace(/\/+$/, "");
@@ -367,8 +396,8 @@ function setStage(stage) {
   document.getElementById("step5_panel").style.display = isStep5 ? "" : "none";
   document.getElementById("next_top_btn").style.display = (isStep4 || isStep5) ? "none" : "";
   document.getElementById("next_top_btn").textContent = isStep3 ? "Next → Step 4" : (isStep2 ? "Next → Step 3" : "Next → Step 2");
-  document.getElementById("stage_title").textContent = isStep5 ? "PDB-ZN 挖酶工作流 · Step 5 主表收口" : (isStep4 ? "PDB-ZN 挖酶工作流 · Step 4 综合验证" : (isStep3 ? "PDB-ZN 挖酶工作流 · Step 3 二次筛选" : (isStep2 ? "PDB-ZN 挖酶工作流 · Step 2 聚类" : "PDB-ZN 挖酶工作流 · Step 1")));
-  resetResultView(isStep5 ? "Step5准备就绪，等待主表导入与补全结果..." : (isStep4 ? "Step4准备就绪，等待综合验证结果..." : (isStep2 ? "Step2准备就绪，等待聚类结果..." : (isStep3 ? "Step3准备就绪，等待第二次筛选结果..." : "最终结果：-"))));
+  document.getElementById("stage_title").textContent = isStep5 ? "PDB-ZN 挖酶工作流 · Step 5 结果表生成" : (isStep4 ? "PDB-ZN 挖酶工作流 · Step 4 综合验证" : (isStep3 ? "PDB-ZN 挖酶工作流 · Step 3 二次筛选" : (isStep2 ? "PDB-ZN 挖酶工作流 · Step 2 聚类" : "PDB-ZN 挖酶工作流 · Step 1")));
+  resetResultView(isStep5 ? "Step5准备就绪，等待 Table 2 / Table 3 生成结果..." : (isStep4 ? "Step4准备就绪，等待综合验证结果..." : (isStep2 ? "Step2准备就绪，等待聚类结果..." : (isStep3 ? "Step3准备就绪，等待第二次筛选结果..." : "最终结果：-"))));
   refreshWorkflowProgress();
 }
 function tryParseJson(text) {
@@ -614,9 +643,15 @@ function buildStep5Payload() {
     }
   };
 }
-function renderDbStats(stats, sourceDir) {
+function renderDbStats(stats, sourceDir, selection, sourceTotal) {
   const s = stats || {};
-  document.getElementById("db_box").textContent = `数据库状态：total=${s.total_proteins ?? 0} | with_master=${s.with_master ?? 0} | last_imported_at=${s.last_imported_at ?? 0} | source=${sourceDir || "-"}`;
+  const sel = selection || {};
+  const selCount = sel.count ?? (Array.isArray(sel.ids) ? sel.ids.length : 0);
+  const selActive = Boolean(sel.active || selCount > 0);
+  const sourceMode = selActive
+    ? `upload_list(${selCount})${sel.source_name ? `:${sel.source_name}` : ""}`
+    : `all(${sourceTotal ?? "-"})`;
+  document.getElementById("db_box").textContent = `数据库状态：total=${s.total_proteins ?? 0} | with_master=${s.with_master ?? 0} | last_imported_at=${s.last_imported_at ?? 0} | source=${sourceDir || "-"} | mode=${sourceMode}`;
 }
 function fillDefaults(d) {
   if (!d) return;
@@ -692,7 +727,7 @@ async function loadConfig() {
   const apiBase = await resolveApiBase();
   const {json: j} = await fetchJsonWithDetail(apiBase + "/api/pdbzn/workflow/config", {}, "config");
   fillDefaults(j.defaults || {});
-  renderDbStats(j.db_stats || {}, j.source_dir || "");
+  renderDbStats(j.db_stats || {}, j.source_dir || "", j.import_selection || {}, j.source_total ?? 0);
   await loadProteinCatalog(apiBase);
 }
 async function importDatabase() {
@@ -701,14 +736,35 @@ async function importDatabase() {
   stopWorkflowProgressAnimation();
   setWorkflowProgress(Math.max(workflowProgressValue, 4), "正在导入数据库...");
   const apiBase = await resolveApiBase();
+  const importSpec = await readImportListText();
+  const body = {};
+  if (importSpec.text) {
+    body.pdb_list_text = importSpec.text;
+    body.source_name = importSpec.sourceName || "";
+  }
   const {json: j} = await fetchJsonWithDetail(apiBase + "/api/pdbzn/workflow/import", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({})
+    body: JSON.stringify(body)
   }, "import");
-  renderDbStats(j.stats || {}, "");
-  status.textContent = `导入完成：files=${j.imported_files} inserted=${j.inserted} updated=${j.updated}`;
+  renderDbStats(j.stats || {}, j.source_dir || "", j.selection || {}, j.selection_count || j.imported_files || 0);
+  const sourceMode = j.selection_count ? `upload_list=${j.selection_count}` : (j.source_mode || "all");
+  status.textContent = `导入完成：files=${j.imported_files} inserted=${j.inserted} updated=${j.updated} mode=${sourceMode}`;
   refreshWorkflowProgress("数据库已导入，等待执行 Step 1");
+}
+async function clearImportScope() {
+  const status = document.getElementById("status");
+  status.textContent = "正在切回全库导入...";
+  const apiBase = await resolveApiBase();
+  const {json: j} = await fetchJsonWithDetail(apiBase + "/api/pdbzn/workflow/import", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({clear_selection: true})
+  }, "import_clear");
+  document.getElementById("import_file").value = "";
+  document.getElementById("import_ids_text").value = "";
+  renderDbStats(j.stats || {}, j.source_dir || "", {}, j.imported_files || 0);
+  status.textContent = `已切回全库导入：files=${j.imported_files} inserted=${j.inserted} updated=${j.updated}`;
 }
 async function runWorkflow() {
   const status = document.getElementById("status");
@@ -943,6 +999,13 @@ document.getElementById("import_btn").addEventListener("click", async () => {
     showError(e && e.message ? e.message : "unknown error");
   }
 });
+document.getElementById("clear_import_scope_btn").addEventListener("click", async () => {
+  try {
+    await clearImportScope();
+  } catch (e) {
+    showError(e && e.message ? e.message : "unknown error");
+  }
+});
 function showError(msg) {
   failWorkflowProgress("工作流执行失败");
   const status = document.getElementById("status");
@@ -1082,6 +1145,8 @@ document.getElementById("protein_picker").addEventListener("change", () => {
 document.getElementById("reset_btn").addEventListener("click", async () => {
   try {
     await loadConfig();
+    document.getElementById("import_file").value = "";
+    document.getElementById("import_ids_text").value = "";
     hasStep1Run = false;
     hasStep2Run = false;
     hasStep3Run = false;

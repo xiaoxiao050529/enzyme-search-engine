@@ -1,6 +1,7 @@
 import csv
 import json
 import os
+import re
 from pathlib import Path
 
 from diffdock_api_server import _pdbzn_dist, _pdbzn_find_tmalign_pdb_path, _pdbzn_structure_atom_rows
@@ -258,6 +259,84 @@ def keep_column(name):
             return False
     return True
 
+
+def parse_pose_meta(path: Path):
+    name = path.name
+    rank_match = re.search(r"rank(\d+)", name, flags=re.IGNORECASE)
+    conf_match = re.search(r"confidence-([-+]?[0-9]*\.?[0-9]+)", name, flags=re.IGNORECASE)
+    rank = int(rank_match.group(1)) if rank_match else None
+    confidence = float(conf_match.group(1)) if conf_match else None
+    return {"rank": rank, "confidence": confidence}
+
+
+def better_pose(a, b):
+    if a is None:
+        return True
+    ac = a.get("confidence")
+    bc = b.get("confidence")
+    if bc is not None and ac is None:
+        return True
+    if bc is None and ac is not None:
+        return False
+    if bc is not None and ac is not None and bc != ac:
+        return bc > ac
+    ar = a.get("rank")
+    br = b.get("rank")
+    if br is not None and ar is None:
+        return True
+    if br is None and ar is not None:
+        return False
+    if br is not None and ar is not None and br != ar:
+        return br < ar
+    return str(b.get("filename") or "") < str(a.get("filename") or "")
+
+
+def build_diffdock_index(valid_ids):
+    diffdock_root = DATA_DIR / "diffdock"
+    items = []
+    if not diffdock_root.exists():
+        return {"items": [], "total_proteins": 0}
+    valid = {str(x or "").strip().upper() for x in (valid_ids or []) if str(x or "").strip()}
+    for d in sorted([x for x in diffdock_root.iterdir() if x.is_dir()], key=lambda p: p.name.upper()):
+        pid = d.name.strip().upper()
+        if valid and pid not in valid:
+            continue
+        structure_exists = any((DATA_DIR / "structures" / f"{pid}{ext}").exists() for ext in [".pdb", ".ent", ".cif"])
+        if not structure_exists:
+            continue
+        grouped = {}
+        fallback = []
+        for sdf in sorted(d.glob("*.sdf"), key=lambda p: p.name):
+            meta = parse_pose_meta(sdf)
+            rec = {
+                "file": f"../backend/data/diffdock/{pid}/{sdf.name}",
+                "filename": sdf.name,
+                "rank": meta["rank"],
+                "confidence": meta["confidence"],
+            }
+            if meta["rank"] is None:
+                continue
+            if meta["confidence"] is None:
+                fallback.append(rec)
+                continue
+            old = grouped.get(meta["rank"])
+            if better_pose(old, rec):
+                grouped[meta["rank"]] = rec
+        for rec in fallback:
+            rank = rec.get("rank")
+            if rank is None or rank in grouped:
+                continue
+            grouped[rank] = rec
+        poses = [grouped[k] for k in sorted(grouped.keys())]
+        if not poses:
+            continue
+        items.append({
+            "id": pid,
+            "pose_count": len(poses),
+            "poses": poses,
+        })
+    return {"items": items, "total_proteins": len(items)}
+
 def main():
     master_path, rows = load_master()
     raw_header = rows[0]
@@ -360,6 +439,9 @@ def main():
     print("OK", DATA_DIR / "table1_master_full.json", len(full))
     write_csv(DATA_DIR / "table1_master_table.csv", ["_id"] + header, full)
     print("OK", DATA_DIR / "table1_master_table.csv", len(full))
+    diffdock_payload = build_diffdock_index([item.get("id", "") for item in out])
+    write_json(DATA_DIR / "diffdock_index.json", diffdock_payload)
+    print("OK", DATA_DIR / "diffdock_index.json", diffdock_payload.get("total_proteins", 0))
     existing = [t for t in load_registry() if str((t or {}).get("id", "") or "") != "table1"]
     existing.append(
         {

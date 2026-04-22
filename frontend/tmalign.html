@@ -29,6 +29,9 @@ th { position: sticky; top: 0; background: #f7f9fc; z-index: 1; }
 .multi_pick { min-height: 180px; }
 .pick_row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
 .pick_btn { width: auto; min-width: 84px; }
+.pick_grid { display: grid; gap: 8px; }
+.pick_actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.pick_actions button { width: auto; }
 .selected_box { min-height: 44px; padding: 8px; border: 1px dashed #d7dbe2; border-radius: 12px; background: rgba(255,255,255,0.7); }
 .selected_list { display: flex; flex-wrap: wrap; gap: 6px; }
 .selected_item { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 999px; background: #eef4f7; border: 1px solid #d0d9e2; font-size: 12px; }
@@ -110,28 +113,40 @@ th { position: sticky; top: 0; background: #f7f9fc; z-index: 1; }
     <button id="batch_stop_btn" type="button">停止 1 对多任务</button>
     <div class="line"></div>
     <h4 style="margin:4px 0 8px 0;">多对多 TM-align 矩阵</h4>
-    <label>行集合（从首批72蛋白中添加）
-      <div class="pick_row">
-        <select id="matrix_rows_pick"></select>
-        <button id="matrix_rows_add_btn" class="pick_btn" type="button">添加</button>
+    <div class="pick_grid">
+      <label>行集合筛选
+        <input id="matrix_rows_filter" type="text" placeholder="按 PDB 或名称筛选">
+      </label>
+      <label>行集合（可多选）
+        <select id="matrix_rows_pick" multiple size="10" class="multi_pick"></select>
+      </label>
+      <div class="pick_actions">
+        <button id="matrix_rows_add_btn" type="button">添加选中行</button>
+        <button id="matrix_rows_add_all_btn" type="button">添加筛选结果</button>
       </div>
-    </label>
+    </div>
     <div class="selected_box">
       <div id="matrix_rows_selected" class="selected_list"></div>
     </div>
     <button id="matrix_rows_clear_btn" type="button">清空行集合</button>
-    <label>列集合（从首批72蛋白中添加）
-      <div class="pick_row">
-        <select id="matrix_cols_pick"></select>
-        <button id="matrix_cols_add_btn" class="pick_btn" type="button">添加</button>
+    <div class="pick_grid">
+      <label>列集合筛选
+        <input id="matrix_cols_filter" type="text" placeholder="按 PDB 或名称筛选">
+      </label>
+      <label>列集合（可多选）
+        <select id="matrix_cols_pick" multiple size="10" class="multi_pick"></select>
+      </label>
+      <div class="pick_actions">
+        <button id="matrix_cols_add_btn" type="button">添加选中列</button>
+        <button id="matrix_cols_add_all_btn" type="button">添加筛选结果</button>
       </div>
-    </label>
+    </div>
     <div class="selected_box">
       <div id="matrix_cols_selected" class="selected_list"></div>
     </div>
     <button id="matrix_cols_clear_btn" type="button">清空列集合</button>
     <label style="display:flex;align-items:center;gap:8px;">
-      <input id="matrix_same_set" type="checkbox" checked style="width:auto;box-sizing:border-box;">
+      <input id="matrix_same_set" type="checkbox" style="width:auto;box-sizing:border-box;">
       <span>列集合使用行集合</span>
     </label>
     <label>矩阵相似性评分方式
@@ -304,6 +319,16 @@ function uniqueKeepOrder(arr) {
   }
   return out;
 }
+function proteinMatchesFilter(item, query) {
+  const q = String(query || "").trim().toUpperCase();
+  if (!q) return true;
+  const id = String(item?.id || "").toUpperCase();
+  const name = String(item?.name || "").toUpperCase();
+  return id.includes(q) || name.includes(q);
+}
+function getSelectValues(selectId) {
+  return Array.from(document.getElementById(selectId).selectedOptions || []).map((op) => String(op.value || "").trim().toUpperCase()).filter(Boolean);
+}
 function getStructureCandidates(entry) {
   const id = String(entry?.id || "").trim().toUpperCase();
   if (!id) return [];
@@ -373,29 +398,30 @@ async function loadProteinCatalog() {
   for (const id of multiTargets) {
     const sel = document.getElementById(id);
     sel.innerHTML = "";
-    const empty = document.createElement("option");
-    empty.value = "";
-    empty.textContent = "请选择蛋白";
-    sel.appendChild(empty);
-    for (const item of proteinCatalog) {
-      const op = document.createElement("option");
-      op.value = item.id;
-      op.textContent = `${item.id} | ${item.name || "-"}`;
-      sel.appendChild(op);
+    if (id === "batch_target_pick") {
+      const empty = document.createElement("option");
+      empty.value = "";
+      empty.textContent = "请选择蛋白";
+      sel.appendChild(empty);
+      for (const item of proteinCatalog) {
+        const op = document.createElement("option");
+        op.value = item.id;
+        op.textContent = `${item.id} | ${item.name || "-"}`;
+        sel.appendChild(op);
+      }
     }
   }
   renderSelectedCollection("batch_target_selected", batchTargetSelected, (id) => removeFromCollection("batch", id));
-  renderSelectedCollection("matrix_rows_selected", matrixRowSelected, (id) => removeFromCollection("rows", id));
-  renderSelectedCollection("matrix_cols_selected", matrixColSelected, (id) => removeFromCollection("cols", id));
+  syncMatrixSelectors();
 }
-function renderSelectedCollection(containerId, ids, onRemove) {
+function renderSelectedCollection(containerId, ids, onRemove, emptyText = "当前未选择") {
   const box = document.getElementById(containerId);
   box.innerHTML = "";
   const arr = uniqueKeepOrder(ids);
   if (!arr.length) {
     const empty = document.createElement("div");
     empty.className = "selected_empty";
-    empty.textContent = "当前未选择";
+    empty.textContent = emptyText;
     box.appendChild(empty);
     return;
   }
@@ -405,31 +431,68 @@ function renderSelectedCollection(containerId, ids, onRemove) {
     chip.className = "selected_item";
     const label = document.createElement("span");
     label.textContent = `${item.id} | ${item.name || "-"}`;
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.textContent = "移除";
-    btn.addEventListener("click", () => onRemove(id));
     chip.appendChild(label);
-    chip.appendChild(btn);
+    if (typeof onRemove === "function") {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = "移除";
+      btn.addEventListener("click", () => onRemove(id));
+      chip.appendChild(btn);
+    }
     box.appendChild(chip);
   }
 }
-function addToCollection(kind) {
-  const selectId = kind === "batch" ? "batch_target_pick" : (kind === "rows" ? "matrix_rows_pick" : "matrix_cols_pick");
-  const pid = String(document.getElementById(selectId).value || "").trim().toUpperCase();
-  if (!pid) {
-    setStatus("请先选择一个蛋白");
-    return;
+function renderFilteredCatalogSelect(selectId, selectedIds, filterInputId) {
+  const sel = document.getElementById(selectId);
+  const q = document.getElementById(filterInputId).value || "";
+  const selected = new Set(uniqueKeepOrder(selectedIds));
+  sel.innerHTML = "";
+  for (const item of proteinCatalog) {
+    if (selected.has(String(item.id || "").toUpperCase())) continue;
+    if (!proteinMatchesFilter(item, q)) continue;
+    const op = document.createElement("option");
+    op.value = item.id;
+    op.textContent = `${item.id} | ${item.name || "-"}`;
+    sel.appendChild(op);
   }
+}
+function syncMatrixColumnState() {
+  const disabled = Boolean(document.getElementById("matrix_same_set").checked);
+  document.getElementById("matrix_cols_filter").disabled = disabled;
+  document.getElementById("matrix_cols_pick").disabled = disabled;
+  document.getElementById("matrix_cols_add_btn").disabled = disabled;
+  document.getElementById("matrix_cols_add_all_btn").disabled = disabled;
+  document.getElementById("matrix_cols_clear_btn").disabled = disabled;
+  if (disabled) {
+    renderSelectedCollection("matrix_cols_selected", matrixRowSelected, null, "列集合跟随行集合");
+  } else {
+    renderSelectedCollection("matrix_cols_selected", matrixColSelected, (id) => removeFromCollection("cols", id));
+  }
+}
+function syncMatrixSelectors() {
+  renderFilteredCatalogSelect("matrix_rows_pick", matrixRowSelected, "matrix_rows_filter");
+  renderFilteredCatalogSelect("matrix_cols_pick", matrixColSelected, "matrix_cols_filter");
+  renderSelectedCollection("matrix_rows_selected", matrixRowSelected, (id) => removeFromCollection("rows", id));
+  syncMatrixColumnState();
+}
+function addToCollection(kind, mode = "single") {
+  const selectId = kind === "batch" ? "batch_target_pick" : (kind === "rows" ? "matrix_rows_pick" : "matrix_cols_pick");
+  const select = document.getElementById(selectId);
+  const ids = kind === "batch"
+    ? [String(select.value || "").trim().toUpperCase()].filter(Boolean)
+    : (mode === "all_visible"
+      ? Array.from(select.options || []).map((op) => String(op.value || "").trim().toUpperCase()).filter(Boolean)
+      : getSelectValues(selectId));
+  if (!ids.length) return setStatus(kind === "batch" ? "请先选择一个蛋白" : "请先选择至少一个蛋白");
   if (kind === "batch") {
-    batchTargetSelected = uniqueKeepOrder([...batchTargetSelected, pid]);
+    batchTargetSelected = uniqueKeepOrder([...batchTargetSelected, ...ids]);
     renderSelectedCollection("batch_target_selected", batchTargetSelected, (id) => removeFromCollection("batch", id));
   } else if (kind === "rows") {
-    matrixRowSelected = uniqueKeepOrder([...matrixRowSelected, pid]);
-    renderSelectedCollection("matrix_rows_selected", matrixRowSelected, (id) => removeFromCollection("rows", id));
+    matrixRowSelected = uniqueKeepOrder([...matrixRowSelected, ...ids]);
+    syncMatrixSelectors();
   } else {
-    matrixColSelected = uniqueKeepOrder([...matrixColSelected, pid]);
-    renderSelectedCollection("matrix_cols_selected", matrixColSelected, (id) => removeFromCollection("cols", id));
+    matrixColSelected = uniqueKeepOrder([...matrixColSelected, ...ids]);
+    syncMatrixSelectors();
   }
 }
 function removeFromCollection(kind, pid) {
@@ -438,10 +501,10 @@ function removeFromCollection(kind, pid) {
     renderSelectedCollection("batch_target_selected", batchTargetSelected, (id) => removeFromCollection("batch", id));
   } else if (kind === "rows") {
     matrixRowSelected = matrixRowSelected.filter(x => x !== pid);
-    renderSelectedCollection("matrix_rows_selected", matrixRowSelected, (id) => removeFromCollection("rows", id));
+    syncMatrixSelectors();
   } else {
     matrixColSelected = matrixColSelected.filter(x => x !== pid);
-    renderSelectedCollection("matrix_cols_selected", matrixColSelected, (id) => removeFromCollection("cols", id));
+    syncMatrixSelectors();
   }
 }
 function clearCollection(kind) {
@@ -450,10 +513,10 @@ function clearCollection(kind) {
     renderSelectedCollection("batch_target_selected", batchTargetSelected, (id) => removeFromCollection("batch", id));
   } else if (kind === "rows") {
     matrixRowSelected = [];
-    renderSelectedCollection("matrix_rows_selected", matrixRowSelected, (id) => removeFromCollection("rows", id));
+    syncMatrixSelectors();
   } else {
     matrixColSelected = [];
-    renderSelectedCollection("matrix_cols_selected", matrixColSelected, (id) => removeFromCollection("cols", id));
+    syncMatrixSelectors();
   }
 }
 async function resolveSingleStructure(fileInputId, pickId, labelText) {
@@ -916,9 +979,13 @@ document.getElementById("batch_stop_btn").addEventListener("click", () => {
   batchRunning = false;
   setStatus("已请求停止1对多任务");
 });
-document.getElementById("matrix_rows_add_btn").addEventListener("click", () => addToCollection("rows"));
+document.getElementById("matrix_rows_filter").addEventListener("input", () => renderFilteredCatalogSelect("matrix_rows_pick", matrixRowSelected, "matrix_rows_filter"));
+document.getElementById("matrix_cols_filter").addEventListener("input", () => renderFilteredCatalogSelect("matrix_cols_pick", matrixColSelected, "matrix_cols_filter"));
+document.getElementById("matrix_rows_add_btn").addEventListener("click", () => addToCollection("rows", "selected"));
+document.getElementById("matrix_rows_add_all_btn").addEventListener("click", () => addToCollection("rows", "all_visible"));
 document.getElementById("matrix_rows_clear_btn").addEventListener("click", () => clearCollection("rows"));
-document.getElementById("matrix_cols_add_btn").addEventListener("click", () => addToCollection("cols"));
+document.getElementById("matrix_cols_add_btn").addEventListener("click", () => addToCollection("cols", "selected"));
+document.getElementById("matrix_cols_add_all_btn").addEventListener("click", () => addToCollection("cols", "all_visible"));
 document.getElementById("matrix_cols_clear_btn").addEventListener("click", () => clearCollection("cols"));
 document.getElementById("matrix_run_btn").addEventListener("click", runMatrixManyToMany);
 document.getElementById("matrix_stop_btn").addEventListener("click", () => {
@@ -926,17 +993,12 @@ document.getElementById("matrix_stop_btn").addEventListener("click", () => {
   setStatus("已请求停止多对多矩阵任务");
 });
 document.getElementById("matrix_same_set").addEventListener("change", (e) => {
-  const disabled = Boolean(e.target.checked);
-  document.getElementById("matrix_cols_pick").disabled = disabled;
-  document.getElementById("matrix_cols_add_btn").disabled = disabled;
-  document.getElementById("matrix_cols_clear_btn").disabled = disabled;
+  syncMatrixColumnState();
 });
 window.addEventListener("load", async () => {
   try {
     await loadProteinCatalog();
-    document.getElementById("matrix_cols_pick").disabled = true;
-    document.getElementById("matrix_cols_add_btn").disabled = true;
-    document.getElementById("matrix_cols_clear_btn").disabled = true;
+    syncMatrixSelectors();
   } catch (e) {
     setDebugError(`phase=load_catalog\nerror=${e && e.message ? e.message : "unknown"}`);
   }

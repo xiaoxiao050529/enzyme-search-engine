@@ -140,6 +140,7 @@ const receptorInfoCache = new Map();
 let autoApplyingTop2 = false;
 let onlineJobId = "";
 let onlineResult = {apiBase:"", receptor:null, poses:[]};
+let onlineSubmission = {receptor:null, ligand:null};
 let localApiBase = "";
 let localDataViaApi = false;
 let onlinePollTimer = null;
@@ -924,6 +925,17 @@ async function submitOnlineJob() {
     inference_steps: Number(document.getElementById("online_steps").value || 20),
     samples_per_complex: Number(document.getElementById("online_samples").value || 10)
   };
+  onlineSubmission = {
+    receptor: {
+      name: receptorFile.name,
+      text: receptorText,
+      fmt: receptorFile.name.toLowerCase().endsWith(".cif") ? "cif" : "pdb",
+    },
+    ligand: {
+      name: ligandFile.name,
+      text: ligandText,
+    }
+  };
   onlineResult = {apiBase:"", receptor:null, poses:[]};
   renderOnlinePoses();
   resetOnlineProgress("在线任务排队中");
@@ -962,13 +974,11 @@ async function pollOnlineJob(opts = {}) {
     setOnlineInfo(`任务 ${job.id}：${job.status}${job.error ? " | " + job.error : ""}`);
     if (job.status === "done" && Array.isArray(job.poses) && job.poses.length) {
       stopOnlinePolling();
-      const receptorFile = (document.getElementById("online_receptor_file").files || [])[0];
-      if (!receptorFile) throw new Error("缺少受体文件");
-      const receptorText = await readFileText(receptorFile);
-      const receptorFmt = receptorFile.name.toLowerCase().endsWith(".cif") ? "cif" : "pdb";
+      const cachedReceptor = onlineSubmission && onlineSubmission.receptor ? onlineSubmission.receptor : null;
+      if (!cachedReceptor || !cachedReceptor.text) throw new Error("缺少受体文件");
       onlineResult = {
         apiBase,
-        receptor: {name: receptorFile.name, text: receptorText, fmt: receptorFmt},
+        receptor: cachedReceptor,
         poses: job.poses
       };
       renderOnlinePoses();

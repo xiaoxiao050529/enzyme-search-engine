@@ -38,3 +38,10 @@ Screenshot *.png
 *.swp
 *.swo
 *~
+
+
+.tools/
+backend/__pycache__/
+backend/runtime/
+*.pyc
+*.sqlite

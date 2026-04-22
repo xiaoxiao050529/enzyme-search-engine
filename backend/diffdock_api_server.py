@@ -15,40 +15,135 @@ import uuid
 import csv
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 
-BASE_DIR = Path("/root/data-platform/backend")
-WORK_DIR = BASE_DIR / "runtime" / "diffdock_jobs"
+BASE_DIR = Path(__file__).resolve().parent
+PROJECT_DIR = BASE_DIR.parent
+DATA_DIR = BASE_DIR / "data"
+RUNTIME_DIR = BASE_DIR / "runtime"
+TABLE_REGISTRY_PATH = DATA_DIR / "table_registry.json"
+
+_pdbzn_tmalign_cache = {}
+_pdbzn_tmalign_cache_lock = threading.Lock()
+
+
+def _env_dir(name):
+    raw = str(os.environ.get(name, "") or "").strip()
+    if not raw:
+        return None
+    p = Path(raw).expanduser()
+    if p.exists() and p.is_dir():
+        return p.resolve()
+    return None
+
+
+def _first_existing_dir(candidates):
+    for p in candidates:
+        try:
+            if p and p.exists() and p.is_dir():
+                return p.resolve()
+        except Exception:
+            continue
+    return None
+
+
+def _safe_path_exists(path_like):
+    try:
+        return Path(path_like).exists()
+    except Exception:
+        return False
+
+
+def _safe_existing_file(path_like):
+    if not path_like:
+        return None
+    try:
+        p = Path(path_like)
+        if p.exists() and p.is_file():
+            return p
+    except Exception:
+        return None
+    return None
+
+
+def _safe_existing_dir(path_like):
+    if not path_like:
+        return None
+    try:
+        p = Path(path_like)
+        if p.exists() and p.is_dir():
+            return p
+    except Exception:
+        return None
+    return None
+
+
+def discover_pdbzn_base_dir():
+    env = _env_dir("PDBZN_BASE_DIR")
+    if env:
+        return env
+    found = _first_existing_dir(
+        [
+            PROJECT_DIR / "PDB_ZN",
+            DATA_DIR,
+            Path("/root/PDB_ZN"),
+        ]
+    )
+    return found or DATA_DIR
+
+
+def discover_pdbzn_pdb_dir(base_dir: Path):
+    env = _env_dir("PDBZN_PDB_DIR")
+    if env:
+        return env
+    found = _first_existing_dir(
+        [
+            base_dir / "pdb_structures",
+            base_dir / "structures",
+            DATA_DIR / "structures",
+            base_dir,
+        ]
+    )
+    return found or (DATA_DIR / "structures")
+
+
+WORK_DIR = RUNTIME_DIR / "diffdock_jobs"
 WORK_DIR.mkdir(parents=True, exist_ok=True)
-FPOCKET_WORK_DIR = BASE_DIR / "runtime" / "fpocket_jobs"
+FPOCKET_WORK_DIR = RUNTIME_DIR / "fpocket_jobs"
 FPOCKET_WORK_DIR.mkdir(parents=True, exist_ok=True)
-TMALIGN_WORK_DIR = BASE_DIR / "runtime" / "tmalign_jobs"
+TMALIGN_WORK_DIR = RUNTIME_DIR / "tmalign_jobs"
 TMALIGN_WORK_DIR.mkdir(parents=True, exist_ok=True)
-PDBZN_BASE_DIR = Path("/root/PDB_ZN")
-PDBZN_PDB_DIR = PDBZN_BASE_DIR / "pdb_structures"
-PDBZN_DB_PATH = BASE_DIR / "runtime" / "pdbzn.sqlite"
+PDBZN_BASE_DIR = discover_pdbzn_base_dir()
+PDBZN_PDB_DIR = discover_pdbzn_pdb_dir(PDBZN_BASE_DIR)
+PDBZN_DB_PATH = RUNTIME_DIR / "pdbzn.sqlite"
+PDBZN_EXPORT_DIR = RUNTIME_DIR / "exports"
+PDBZN_EXPORT_DIR.mkdir(parents=True, exist_ok=True)
 HOST = os.environ.get("DIFFDOCK_API_HOST", "127.0.0.1")
 PORT = int(os.environ.get("DIFFDOCK_API_PORT", "8015"))
 
 
 def discover_infer_py():
     env = os.environ.get("DIFFDOCK_INFER_PY", "").strip()
-    if env and Path(env).exists():
+    if env and _safe_path_exists(env):
         return env
     candidates = [
+        str(PROJECT_DIR / ".tools" / "src" / "DiffDock" / "inference.py"),
         "/root/DiffDock/inference.py",
         "/root/diffdock/inference.py",
         "/opt/DiffDock/inference.py",
     ]
     for p in candidates:
-        if Path(p).exists():
+        if _safe_path_exists(p):
             return p
     return ""
 
 
 INFER_PY = discover_infer_py()
-PYTHON_BIN = os.environ.get("DIFFDOCK_PYTHON_BIN", "python")
+PYTHON_BIN = os.environ.get(
+    "DIFFDOCK_PYTHON_BIN",
+    str(PROJECT_DIR / ".tools" / "diffdock-venv-sys" / "bin" / "python") if _safe_path_exists(PROJECT_DIR / ".tools" / "diffdock-venv-sys" / "bin" / "python") else (shutil.which("python3") or "python3"),
+)
 FPOCKET_BIN = os.environ.get("FPOCKET_BIN", "fpocket")
 TMALIGN_BIN = os.environ.get("TMALIGN_BIN", "TMalign")
 
@@ -97,11 +192,18 @@ def list_pose_files(out_dir: Path):
 def discover_fpocket_bin():
     env = os.environ.get("FPOCKET_BIN", "").strip()
     if env:
-        if Path(env).exists():
+        if _safe_path_exists(env):
             return env
         found = shutil.which(env)
         if found:
             return found
+    local_candidates = [
+        PROJECT_DIR / ".tools" / "bin" / "fpocket",
+        PROJECT_DIR / ".tools" / "src" / "fpocket-src" / "bin" / "fpocket",
+    ]
+    for p in local_candidates:
+        if _safe_path_exists(p):
+            return str(p)
     found_default = shutil.which("fpocket")
     return found_default or ""
 
@@ -216,6 +318,10 @@ def build_fpocket_pocket_payload(job_id: str, job: dict):
     job_dir = FPOCKET_WORK_DIR / job_id
     in_dir = job_dir / "input"
     pdb_name = str((job or {}).get("pdb_name", "") or "")
+    if not pdb_name and in_dir.exists():
+        pdb_files = sorted([p for p in in_dir.iterdir() if p.is_file() and p.suffix.lower() in {".pdb", ".ent"}], key=lambda p: p.name)
+        if pdb_files:
+            pdb_name = pdb_files[0].name
     stem = Path(pdb_name).stem if pdb_name else ""
     root_candidates = []
     if stem:
@@ -263,6 +369,15 @@ def build_fpocket_pocket_payload(job_id: str, job: dict):
     structure_text = ""
     if structure_path and structure_path.exists():
         structure_text = structure_path.read_text(encoding="utf-8", errors="ignore")
+    if not structure_text:
+        struct_candidates = []
+        if stem:
+            struct_candidates.append(out_root / f"{stem}_out.pdb")
+        struct_candidates.extend(sorted(out_root.glob("*_out.pdb"), key=lambda p: p.name))
+        for cand in struct_candidates:
+            if cand.exists() and cand.is_file():
+                structure_text = cand.read_text(encoding="utf-8", errors="ignore")
+                break
     return {
         "ok": True,
         "output_root": out_root.relative_to(job_dir).as_posix(),
@@ -276,18 +391,19 @@ def build_fpocket_pocket_payload(job_id: str, job: dict):
 def discover_tmalign_bin():
     env = os.environ.get("TMALIGN_BIN", "").strip()
     if env:
-        if Path(env).exists():
+        if _safe_path_exists(env):
             return env
         found = shutil.which(env)
         if found:
             return found
     candidates = [
+        str(PROJECT_DIR / ".tools" / "bin" / "TMalign"),
         "/root/tools/TMalign",
         "/usr/local/bin/TMalign",
         "/usr/bin/TMalign",
     ]
     for p in candidates:
-        if Path(p).exists():
+        if _safe_path_exists(p):
             return p
     found_default = shutil.which("TMalign")
     return found_default or ""
@@ -328,11 +444,100 @@ def parse_tmalign_log(text: str):
     }
 
 
-def _pdbzn_existing_file(candidates):
-    for name in candidates:
-        p = PDBZN_BASE_DIR / name
+def _pdbzn_data_aliases(name):
+    alias_map = {
+        "zn_his_master_table7.csv": [DATA_DIR / "master_table.csv"],
+        "zn_his_master_table.csv": [DATA_DIR / "master_table.csv"],
+        "zn_his_similarity_ranking2.csv": [DATA_DIR / "master_table.csv"],
+        "zn_his_similarity_ranking.csv": [DATA_DIR / "master_table.csv"],
+    }
+    return list(alias_map.get(name, []))
+
+
+def _pdbzn_candidate_files(name):
+    cands = []
+    cands.extend(_pdbzn_data_aliases(name))
+    cands.extend(
+        [
+            PDBZN_BASE_DIR / name,
+            DATA_DIR / name,
+            BASE_DIR / name,
+            PROJECT_DIR / name,
+        ]
+    )
+    out = []
+    seen = set()
+    for p in cands:
+        key = str(p)
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(p)
+    return out
+
+
+def _pdbzn_source_structure_files():
+    source_dirs = []
+    for d in [PDBZN_PDB_DIR, DATA_DIR / "structures", PDBZN_BASE_DIR]:
+        if d.exists() and d.is_dir():
+            source_dirs.append(d)
+    preferred = {}
+    ext_rank = {".cif.gz": 0, ".cif": 1, ".pdb": 2}
+    for root in source_dirs:
+        for path in sorted(root.glob("*")):
+            if not path.is_file():
+                continue
+            name = path.name.lower()
+            if not name.endswith((".cif", ".cif.gz", ".pdb")):
+                continue
+            rep = _pdbzn_guess_pdb_id(path.name)
+            if not rep:
+                continue
+            rank = 9
+            for suffix, suffix_rank in ext_rank.items():
+                if name.endswith(suffix):
+                    rank = suffix_rank
+                    break
+            old = preferred.get(rep)
+            if old is None or rank < old[0]:
+                preferred[rep] = (rank, path)
+    out = [item[1] for item in preferred.values()]
+    out.sort(key=lambda p: p.name.lower())
+    return out
+
+
+def _pdbzn_find_structure_path(pdb_id):
+    pid = str(pdb_id or "").strip().upper()
+    if not pid:
+        return None
+    candidates = []
+    for root in [PDBZN_PDB_DIR, DATA_DIR / "structures", PDBZN_BASE_DIR]:
+        candidates.extend(
+            [
+                root / f"{pid}.cif.gz",
+                root / f"{pid}.cif",
+                root / f"{pid}.pdb",
+                root / f"{pid.lower()}.cif.gz",
+                root / f"{pid.lower()}.cif",
+                root / f"{pid.lower()}.pdb",
+            ]
+        )
+    seen = set()
+    for p in candidates:
+        key = str(p)
+        if key in seen:
+            continue
+        seen.add(key)
         if p.exists() and p.is_file():
             return p
+    return None
+
+
+def _pdbzn_existing_file(candidates):
+    for name in candidates:
+        for p in _pdbzn_candidate_files(name):
+            if p.exists() and p.is_file():
+                return p
     return None
 
 
@@ -423,7 +628,7 @@ def _pdbzn_workflow_defaults():
         "step2": {
             "cluster_threshold": 0.7,
             "keep_only_cluster_members": True,
-            "mode": "preset_clusters",
+            "mode": "recompute_tmalign",
         },
         "step3": {
             "ligand_distance": 5.0,
@@ -438,7 +643,8 @@ def _pdbzn_workflow_defaults():
             "run_fpocket": True,
             "fpocket_max_runs": 20,
             "fpocket_timeout_sec": 120,
-            "write_to_master": True,
+            "write_to_master": False,
+            "table_label": "",
             "output_file": "zn_his_master_table_step5.csv",
         },
     }
@@ -693,19 +899,7 @@ def _pdbzn_parse_len_oligomer_monomer(raw):
 
 
 def _pdbzn_find_cif_path(pdb_id):
-    pid = str(pdb_id or "").strip().upper()
-    if not pid:
-        return None
-    cands = [
-        PDBZN_BASE_DIR / f"{pid}.cif.gz",
-        PDBZN_BASE_DIR / f"{pid}.cif",
-        PDBZN_BASE_DIR / f"{pid.lower()}.cif.gz",
-        PDBZN_BASE_DIR / f"{pid.lower()}.cif",
-    ]
-    for p in cands:
-        if p.exists() and p.is_file():
-            return p
-    return None
+    return _pdbzn_find_structure_path(pdb_id)
 
 
 def _pdbzn_mmcif_atom_rows(cif_path: Path):
@@ -776,6 +970,54 @@ def _pdbzn_mmcif_atom_rows(cif_path: Path):
     return rows
 
 
+def _pdbzn_pdb_atom_rows(pdb_path: Path):
+    rows = []
+    with pdb_path.open("r", encoding="utf-8", errors="ignore") as f:
+        for raw in f:
+            line = (raw or "").rstrip("\n")
+            if not (line.startswith("ATOM") or line.startswith("HETATM")):
+                continue
+            atom_name = str(line[12:16] or "").strip().upper()
+            comp = str(line[17:20] or "").strip().upper()
+            chain = str(line[21:22] or "").strip()
+            seq = str(line[22:26] or "").strip()
+            icode = str(line[26:27] or "").strip()
+            try:
+                x = float(str(line[30:38] or "").strip())
+                y = float(str(line[38:46] or "").strip())
+                z = float(str(line[46:54] or "").strip())
+            except Exception:
+                continue
+            element = str(line[76:78] or "").strip().upper()
+            if not element:
+                letters = re.sub(r"[^A-Za-z]+", "", atom_name or "")
+                if letters:
+                    element = letters[:2].upper()
+            rows.append(
+                {
+                    "comp": comp,
+                    "atom": atom_name,
+                    "element": element,
+                    "x": float(x),
+                    "y": float(y),
+                    "z": float(z),
+                    "chain": chain,
+                    "seq": seq,
+                    "icode": icode,
+                }
+            )
+    return rows
+
+
+def _pdbzn_structure_atom_rows(structure_path: Path):
+    suffixes = [s.lower() for s in structure_path.suffixes]
+    if suffixes[-2:] == [".cif", ".gz"] or (suffixes and suffixes[-1] == ".cif"):
+        return _pdbzn_mmcif_atom_rows(structure_path)
+    if suffixes and suffixes[-1] == ".pdb":
+        return _pdbzn_pdb_atom_rows(structure_path)
+    return _pdbzn_mmcif_atom_rows(structure_path)
+
+
 def _pdbzn_dist(a, b):
     dx = float(a["x"]) - float(b["x"])
     dy = float(a["y"]) - float(b["y"])
@@ -818,7 +1060,7 @@ def _pdbzn_step4_geometry_report(pdb_id, radius=5.0):
             "tri_his_count": 0,
         }
     try:
-        atoms = _pdbzn_mmcif_atom_rows(fp)
+        atoms = _pdbzn_structure_atom_rows(fp)
     except Exception:
         return {
             "ok": False,
@@ -964,7 +1206,7 @@ def _pdbzn_step3_structure_reasons(pdb_id, ligand_distance, metal_distance):
     if not fp:
         return [f"缺少结构文件 {pdb_id}"], {"max_his_coord": None}
     try:
-        atoms = _pdbzn_mmcif_atom_rows(fp)
+        atoms = _pdbzn_structure_atom_rows(fp)
     except Exception:
         return [f"结构解析失败 {pdb_id}"], {"max_his_coord": None}
     if not atoms:
@@ -1008,13 +1250,16 @@ def _pdbzn_find_tmalign_pdb_path(pdb_id):
         return None
     cands = [
         PDBZN_PDB_DIR / f"{pid}.pdb",
+        DATA_DIR / "structures" / f"{pid}.pdb",
         PDBZN_BASE_DIR / f"{pid}.pdb",
         PDBZN_PDB_DIR / f"{pid.lower()}.pdb",
+        DATA_DIR / "structures" / f"{pid.lower()}.pdb",
         PDBZN_BASE_DIR / f"{pid.lower()}.pdb",
     ]
     for p in cands:
-        if p.exists() and p.is_file():
-            return p
+        hit = _safe_existing_file(p)
+        if hit is not None:
+            return hit
     return None
 
 
@@ -1022,6 +1267,25 @@ def _pdbzn_tmalign_score(p1: Path, p2: Path):
     exe = discover_tmalign_bin()
     if not exe:
         return None
+    try:
+        a = str(Path(p1).resolve())
+        b = str(Path(p2).resolve())
+        if a > b:
+            a, b = b, a
+        key = (
+            a,
+            int(Path(a).stat().st_mtime),
+            b,
+            int(Path(b).stat().st_mtime),
+            str(exe),
+        )
+    except Exception:
+        key = None
+    if key is not None:
+        with _pdbzn_tmalign_cache_lock:
+            cached = _pdbzn_tmalign_cache.get(key)
+        if cached is not None:
+            return cached
     try:
         proc = subprocess.run(
             [exe, str(p1), str(p2)],
@@ -1039,8 +1303,13 @@ def _pdbzn_tmalign_score(p1: Path, p2: Path):
             except Exception:
                 pass
         if not scores:
-            return 0.0
-        return float(max(scores))
+            score = 0.0
+        else:
+            score = float(max(scores))
+        if key is not None:
+            with _pdbzn_tmalign_cache_lock:
+                _pdbzn_tmalign_cache[key] = score
+        return score
     except Exception:
         return 0.0
 
@@ -1107,7 +1376,11 @@ def _pdbzn_cluster_rows_tmalign(rows, threshold):
                 members.append(pid)
         if not members:
             continue
-        rep = str(members[0] or "")
+        leader = sorted(
+            [(arr[k].get("Similarity_Score"), str(arr[k].get("Representative", "") or arr[k].get("PDB_ID", "") or "").strip().upper()) for k in idxs],
+            key=lambda x: (-(x[0] if x[0] is not None else -999.0), x[1]),
+        )[0]
+        rep = str(leader[1] or members[0] or "")
         out.append(
             {
                 "Cluster_ID": cid,
@@ -1164,15 +1437,15 @@ def _pdbzn_db_stats():
 
 def _pdbzn_source_total_count():
     try:
-        return len([p for p in PDBZN_BASE_DIR.glob("*") if p.is_file() and p.name.lower().endswith((".cif", ".cif.gz"))])
+        return len(_pdbzn_source_structure_files())
     except Exception:
         return 0
 
 
 def _pdbzn_import_database():
-    files_all = sorted([p for p in PDBZN_BASE_DIR.glob("*") if p.is_file() and p.name.lower().endswith((".cif", ".cif.gz"))], key=lambda x: x.name.lower())
+    files_all = list(_pdbzn_source_structure_files())
     if not files_all:
-        return {"ok": False, "error": f"PDB-ZN目录下未找到CIF文件: {PDBZN_BASE_DIR}"}
+        return {"ok": False, "error": f"未找到可导入的结构文件（.pdb/.cif）: {PDBZN_PDB_DIR}"}
     all_map = {(_pdbzn_guess_pdb_id(p.name)): p for p in files_all}
     cluster_flags = {}
     f_opt = _pdbzn_existing_file(["optimized-main1.csv"])
@@ -1414,9 +1687,9 @@ def _pdbzn_cluster_workflow(filters):
     step2_used = {**defaults.get("step2", {}), **step2f}
     cluster_threshold = _pdbzn_to_num(step2_used.get("cluster_threshold", 0.7))
     keep_only_cluster_members = bool(step2_used.get("keep_only_cluster_members", True))
-    cluster_mode = str(step2_used.get("mode", "preset_clusters") or "preset_clusters").strip().lower()
+    cluster_mode = str(step2_used.get("mode", "recompute_tmalign") or "recompute_tmalign").strip().lower()
     if cluster_mode not in {"preset_clusters", "recompute_tmalign", "recompute_neighbor"}:
-        cluster_mode = "preset_clusters"
+        cluster_mode = "recompute_tmalign"
     if cluster_threshold is None:
         cluster_threshold = 0.7
     cluster_threshold = max(0.0, min(1.0, float(cluster_threshold)))
@@ -1754,6 +2027,182 @@ def _pdbzn_write_table(path: Path, columns, rows):
             w.writerow([str((row or {}).get(c, "") or "") for c in columns])
 
 
+def _pdbzn_write_json(path: Path, payload):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def _pdbzn_read_json(path: Path):
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+
+
+def _pdbzn_table_rep_or_id(row):
+    rep = _pdbzn_rep(row)
+    if rep:
+        return rep
+    rid = str((row or {}).get("_id", "") or "").strip().upper()
+    if rid:
+        return rid
+    receptor = str((row or {}).get("Receptor_PDB", "") or "").strip()
+    if receptor:
+        return _pdbzn_guess_pdb_id(Path(receptor).name)
+    return ""
+
+
+def _pdbzn_json_table_rows():
+    for path in [DATA_DIR / "table1_master_full.json", DATA_DIR / "master_full.json"]:
+        hit = _safe_existing_file(path)
+        if hit is None:
+            continue
+        obj = _pdbzn_read_json(hit)
+        if not isinstance(obj, dict):
+            continue
+        rows = list(obj.get("rows") or [])
+        header = list(obj.get("header") or [])
+        if rows or header:
+            return header, rows
+    return [], []
+
+
+def _pdbzn_base_table_rows():
+    header, rows = _pdbzn_json_table_rows()
+    if rows or header:
+        return header, rows
+    master_path = _pdbzn_existing_file(["zn_his_master_table7.csv", "zn_his_master_table.csv"])
+    if not master_path:
+        return [], []
+    data = _pdbzn_read_table(master_path)
+    header = list(data.get("columns") or [])
+    rows = list(data.get("rows") or [])
+    return header, rows
+
+
+def _pdbzn_registry_sort_key(entry):
+    table_id = str((entry or {}).get("id", "") or "")
+    m = re.search(r"(\d+)$", table_id)
+    order = int(m.group(1)) if m else 10**9
+    return (order, table_id)
+
+
+def _pdbzn_load_table_registry():
+    tables = []
+    hit = _safe_existing_file(TABLE_REGISTRY_PATH)
+    if hit is not None:
+        obj = _pdbzn_read_json(hit)
+        if isinstance(obj, dict) and isinstance(obj.get("tables"), list):
+            tables = [t for t in obj.get("tables") if isinstance(t, dict)]
+    if not any(str((t or {}).get("id", "") or "") == "table1" for t in tables):
+        header, rows = _pdbzn_json_table_rows()
+        row_count = len(rows)
+        tables.append(
+            {
+                "id": "table1",
+                "label": f"Table 1 ({row_count} proteins)" if row_count else "Table 1",
+                "full": "table1_master_full.json" if (DATA_DIR / "table1_master_full.json").exists() else "master_full.json",
+                "data": "table1_data.json" if (DATA_DIR / "table1_data.json").exists() else "data.json",
+                "csv": "table1_master_table.csv" if (DATA_DIR / "table1_master_table.csv").exists() else "master_table.csv",
+                "row_count": row_count,
+                "description": "主表快照（Table 1）",
+            }
+        )
+    tables.sort(key=_pdbzn_registry_sort_key)
+    return tables
+
+
+def _pdbzn_save_table_registry(tables):
+    clean = [t for t in (tables or []) if isinstance(t, dict) and str((t or {}).get("id", "") or "").strip()]
+    clean.sort(key=_pdbzn_registry_sort_key)
+    _pdbzn_write_json(TABLE_REGISTRY_PATH, {"tables": clean})
+
+
+def _pdbzn_upsert_registry_entry(entry):
+    tables = _pdbzn_load_table_registry()
+    table_id = str((entry or {}).get("id", "") or "").strip()
+    tables = [t for t in tables if str((t or {}).get("id", "") or "").strip() != table_id]
+    tables.append(entry)
+    _pdbzn_save_table_registry(tables)
+
+
+def _pdbzn_receptor_rel(rep, receptor_path):
+    rid = str(rep or "").strip().upper()
+    receptor_file = _pdbzn_resolve_receptor_pdb_path(rid, receptor_path)
+    local = _safe_existing_file(DATA_DIR / "structures" / f"{rid}.pdb")
+    if local is None:
+        local = _safe_existing_file(DATA_DIR / "structures" / f"{rid}.cif")
+    if local is not None:
+        return f"../backend/data/structures/{local.name}"
+    if receptor_file is not None:
+        try:
+            rel = receptor_file.resolve().relative_to(DATA_DIR.resolve())
+            return "../backend/data/" + str(rel).replace("\\", "/")
+        except Exception:
+            return ""
+    return ""
+
+
+def _pdbzn_dataset_item_from_row(row):
+    rep = _pdbzn_table_rep_or_id(row)
+    receptor_path = str((row or {}).get("Receptor_PDB", "") or "").strip()
+    length, oligomer, monomer = _pdbzn_parse_len_oligomer_monomer((row or {}).get("Length;Oligomer;Monomer"))
+    return {
+        "id": rep,
+        "name": str((row or {}).get("Protein_Name", "") or ""),
+        "cluster": str((row or {}).get("Cluster_ID", "") or (row or {}).get("Step5_Cluster_ID", "") or ""),
+        "receptor_pdb": receptor_path,
+        "receptor_rel": _pdbzn_receptor_rel(rep, receptor_path),
+        "best_sdf": str((row or {}).get("Best_SDF", "") or ""),
+        "species": str((row or {}).get("Species", "") or ""),
+        "monomer_seq": str((row or {}).get("MonomerSeq", "") or ""),
+        "residue_length": "" if length is None else int(length),
+        "oligomer": "" if oligomer is None else int(oligomer),
+        "monomer_length": "" if monomer is None else int(monomer),
+        "zn_coord_residue_count": str((row or {}).get("Residues_Within_5A_Count", "") or ""),
+        "zn_coord_his_count": str((row or {}).get("TriHisCountMax", "") or (row or {}).get("Step5_TriHis_Count", "") or ""),
+        "zn_coord_non_his_count": "",
+    }
+
+
+def _pdbzn_write_named_table(table_id, label, header, rows, stage, description):
+    safe_id = str(table_id or "").strip().lower()
+    if not safe_id:
+        raise ValueError("table_id required")
+    clean_rows = []
+    ids = []
+    for src in rows or []:
+        row = {c: (src or {}).get(c, "") for c in header}
+        clean_rows.append(row)
+        rep = _pdbzn_table_rep_or_id(row)
+        if rep and rep not in ids:
+            ids.append(rep)
+    full_name = f"{safe_id}_master_full.json"
+    data_name = f"{safe_id}_data.json"
+    csv_name = f"{safe_id}_master_table.csv"
+    ids_name = f"{safe_id}_ids.json"
+    data_items = [_pdbzn_dataset_item_from_row(r) for r in clean_rows if _pdbzn_table_rep_or_id(r)]
+    _pdbzn_write_json(DATA_DIR / full_name, {"rows": clean_rows, "header": list(header or [])})
+    _pdbzn_write_json(DATA_DIR / data_name, {"items": data_items})
+    _pdbzn_write_json(DATA_DIR / ids_name, {"table_id": safe_id, "label": label, "ids": ids})
+    _pdbzn_write_table(DATA_DIR / csv_name, ["_id"] + list(header or []), [{"_id": _pdbzn_table_rep_or_id(r), **r} for r in clean_rows])
+    entry = {
+        "id": safe_id,
+        "label": label,
+        "full": full_name,
+        "data": data_name,
+        "csv": csv_name,
+        "ids": ids_name,
+        "row_count": len(clean_rows),
+        "stage": stage,
+        "description": description,
+        "updated_at": now_ts(),
+        "updated_at_text": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
+    }
+    _pdbzn_upsert_registry_entry(entry)
+    return entry
+
+
 def _pdbzn_table_by_rep(path: Path):
     out = {}
     if not path or not path.exists():
@@ -1770,8 +2219,18 @@ def _pdbzn_guess_diffdock_for_rep(rep):
     pid = str(rep or "").strip().upper()
     if not pid:
         return {}
-    base = PDBZN_BASE_DIR / "diffdock_outputs" / pid / pid
-    if not base.exists() or not base.is_dir():
+    bases = [
+        DATA_DIR / "diffdock" / pid,
+        PDBZN_BASE_DIR / "diffdock_outputs" / pid / pid,
+        PDBZN_BASE_DIR / "diffdock" / pid,
+    ]
+    base = None
+    for cand in bases:
+        hit = _safe_existing_dir(cand)
+        if hit is not None:
+            base = hit
+            break
+    if base is None:
         return {}
     best_file = None
     best_conf = None
@@ -1796,9 +2255,9 @@ def _pdbzn_guess_diffdock_for_rep(rep):
             best_rank = rank_num
     if best_file is None:
         return {}
-    rec = PDBZN_BASE_DIR / "diffdock_inputs" / "receptors" / f"{pid}.pdb"
+    rec = _pdbzn_find_tmalign_pdb_path(pid)
     out = {"Best_SDF": str(best_file), "Best_Confidence": best_conf, "Best_Rank": best_rank}
-    if rec.exists():
+    if rec is not None:
         out["Receptor_PDB"] = str(rec)
     return out
 
@@ -1819,13 +2278,17 @@ def _pdbzn_run_fpocket_quick(pdb_path: Path, timeout_sec: float):
     fpocket_bin = discover_fpocket_bin()
     if not fpocket_bin:
         return {"status": "fpocket_not_found"}
-    if not pdb_path or not pdb_path.exists() or not pdb_path.is_file():
+    pdb_hit = _safe_existing_file(pdb_path)
+    if pdb_hit is None:
         return {"status": "pdb_not_found"}
+    pdb_path = pdb_hit
     work_root = FPOCKET_WORK_DIR / f"step5_{uuid.uuid4().hex[:10]}"
     work_root.mkdir(parents=True, exist_ok=True)
     try:
+        local_pdb = work_root / pdb_path.name
+        shutil.copy2(str(pdb_path), str(local_pdb))
         proc = subprocess.run(
-            [fpocket_bin, "-f", str(pdb_path)],
+            [fpocket_bin, "-f", str(local_pdb)],
             cwd=str(work_root),
             capture_output=True,
             text=True,
@@ -1834,7 +2297,7 @@ def _pdbzn_run_fpocket_quick(pdb_path: Path, timeout_sec: float):
         )
         if proc.returncode != 0:
             return {"status": "fpocket_failed"}
-        out_dir = work_root / f"{pdb_path.stem}_out"
+        out_dir = work_root / f"{local_pdb.stem}_out"
         if not out_dir.exists() or not out_dir.is_dir():
             return {"status": "fpocket_no_output"}
         info_files = sorted(out_dir.glob("*_info.txt"))
@@ -1885,6 +2348,13 @@ def _pdbzn_run_fpocket_quick(pdb_path: Path, timeout_sec: float):
             pass
 
 
+def _pdbzn_resolve_receptor_pdb_path(rep, receptor_path):
+    direct = _safe_existing_file(receptor_path)
+    if direct is not None:
+        return direct
+    return _pdbzn_find_tmalign_pdb_path(rep)
+
+
 def _pdbzn_step5_final_score(row):
     conf = _pdbzn_to_num((row or {}).get("Best_Confidence"))
     near = _pdbzn_to_num((row or {}).get("NearestDistanceTo3HisZn"))
@@ -1926,8 +2396,9 @@ def _pdbzn_step5_finalize_workflow(filters):
         fpocket_timeout_sec = 120.0
     fpocket_timeout_sec = float(max(10.0, fpocket_timeout_sec))
     write_to_master = bool(step5_used.get("write_to_master", True))
+    table_label = str(step5_used.get("table_label", "") or "").strip() or time.strftime("Step5 %Y-%m-%d %H:%M:%S", time.localtime())
     output_name = str(step5_used.get("output_file") or "zn_his_master_table_step5.csv").strip() or "zn_his_master_table_step5.csv"
-    output_path = PDBZN_BASE_DIR / output_name
+    output_path = PDBZN_EXPORT_DIR / output_name
     step4_result = _pdbzn_step4_validate_workflow(
         {
             "row_limit": max(row_limit, 1000000),
@@ -1941,12 +2412,51 @@ def _pdbzn_step5_finalize_workflow(filters):
         return step4_result
     step4_rows = list((((step4_result.get("steps") or [{}])[0].get("rows")) or []))
     master_path = _pdbzn_existing_file(["zn_his_master_table7.csv", "zn_his_master_table.csv"])
-    if not master_path:
-        return {"ok": False, "error": "未找到主表文件（zn_his_master_table7.csv / zn_his_master_table.csv）"}
-    master_data = _pdbzn_read_table(master_path)
-    master_cols = list(master_data.get("columns", []))
-    if not master_cols:
-        return {"ok": False, "error": "主表为空，无法执行Step5"}
+    base_header, base_master_rows = _pdbzn_base_table_rows()
+    master_cols = list(base_header or [])
+    if not master_cols and base_master_rows:
+        master_cols = list(base_master_rows[0].keys())
+    required_cols = [
+        "Representative",
+        "Similarity_Score",
+        "Best_Confidence",
+        "NearestDistanceTo3HisZn",
+        "ZN_Depth",
+        "ZN_SASA",
+        "Length;Oligomer;Monomer",
+        "Protein_Name",
+        "Protein_Category",
+        "Cluster_ID",
+        "Details",
+        "ZN_Depth_Rounded",
+        "Neighbor_Count",
+        "Neighbor_Profile_Similarity",
+        "Neighbor_List",
+        "Best_Rank",
+        "AllZnDistancesSorted",
+        "TriHisSatisfied",
+        "TriHisCountMax",
+        "Receptor_PDB",
+        "Best_SDF",
+        "Species",
+        "MonomerSeq",
+        "BestPocket_ID",
+        "BestPocket_Score",
+        "BestPocket_Druggability",
+        "BestPocket_Volume",
+        "BestPocket_TotalSASA",
+        "BestPocket_PolarSASA",
+        "BestPocket_ApolarSASA",
+        "BestPocket_AlphaSpheres",
+        "BestPocket_HisCount",
+        "BestPocket_ZnCount",
+        "BestPocket_MinDistToZn",
+        "BestPocket_ZnMatch",
+        "BestPocket_SelectRule",
+    ]
+    for c in required_cols:
+        if c not in master_cols:
+            master_cols.append(c)
     extra_cols = [
         "Step5_Source",
         "Step5_Cluster_ID",
@@ -1973,15 +2483,21 @@ def _pdbzn_step5_finalize_workflow(filters):
         if c not in master_cols:
             master_cols.append(c)
     base_rows = []
-    for r in master_data.get("rows", []):
-        if str((r or {}).get("Step5_Source", "") or "").strip() == "step4_finalize":
+    for r in base_master_rows:
+        source_tag = str((r or {}).get("Step5_Source", "") or "").strip()
+        if source_tag in {"step4_finalize", "step4_validate", "step5_finalize"}:
             continue
         base_rows.append({c: (r or {}).get(c, "") for c in master_cols})
-    master_by_rep = _pdbzn_table_by_rep(master_path)
+    master_by_rep = {}
+    for r in base_master_rows:
+        rep = _pdbzn_table_rep_or_id(r)
+        if rep:
+            master_by_rep[rep] = r
     diffdock_path = _pdbzn_existing_file(["diffdock_screen5.csv", "diffdock_screen.csv"])
     diffdock_by_rep = _pdbzn_table_by_rep(diffdock_path) if diffdock_path else {}
     fpocket_run_count = 0
     fpocket_status_count = {}
+    table2_rows = []
     appended_rows = []
     for s4 in step4_rows:
         rep = str((s4 or {}).get("Representative", "") or "").strip().upper()
@@ -2034,8 +2550,15 @@ def _pdbzn_step5_finalize_workflow(filters):
             if str(row.get(k, "")).strip() == "" and str(drow.get(k, "")).strip() != "":
                 row[k] = drow.get(k)
         receptor_path = str(row.get("Receptor_PDB", "") or "").strip()
-        if run_fpocket and receptor_path and fpocket_run_count < fpocket_max_runs and str(row.get("Step5_FPocket_BestScore", "")).strip() == "":
-            fp_res = _pdbzn_run_fpocket_quick(Path(receptor_path), fpocket_timeout_sec)
+        receptor_file = _pdbzn_resolve_receptor_pdb_path(rep, receptor_path)
+        if receptor_file is not None:
+            row["Receptor_PDB"] = str(receptor_file)
+        table2_row = dict(row)
+        table2_row["Step5_Source"] = "step4_validate"
+        table2_rows.append(table2_row)
+        row["Step5_Source"] = "step5_finalize"
+        if run_fpocket and receptor_file and fpocket_run_count < fpocket_max_runs and str(row.get("Step5_FPocket_BestScore", "")).strip() == "":
+            fp_res = _pdbzn_run_fpocket_quick(receptor_file, fpocket_timeout_sec)
             fp_status = str(fp_res.get("status", "fpocket_error"))
             row["Step5_FPocket_Status"] = fp_status
             if fp_status == "ok":
@@ -2044,18 +2567,39 @@ def _pdbzn_step5_finalize_workflow(filters):
                 row["Step5_FPocket_BestVolume"] = fp_res.get("best_volume", "")
             fpocket_run_count += 1
             fpocket_status_count[fp_status] = int(fpocket_status_count.get(fp_status, 0) or 0) + 1
+        elif run_fpocket and not receptor_file and str(row.get("Step5_FPocket_Status", "")).strip() == "":
+            row["Step5_FPocket_Status"] = "pdb_unavailable"
+            fpocket_status_count["pdb_unavailable"] = int(fpocket_status_count.get("pdb_unavailable", 0) or 0) + 1
         elif str(row.get("Step5_FPocket_Status", "")).strip() == "":
             row["Step5_FPocket_Status"] = "not_run"
             fpocket_status_count["not_run"] = int(fpocket_status_count.get("not_run", 0) or 0) + 1
         row["Step5_FinalScore"] = _pdbzn_step5_final_score(row)
         appended_rows.append(row)
-    out_rows = list(base_rows)
-    if appended_rows:
-        out_rows.append({c: "" for c in master_cols})
-        out_rows.extend(appended_rows)
-    _pdbzn_write_table(output_path, master_cols, out_rows)
+    table2_label = f"{table_label} / Table 2"
+    table3_label = f"{table_label} / Table 3"
+    table2_entry = _pdbzn_write_named_table(
+        "table2",
+        table2_label,
+        master_cols,
+        table2_rows,
+        "step4_validate",
+        "Step 4 几何验证通过候选（未执行 Step 5 fpocket 收口）",
+    )
+    table3_entry = _pdbzn_write_named_table(
+        "table3",
+        table3_label,
+        master_cols,
+        appended_rows,
+        "step5_finalize",
+        "Step 5 收口结果（包含 DiffDock / fpocket / 3HIS 几何补全）",
+    )
+    _pdbzn_write_table(output_path, master_cols, appended_rows)
     written_master = False
-    if write_to_master:
+    if write_to_master and master_path:
+        out_rows = list(base_rows)
+        if appended_rows:
+            out_rows.append({c: "" for c in master_cols})
+            out_rows.extend(appended_rows)
         _pdbzn_write_table(master_path, master_cols, out_rows)
         written_master = True
     step_cols = [
@@ -2079,7 +2623,7 @@ def _pdbzn_step5_finalize_workflow(filters):
         "Best_SDF",
     ]
     step_rows = [{c: r.get(c, "") for c in step_cols} for r in appended_rows]
-    step5 = _pdbzn_step_payload("step5_master_finalize", "Step 5: 导入主表并补全DiffDock/fpocket信息", step_cols, step_rows, len(step4_rows), row_limit)
+    step5 = _pdbzn_step_payload("step5_master_finalize", "Step 5: 生成 Table 2 / Table 3 并补全 DiffDock / fpocket 信息", step_cols, step_rows, len(step4_rows), row_limit)
     return {
         "ok": True,
         "db_path": str(PDBZN_DB_PATH),
@@ -2094,12 +2638,14 @@ def _pdbzn_step5_finalize_workflow(filters):
                 "fpocket_max_runs": fpocket_max_runs,
                 "fpocket_timeout_sec": fpocket_timeout_sec,
                 "write_to_master": write_to_master,
+                "table_label": table_label,
                 "output_file": output_name,
             },
         },
         "steps": [step5],
         "summary": {
             "step4_valid_count": len(step4_rows),
+            "table2_count": len(table2_rows),
             "appended_count": len(appended_rows),
             "step5_trihis_pass_count": len([x for x in appended_rows if str(x.get("Step5_TriHis_Recheck_Pass", "")).strip().lower() in {"true", "1", "yes"}]),
             "step5_symmetry_pass_count": len([x for x in appended_rows if str(x.get("Step5_Symmetry_Spatial_Filter_Pass", "")).strip().lower() in {"true", "1", "yes"}]),
@@ -2107,9 +2653,13 @@ def _pdbzn_step5_finalize_workflow(filters):
             "fpocket_status_count": fpocket_status_count,
             "final_count": len(appended_rows),
             "final_representatives": [str(x.get("Representative", "")) for x in appended_rows if str(x.get("Representative", ""))][:200],
-            "master_file": str(master_path),
+            "master_file": str(master_path) if master_path else "",
             "output_file": str(output_path),
             "written_master": written_master,
+            "table_label": table_label,
+            "table2": table2_entry,
+            "table3": table3_entry,
+            "table_registry_file": str(TABLE_REGISTRY_PATH),
         },
     }
 
@@ -2123,6 +2673,55 @@ def resolve_under(base: Path, rel_path: str):
     return target
 
 
+def recover_fpocket_job(job_id: str):
+    safe_job_id = safe_name(job_id)
+    if safe_job_id != job_id:
+        return None
+    job_dir = FPOCKET_WORK_DIR / job_id
+    if (not job_dir.exists()) or (not job_dir.is_dir()):
+        return None
+    in_dir = job_dir / "input"
+    pdb_name = ""
+    if in_dir.exists():
+        pdb_files = sorted([p for p in in_dir.iterdir() if p.is_file() and p.suffix.lower() in {".pdb", ".ent"}], key=lambda p: p.name)
+        if pdb_files:
+            pdb_name = pdb_files[0].name
+    outputs = list_fpocket_outputs(job_id)
+    log_path = job_dir / "run.log"
+    fpocket_bin = ""
+    if log_path.exists():
+        try:
+            first_line = next((ln for ln in log_path.read_text(encoding="utf-8", errors="ignore").splitlines() if ln.startswith("CMD: ")), "")
+            if first_line:
+                parts = shlex.split(first_line[5:].strip())
+                if parts:
+                    fpocket_bin = parts[0]
+        except Exception:
+            fpocket_bin = ""
+    created_at = int(job_dir.stat().st_mtime)
+    status = "done" if outputs else ("failed" if log_path.exists() else "queued")
+    error = "" if outputs else ("fpocket输出不存在，可能执行失败或后端重启后状态丢失" if log_path.exists() else "")
+    exit_code = 0 if outputs else None
+    job = {
+        "id": job_id,
+        "status": status,
+        "created_at": created_at,
+        "started_at": created_at,
+        "ended_at": created_at,
+        "pdb_name": pdb_name,
+        "outputs": outputs,
+        "error": error,
+        "pid": None,
+        "fpocket_bin": fpocket_bin,
+        "phase": "done_recovered" if outputs else "recovered",
+        "phase_at": now_ts(),
+        "exit_code": exit_code,
+    }
+    with fpocket_jobs_lock:
+        fpocket_jobs[job_id] = job
+    return job
+
+
 def run_job(job_id: str):
     with jobs_lock:
         job = jobs.get(job_id)
@@ -2130,15 +2729,23 @@ def run_job(job_id: str):
             return
         job["status"] = "running"
         job["started_at"] = now_ts()
+        job["phase"] = "starting"
+        job["phase_at"] = now_ts()
     job_dir = WORK_DIR / job_id
     in_dir = job_dir / "input"
     out_dir = job_dir / "output"
     log_path = job_dir / "run.log"
+    with jobs_lock:
+        job["phase"] = "prepare_dirs"
+        job["phase_at"] = now_ts()
     out_dir.mkdir(parents=True, exist_ok=True)
     receptor = in_dir / job["receptor_name"]
     ligand = in_dir / job["ligand_name"]
     inference_steps = str(job.get("inference_steps", 20))
     samples_per_complex = str(job.get("samples_per_complex", 10))
+    with jobs_lock:
+        job["phase"] = "open_log"
+        job["phase_at"] = now_ts()
     with open(log_path, "a", encoding="utf-8") as logf:
         if not INFER_PY:
             msg = "未找到DiffDock inference.py，请设置环境变量 DIFFDOCK_INFER_PY"
@@ -2147,6 +2754,8 @@ def run_job(job_id: str):
                 job["status"] = "failed"
                 job["error"] = msg
                 job["ended_at"] = now_ts()
+                job["phase"] = "failed_no_infer"
+                job["phase_at"] = now_ts()
             return
         cmd = [
             PYTHON_BIN,
@@ -2165,6 +2774,9 @@ def run_job(job_id: str):
         logf.write("CMD: " + " ".join(shlex.quote(x) for x in cmd) + "\n")
         logf.flush()
         try:
+            with jobs_lock:
+                job["phase"] = "validate_env"
+                job["phase_at"] = now_ts()
             proc = subprocess.Popen(
                 cmd,
                 cwd=str(Path(INFER_PY).parent),
@@ -2174,7 +2786,14 @@ def run_job(job_id: str):
             )
             with jobs_lock:
                 job["pid"] = proc.pid
+                job["phase"] = "spawn"
+                job["phase_at"] = now_ts()
+                job["phase"] = "waiting"
+                job["phase_at"] = now_ts()
             code = proc.wait()
+            with jobs_lock:
+                job["phase"] = "collect_results"
+                job["phase_at"] = now_ts()
             poses = list_pose_files(out_dir)
             with jobs_lock:
                 job["exit_code"] = code
@@ -2182,15 +2801,22 @@ def run_job(job_id: str):
                 job["status"] = "done" if code == 0 and poses else "failed"
                 if code == 0 and not poses:
                     job["error"] = "DiffDock完成但未产出SDF结果"
+                    job["phase"] = "failed_no_pose"
                 if code != 0:
                     job["error"] = f"DiffDock执行失败，退出码 {code}"
+                    job["phase"] = "failed"
+                if code == 0 and poses:
+                    job["phase"] = "done"
                 job["ended_at"] = now_ts()
+                job["phase_at"] = now_ts()
         except Exception as e:
             traceback.print_exc(file=logf)
             with jobs_lock:
                 job["status"] = "failed"
                 job["error"] = str(e)
                 job["ended_at"] = now_ts()
+                job["phase"] = "failed_exception"
+                job["phase_at"] = now_ts()
 
 
 def run_fpocket_job(job_id: str):
@@ -2396,6 +3022,14 @@ class Handler(BaseHTTPRequestHandler):
                 "files": {k: (str(v) if v else "") for k, v in _pdbzn_file_map().items()},
             })
             return
+        if path == "/api/data/file":
+            rel_path = str((parse_qs(parsed.query or "").get("path") or [""])[0] or "")
+            file_path = resolve_under(DATA_DIR, rel_path)
+            if (not file_path) or (not file_path.exists()) or (not file_path.is_file()):
+                self._write_json(404, {"ok": False, "error": "data file not found"})
+                return
+            self._write_file(file_path)
+            return
         if path == "/api/diffdock/jobs":
             with jobs_lock:
                 arr = list(jobs.values())
@@ -2428,8 +3062,10 @@ class Handler(BaseHTTPRequestHandler):
             with fpocket_jobs_lock:
                 job = fpocket_jobs.get(job_id)
             if not job:
-                self._write_json(404, {"ok": False, "error": "job not found"})
-                return
+                job = recover_fpocket_job(job_id)
+                if not job:
+                    self._write_json(404, {"ok": False, "error": "job not found"})
+                    return
             if job.get("status") == "running":
                 started = int(job.get("started_at") or 0)
                 phase = str(job.get("phase") or "")
@@ -2451,8 +3087,10 @@ class Handler(BaseHTTPRequestHandler):
             with fpocket_jobs_lock:
                 job = fpocket_jobs.get(job_id)
             if not job:
-                self._write_json(404, {"ok": False, "error": "job not found"})
-                return
+                job = recover_fpocket_job(job_id)
+                if not job:
+                    self._write_json(404, {"ok": False, "error": "job not found"})
+                    return
             payload = build_fpocket_pocket_payload(job_id, job)
             if not payload.get("ok"):
                 self._write_json(400, payload)
@@ -2576,6 +3214,8 @@ class Handler(BaseHTTPRequestHandler):
                 "poses": [],
                 "error": "",
                 "pid": None,
+                "phase": "queued",
+                "phase_at": now_ts(),
             }
             with jobs_lock:
                 jobs[job_id] = job
@@ -2687,7 +3327,12 @@ class Handler(BaseHTTPRequestHandler):
             self._write_json(400, result)
             return
         if parsed.path == "/api/pdbzn/workflow/finalize":
-            result = _pdbzn_step5_finalize_workflow(payload)
+            try:
+                result = _pdbzn_step5_finalize_workflow(payload)
+            except Exception as e:
+                traceback.print_exc()
+                self._write_json(500, {"ok": False, "error": f"step5_internal_error: {e}"})
+                return
             if result.get("ok"):
                 self._write_json(200, result)
                 return

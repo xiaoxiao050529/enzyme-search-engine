@@ -2,15 +2,28 @@
 <html>
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Master Table</title>
 <style>
 body { font-family: system-ui, sans-serif; margin: 16px; }
 .top_nav { display: flex; gap: 8px; margin-bottom: 10px; }
 .top_nav a { display: inline-block; padding: 6px 10px; border: 1px solid #d9d9d9; background: #f6f8fa; color: #0b5394; text-decoration: none; border-radius: 6px; font-weight: 600; }
 .top_nav a:hover { background: #eaf2ff; }
-.controls { display: grid; grid-template-columns: 1.2fr 1fr 1.2fr auto auto auto auto; gap: 8px; margin-bottom: 10px; }
-input, select, button { padding: 6px; box-sizing: border-box; width: 100%; }
-button { width: auto; }
+.toolbar { display: grid; gap: 10px; margin-bottom: 10px; }
+.control_block { border: 1px solid #ddd; border-radius: 8px; background: #fafafa; padding: 10px; }
+.block_title { font-weight: 700; margin-bottom: 8px; }
+.block_hint { font-size: 12px; color: #556; line-height: 1.5; white-space: pre-wrap; }
+.control_row { display: grid; gap: 8px; align-items: end; }
+.data_row { grid-template-columns: minmax(220px, 1.5fr) auto auto; }
+.search_row { grid-template-columns: minmax(220px, 1fr) minmax(280px, 1.4fr) auto; }
+.sort_row { grid-template-columns: minmax(220px, 1.2fr) minmax(120px, 0.6fr) auto auto; }
+.display_row { grid-template-columns: minmax(260px, 1fr) auto; }
+.rowkeep_row { grid-template-columns: minmax(320px, 1fr) auto; }
+label { display: block; font-size: 13px; color: #333; }
+input, select, button, textarea { padding: 6px; box-sizing: border-box; width: 100%; margin-top: 4px; }
+button { width: auto; white-space: nowrap; }
+textarea { min-height: 96px; resize: vertical; }
+.btn_stack { display: grid; gap: 8px; align-self: stretch; }
 #status { margin-bottom: 8px; color: #333; }
 .table_wrap { border: 1px solid #ddd; overflow: auto; max-height: 76vh; }
 table { border-collapse: collapse; width: max-content; min-width: 100%; font-size: 13px; }
@@ -19,8 +32,9 @@ th { position: sticky; top: 0; background: #f7f9fc; cursor: pointer; z-index: 2;
 tbody tr:nth-child(even) { background: #fcfcfc; }
 tbody tr:hover { background: #eef6ff; }
 </style>
+<link rel="stylesheet" href="./theme.css">
 </head>
-<body>
+<body class="page-master">
 <div class="top_nav">
   <a href="./index.html">主页面</a>
   <a href="./diffdock_compare.html">DiffDock对比</a>
@@ -30,17 +44,67 @@ tbody tr:hover { background: #eef6ff; }
   <a href="./pdbzn_workflow.html">PDB-ZN工作流</a>
 </div>
 <h2>Master Table</h2>
-<div class="controls">
-  <input id="global_search" type="text" placeholder="全局搜索（任意列）">
-  <select id="col_select"></select>
-  <input id="col_value" type="text" placeholder="列筛选值（包含匹配）">
-  <select id="sort_col"></select>
-  <select id="sort_order">
-    <option value="desc">降序</option>
-    <option value="asc">升序</option>
-  </select>
-  <button id="sort_apply_btn" type="button">按列排序</button>
-  <button id="clear_btn" type="button">清空筛选</button>
+<div class="toolbar">
+  <div class="control_block">
+    <div class="block_title">数据表</div>
+    <div class="control_row data_row">
+      <label>选择表
+        <select id="table_select"></select>
+      </label>
+      <button id="export_btn" type="button">导出Excel</button>
+      <button id="clear_btn" type="button">清空全部</button>
+    </div>
+    <div id="table_meta" class="block_hint">-</div>
+  </div>
+  <div class="control_block">
+    <div class="block_title">查找</div>
+    <div class="control_row search_row">
+      <label>查找列
+        <select id="search_col"></select>
+      </label>
+      <label>查找值
+        <input id="search_value" type="text" placeholder="输入关键词；不选列时会搜索全部列">
+      </label>
+      <button id="search_clear_btn" type="button">清空查找</button>
+    </div>
+  </div>
+  <div class="control_block">
+    <div class="block_title">排序</div>
+    <div class="control_row sort_row">
+      <label>排序列
+        <select id="sort_col"></select>
+      </label>
+      <label>顺序
+        <select id="sort_order">
+          <option value="desc">降序</option>
+          <option value="asc">升序</option>
+        </select>
+      </label>
+      <button id="sort_apply_btn" type="button">应用排序</button>
+      <button id="sort_clear_btn" type="button">清空排序</button>
+    </div>
+  </div>
+  <div class="control_block">
+    <div class="block_title">显示控制</div>
+    <div class="control_row display_row">
+      <label>保留列
+        <select id="visible_cols" multiple size="10"></select>
+      </label>
+      <div class="btn_stack">
+        <button id="apply_cols_btn" type="button">只显示所选列</button>
+        <button id="show_all_cols_btn" type="button">恢复全部列</button>
+      </div>
+    </div>
+    <div class="control_row rowkeep_row">
+      <label>保留行（输入 PDB 或 Representative，逗号、空格或换行分隔）
+        <textarea id="row_keep_input" placeholder="例如&#10;3MWM&#10;7U5Q&#10;1TXL"></textarea>
+      </label>
+      <div class="btn_stack">
+        <button id="apply_rows_btn" type="button">只保留这些行</button>
+        <button id="clear_rows_btn" type="button">恢复全部行</button>
+      </div>
+    </div>
+  </div>
 </div>
 <div id="status">正在加载数据...</div>
 <div class="table_wrap">
@@ -51,36 +115,119 @@ tbody tr:hover { background: #eef6ff; }
 </div>
 <script>
 let fullHeader = [];
+let visibleHeader = [];
 let fullRows = [];
 let filteredRows = [];
 let sortState = {key: "", asc: true};
+let localApiBase = "";
+let localDataViaApi = false;
+let masterSourceLabel = "未知";
+let tableRegistry = [];
+let currentTable = null;
+let keptRowSet = null;
+
 function asText(v) {
   if (v == null) return "";
   return String(v);
 }
+
+function appendNoCache(url) {
+  return url + (url.includes("?") ? "&" : "?") + "t=" + Date.now();
+}
+
+function getApiBaseCandidates() {
+  const h = window.location.hostname || "127.0.0.1";
+  return [...new Set([
+    `http://${h}:8015`,
+    `http://${h}:8021`,
+    `http://${h}:8019`,
+    `http://${h}:8018`,
+    `http://${h}:8017`,
+    `http://${h}:8016`,
+    "http://127.0.0.1:8015",
+    "http://127.0.0.1:8021",
+    "http://127.0.0.1:8019",
+    "http://127.0.0.1:8018",
+    "http://127.0.0.1:8017",
+    "http://127.0.0.1:8016"
+  ])];
+}
+
+async function fetchJson(url) {
+  const res = await fetch(appendNoCache(url));
+  if (!res.ok) throw new Error(`${url} 不可用`);
+  return await res.json();
+}
+
+async function detectApiBase() {
+  if (localApiBase) return localApiBase;
+  for (const b of getApiBaseCandidates()) {
+    try {
+      const j = await fetchJson(b + "/api/diffdock/ping");
+      if (j && j.ok) {
+        localApiBase = b;
+        return b;
+      }
+    } catch (_) {}
+  }
+  return "";
+}
+
+function dataUrlCandidates(relPath) {
+  const out = [];
+  if (localApiBase) out.push(`${localApiBase}/api/data/file?path=${encodeURIComponent(relPath)}`);
+  out.push(`../backend/data/${relPath}`);
+  return [...new Set(out)];
+}
+
+async function fetchFirstJson(urls) {
+  let lastErr = null;
+  for (const u of urls) {
+    try {
+      return {json: await fetchJson(u), url: u};
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr || new Error("数据加载失败");
+}
+
 function cmp(a, b) {
   const na = Number(a);
   const nb = Number(b);
   if (!Number.isNaN(na) && !Number.isNaN(nb)) return na - nb;
-  return asText(a).localeCompare(asText(b), "zh-Hans-CN", {numeric:true, sensitivity:"base"});
+  return asText(a).localeCompare(asText(b), "zh-Hans-CN", {numeric: true, sensitivity: "base"});
 }
+
+function getRowJumpId(r) {
+  const idVal = asText(r["_id"]).trim();
+  const repVal = asText(r["Representative"]).trim();
+  const pdbFromPath = asText(r["Receptor_PDB"]).split("/").pop().split(".")[0];
+  return (idVal || repVal || pdbFromPath).toUpperCase();
+}
+
+function parseKeepTokens(text) {
+  return [...new Set(
+    asText(text)
+      .split(/[\s,;]+/)
+      .map((x) => x.trim().toUpperCase())
+      .filter(Boolean)
+  )];
+}
+
 function applyFilters() {
-  const q = document.getElementById("global_search").value.trim().toLowerCase();
-  const col = document.getElementById("col_select").value;
-  const cv = document.getElementById("col_value").value.trim().toLowerCase();
-  filteredRows = fullRows.filter(r => {
-    if (q) {
-      const hit = fullHeader.some(h => asText(r[h]).toLowerCase().includes(q));
-      if (!hit) return false;
-    }
-    if (col && cv) {
-      if (!asText(r[col]).toLowerCase().includes(cv)) return false;
-    }
-    return true;
+  const q = document.getElementById("search_value").value.trim().toLowerCase();
+  const col = document.getElementById("search_col").value;
+  filteredRows = fullRows.filter((r) => {
+    if (keptRowSet && !keptRowSet.has(getRowJumpId(r))) return false;
+    if (!q) return true;
+    if (col) return asText(r[col]).toLowerCase().includes(q);
+    return visibleHeader.some((h) => asText(r[h]).toLowerCase().includes(q));
   });
   applySort();
   renderTable();
 }
+
 function applySort() {
   const key = sortState.key;
   if (!key) return;
@@ -89,22 +236,21 @@ function applySort() {
     return sortState.asc ? c : -c;
   });
 }
-function getRowJumpId(r) {
-  const idVal = asText(r["_id"]).trim();
-  const pdbFromPath = asText(r["Receptor_PDB"]).split("/").pop().split(".")[0];
-  return (idVal || pdbFromPath).toUpperCase();
-}
+
 function renderHeader() {
   const thead = document.getElementById("thead");
   thead.innerHTML = "";
   const tr = document.createElement("tr");
-  for (const h of fullHeader) {
+  for (const h of visibleHeader) {
     const th = document.createElement("th");
     const mark = sortState.key === h ? (sortState.asc ? " ▲" : " ▼") : "";
     th.textContent = h + mark;
-    th.addEventListener("click", ()=>{
+    th.addEventListener("click", () => {
       if (sortState.key === h) sortState.asc = !sortState.asc;
-      else { sortState.key = h; sortState.asc = true; }
+      else {
+        sortState.key = h;
+        sortState.asc = true;
+      }
       applySort();
       renderHeader();
       renderTable();
@@ -113,6 +259,7 @@ function renderHeader() {
   }
   thead.appendChild(tr);
 }
+
 function renderTable() {
   const tbody = document.getElementById("tbody");
   tbody.innerHTML = "";
@@ -121,16 +268,18 @@ function renderTable() {
     const jumpId = getRowJumpId(r);
     if (jumpId) {
       tr.style.cursor = "pointer";
-      tr.addEventListener("click", ()=>{
-        window.location.href = `./index.html?pdb=${encodeURIComponent(jumpId)}`;
+      tr.addEventListener("click", () => {
+        const ds = currentTable && currentTable.id ? `&dataset=${encodeURIComponent(currentTable.id)}` : "";
+        window.location.href = `./index.html?pdb=${encodeURIComponent(jumpId)}${ds}`;
       });
     }
-    for (const h of fullHeader) {
+    for (const h of visibleHeader) {
       const td = document.createElement("td");
       const val = asText(r[h]);
-      if ((h === "_id" || h === "Receptor_PDB") && jumpId) {
+      if ((h === "_id" || h === "Representative" || h === "Receptor_PDB") && jumpId) {
         const a = document.createElement("a");
-        a.href = `./index.html?pdb=${encodeURIComponent(jumpId)}`;
+        const ds = currentTable && currentTable.id ? `&dataset=${encodeURIComponent(currentTable.id)}` : "";
+        a.href = `./index.html?pdb=${encodeURIComponent(jumpId)}${ds}`;
         a.textContent = val;
         a.style.color = "#0b5394";
         td.appendChild(a);
@@ -141,71 +290,261 @@ function renderTable() {
     }
     tbody.appendChild(tr);
   }
-  document.getElementById("status").textContent = `总行数 ${fullRows.length} | 当前显示 ${filteredRows.length}`;
+  const tableLabel = currentTable ? currentTable.label : "-";
+  const keepInfo = keptRowSet ? ` | 保留行 ${keptRowSet.size}` : "";
+  document.getElementById("status").textContent = `数据表 ${tableLabel} | 数据源 ${masterSourceLabel} | 总行数 ${fullRows.length} | 当前显示 ${filteredRows.length} | 可见列 ${visibleHeader.length}${keepInfo}`;
 }
-function initFilterColumn() {
-  const sel = document.getElementById("col_select");
+
+function renderTableMeta() {
+  const box = document.getElementById("table_meta");
+  if (!currentTable) {
+    box.textContent = "-";
+    return;
+  }
+  const parts = [];
+  parts.push(`ID: ${currentTable.id || "-"}`);
+  if (currentTable.row_count != null) parts.push(`记录数: ${currentTable.row_count}`);
+  if (currentTable.stage) parts.push(`阶段: ${currentTable.stage}`);
+  if (currentTable.updated_at_text) parts.push(`更新时间: ${currentTable.updated_at_text}`);
+  if (currentTable.description) parts.push(`说明: ${currentTable.description}`);
+  box.textContent = parts.join("\n");
+}
+
+function initColumnSelectors() {
+  const searchSel = document.getElementById("search_col");
   const sortSel = document.getElementById("sort_col");
-  sel.innerHTML = "";
+  const prevSearch = searchSel.value;
+  const prevSort = sortSel.value;
+  searchSel.innerHTML = "";
   sortSel.innerHTML = "";
   const all = document.createElement("option");
   all.value = "";
-  all.textContent = "选择列（可不选）";
-  sel.appendChild(all);
-  const sortAll = document.createElement("option");
-  sortAll.value = "";
-  sortAll.textContent = "选择排序列";
-  sortSel.appendChild(sortAll);
+  all.textContent = "全部列（全局搜索）";
+  searchSel.appendChild(all);
+  const sortEmpty = document.createElement("option");
+  sortEmpty.value = "";
+  sortEmpty.textContent = "不排序";
+  sortSel.appendChild(sortEmpty);
+  for (const h of visibleHeader) {
+    const opSearch = document.createElement("option");
+    opSearch.value = h;
+    opSearch.textContent = h;
+    searchSel.appendChild(opSearch);
+    const opSort = document.createElement("option");
+    opSort.value = h;
+    opSort.textContent = h;
+    sortSel.appendChild(opSort);
+  }
+  if (visibleHeader.includes(prevSearch)) searchSel.value = prevSearch;
+  if (visibleHeader.includes(prevSort)) sortSel.value = prevSort;
+  else if (sortState.key && !visibleHeader.includes(sortState.key)) sortState = {key: "", asc: true};
+}
+
+function renderVisibleColumnOptions() {
+  const sel = document.getElementById("visible_cols");
+  const selected = new Set(visibleHeader);
+  sel.innerHTML = "";
   for (const h of fullHeader) {
     const op = document.createElement("option");
     op.value = h;
     op.textContent = h;
+    op.selected = selected.has(h);
     sel.appendChild(op);
-    const sop = document.createElement("option");
-    sop.value = h;
-    sop.textContent = h;
-    sortSel.appendChild(sop);
   }
 }
-async function loadMaster() {
-  const res = await fetch("../backend/data/master_full.json?t=" + Date.now());
-  if (!res.ok) throw new Error("master_full.json 不可用");
-  const j = await res.json();
+
+function renderTableOptions() {
+  const sel = document.getElementById("table_select");
+  const current = sel.value;
+  sel.innerHTML = "";
+  for (const t of tableRegistry) {
+    const op = document.createElement("option");
+    op.value = t.id;
+    op.textContent = t.label;
+    sel.appendChild(op);
+  }
+  if (tableRegistry.find((t) => t.id === current)) {
+    sel.value = current;
+  } else if (tableRegistry.length) {
+    sel.value = tableRegistry[0].id;
+  }
+}
+
+async function loadTableRegistry() {
+  await detectApiBase();
+  try {
+    const ret = await fetchFirstJson(dataUrlCandidates("table_registry.json"));
+    const tables = Array.isArray(ret.json?.tables) ? ret.json.tables : [];
+    tableRegistry = tables.length ? tables : [{
+      id: "table1",
+      label: "Table 1",
+      full: "master_full.json",
+      row_count: 0
+    }];
+  } catch (_) {
+    tableRegistry = [{
+      id: "table1",
+      label: "Table 1",
+      full: "master_full.json",
+      row_count: 0
+    }];
+  }
+  renderTableOptions();
+}
+
+function getSelectedTable() {
+  const id = document.getElementById("table_select").value;
+  return tableRegistry.find((t) => t.id === id) || tableRegistry[0] || null;
+}
+
+async function loadCurrentTable() {
+  currentTable = getSelectedTable();
+  if (!currentTable) throw new Error("没有可用数据表");
+  const ret = await fetchFirstJson(dataUrlCandidates(currentTable.full || "master_full.json"));
+  const j = ret.json;
+  localDataViaApi = Boolean(localApiBase) && String(ret.url || "").startsWith(`${localApiBase}/api/data/file`);
+  masterSourceLabel = localDataViaApi ? `${localApiBase}/api/data/file` : `静态 backend/data/${currentTable.full || "master_full.json"}`;
   fullHeader = Array.isArray(j.header) ? j.header : [];
+  visibleHeader = fullHeader.slice();
   fullRows = Array.isArray(j.rows) ? j.rows : [];
+  keptRowSet = null;
+  document.getElementById("row_keep_input").value = "";
   filteredRows = fullRows.slice();
-  initFilterColumn();
+  initColumnSelectors();
+  renderVisibleColumnOptions();
+  renderTableMeta();
+  applyFilters();
   renderHeader();
   renderTable();
 }
-document.getElementById("global_search").addEventListener("input", applyFilters);
-document.getElementById("col_select").addEventListener("change", applyFilters);
-document.getElementById("col_value").addEventListener("input", applyFilters);
-document.getElementById("sort_apply_btn").addEventListener("click", ()=>{
-  const key = document.getElementById("sort_col").value;
-  const order = document.getElementById("sort_order").value;
-  sortState.key = key;
-  sortState.asc = order === "asc";
+
+function clearSearch() {
+  document.getElementById("search_col").value = "";
+  document.getElementById("search_value").value = "";
+  applyFilters();
+}
+
+function clearSort() {
+  document.getElementById("sort_col").value = "";
+  document.getElementById("sort_order").value = "desc";
+  sortState = {key: "", asc: true};
+  applyFilters();
+  renderHeader();
+}
+
+function clearAll() {
+  clearSearch();
+  clearSort();
+  keptRowSet = null;
+  document.getElementById("row_keep_input").value = "";
+  visibleHeader = fullHeader.slice();
+  initColumnSelectors();
+  renderVisibleColumnOptions();
+  applyFilters();
+  renderHeader();
+}
+
+function escapeHtml(s) {
+  return asText(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;");
+}
+
+function exportCurrentTable() {
+  if (!filteredRows.length) {
+    document.getElementById("status").textContent = "没有可导出的数据";
+    return;
+  }
+  const cols = visibleHeader;
+  let html = "<table><thead><tr>";
+  for (const c of cols) html += `<th>${escapeHtml(c)}</th>`;
+  html += "</tr></thead><tbody>";
+  for (const row of filteredRows) {
+    html += "<tr>";
+    for (const c of cols) html += `<td>${escapeHtml(row[c])}</td>`;
+    html += "</tr>";
+  }
+  html += "</tbody></table>";
+  const title = escapeHtml(currentTable?.label || "Master Table");
+  const doc = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body><h3>${title}</h3>${html}</body></html>`;
+  const blob = new Blob(["\ufeff", doc], {type: "application/vnd.ms-excel;charset=utf-8;"});
+  const a = document.createElement("a");
+  const ts = new Date().toISOString().slice(0, 10);
+  a.href = URL.createObjectURL(blob);
+  a.download = `${(currentTable?.id || "table").replace(/[^A-Za-z0-9._-]+/g, "_")}_${ts}.xls`;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    URL.revokeObjectURL(a.href);
+    a.remove();
+  }, 0);
+}
+
+function applyVisibleColumns() {
+  const selected = Array.from(document.getElementById("visible_cols").selectedOptions).map((op) => op.value);
+  if (!selected.length) {
+    document.getElementById("status").textContent = "至少保留一列";
+    return;
+  }
+  visibleHeader = fullHeader.filter((h) => selected.includes(h));
+  initColumnSelectors();
+  applyFilters();
+  renderHeader();
+}
+
+function showAllColumns() {
+  visibleHeader = fullHeader.slice();
+  initColumnSelectors();
+  renderVisibleColumnOptions();
+  applyFilters();
+  renderHeader();
+}
+
+function applyKeptRows() {
+  const tokens = parseKeepTokens(document.getElementById("row_keep_input").value);
+  keptRowSet = tokens.length ? new Set(tokens) : null;
+  applyFilters();
+}
+
+function clearKeptRows() {
+  keptRowSet = null;
+  document.getElementById("row_keep_input").value = "";
+  applyFilters();
+}
+
+document.getElementById("table_select").addEventListener("change", async () => {
+  try {
+    await loadCurrentTable();
+  } catch (e) {
+    document.getElementById("status").textContent = "切换数据表失败：" + (e && e.message ? e.message : "unknown");
+  }
+});
+document.getElementById("search_col").addEventListener("change", applyFilters);
+document.getElementById("search_value").addEventListener("input", applyFilters);
+document.getElementById("sort_apply_btn").addEventListener("click", () => {
+  sortState.key = document.getElementById("sort_col").value;
+  sortState.asc = document.getElementById("sort_order").value === "asc";
   applySort();
   renderHeader();
   renderTable();
 });
-document.getElementById("clear_btn").addEventListener("click", ()=>{
-  document.getElementById("global_search").value = "";
-  document.getElementById("col_select").value = "";
-  document.getElementById("col_value").value = "";
-  document.getElementById("sort_col").value = "";
-  document.getElementById("sort_order").value = "desc";
-  sortState = {key: "", asc: true};
-  filteredRows = fullRows.slice();
-  renderHeader();
-  renderTable();
-});
-window.addEventListener("load", async ()=>{
+document.getElementById("search_clear_btn").addEventListener("click", clearSearch);
+document.getElementById("sort_clear_btn").addEventListener("click", clearSort);
+document.getElementById("clear_btn").addEventListener("click", clearAll);
+document.getElementById("export_btn").addEventListener("click", exportCurrentTable);
+document.getElementById("apply_cols_btn").addEventListener("click", applyVisibleColumns);
+document.getElementById("show_all_cols_btn").addEventListener("click", showAllColumns);
+document.getElementById("apply_rows_btn").addEventListener("click", applyKeptRows);
+document.getElementById("clear_rows_btn").addEventListener("click", clearKeptRows);
+
+window.addEventListener("load", async () => {
   try {
-    await loadMaster();
+    await loadTableRegistry();
+    await loadCurrentTable();
   } catch (e) {
-    document.getElementById("status").textContent = "加载失败：" + (e && e.message ? e.message : "unknown");
+    document.getElementById("status").textContent = "加载失败：" + (e && e.message ? e.message : "unknown") + "；建议启动后端 8015，并从仓库根目录启动 8020 静态服务后访问 /frontend/master_table.html";
   }
 });
 </script>

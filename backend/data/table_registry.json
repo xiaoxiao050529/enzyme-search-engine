@@ -1,0 +1,37 @@
+{
+  "tables": [
+    {
+      "id": "table1",
+      "label": "Table 1 (72 proteins)",
+      "full": "table1_master_full.json",
+      "data": "table1_data.json",
+      "row_count": 72
+    },
+    {
+      "id": "table2",
+      "label": "Step5 FPocket Smoke / Table 2",
+      "full": "table2_master_full.json",
+      "data": "table2_data.json",
+      "csv": "table2_master_table.csv",
+      "ids": "table2_ids.json",
+      "row_count": 1,
+      "stage": "step4_validate",
+      "description": "Step 4 几何验证通过候选（未执行 Step 5 fpocket 收口）",
+      "updated_at": 1776844144,
+      "updated_at_text": "2026-04-22 15:49:04"
+    },
+    {
+      "id": "table3",
+      "label": "Step5 FPocket Smoke / Table 3",
+      "full": "table3_master_full.json",
+      "data": "table3_data.json",
+      "csv": "table3_master_table.csv",
+      "ids": "table3_ids.json",
+      "row_count": 1,
+      "stage": "step5_finalize",
+      "description": "Step 5 收口结果（包含 DiffDock / fpocket / 3HIS 几何补全）",
+      "updated_at": 1776844144,
+      "updated_at_text": "2026-04-22 15:49:04"
+    }
+  ]
+}

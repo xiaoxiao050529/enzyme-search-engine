@@ -1,274 +1,1249 @@
-# Data Platform 框架说明（前端 / 后端）
+# 项目完整架构与运行说明
 
-这个项目是一个围绕金属酶（以 Zn 相关蛋白为重点）的分析与筛选平台，包含：
+本文件用于统一替代和整合以下几份分散说明：
 
-- 可视化与交互页面（前端，多个 HTML 工具页）
-- 统一 API 服务（后端，单进程 HTTP 服务）
-- 工作流式筛选链路（Step1~Step5）
-- 外部工具集成（DiffDock / fpocket / TM-align）
+- `README.md`
+- `架构说明_论文素材.md`
+- `PDB_ZN_1QRG系列筛选说明.md`
+- `backend-port-conflict.md`
 
----
+这份文档重点解决 3 个问题：
 
-## 1. 总体架构
+1. 代码到底是怎么组织的
+2. 后端到底读哪些数据、写哪些运行时文件
+3. 系统从输入到输出到底怎么跑
 
-项目采用“静态前端 + 本地后端 API + 本地数据/工具”的结构：
+## 1. 先说结论
 
-- 前端：`/root/data-platform/frontend/*.html`
-  - 负责参数输入、任务提交、状态轮询、结果展示、3D 可视化
-- 后端：`/root/data-platform/backend/diffdock_api_server.py`
-  - 负责业务逻辑、文件解析、任务编排、外部工具调用、API 输出
-- 数据目录：
-  - `backend/data/`：表格与中间数据（如 `data.json`、`pocket.csv` 等）
-  - `/root/PDB_ZN`：PDB-ZN 原始结构数据（CIF/PDB）、聚类参考文件等
-  - `backend/runtime/`：运行时任务目录与 SQLite 数据库
+这个仓库本质上是一个“静态前端 + Python 单文件后端 + 本地数据目录 + 外部结构生信工具”的平台，面向 Zn 相关蛋白筛选、结构浏览、DiffDock 对接、fpocket 口袋分析和 TM-align 结构比对。
 
-核心后端入口与基础路径定义见：
-- [diffdock_api_server.py](file:///root/data-platform/backend/diffdock_api_server.py#L21-L33)
+当前代码现实和旧文档有 4 个关键差异，需要先校正：
 
----
+- 当前后端不是 Flask，而是 Python 标准库里的 `ThreadingHTTPServer`。
+- 当前真正工作的数据库是 `backend/runtime/pdbzn.sqlite`，不是 `backend/pdbzn_workflow.db`。
+- `backend/pdbzn_workflow.db` 当前是一个 0 字节空文件，属于历史遗留占位，不参与当前运行。
+- 仓库里的静态数据和 runtime 数据并不总是完全同步。
+  例如当前 `backend/data/master_table.csv` 有 121 行，而 `backend/data/data.json` / `backend/data/master_full.json` 是 72 条，`backend/runtime/pdbzn.sqlite` 中 `with_master` 也是 72。
+- 因此前端静态浏览结果、workflow 动态结果和 runtime 导出结果，必须先确认“你现在看的是哪一层数据”，不能默认它们天然一致。
 
-## 2. 前端在做什么
+因此理解这个项目时，最好把数据分成两层：
 
-前端是多页面工具集，页面之间通过顶部导航互跳，统一调用后端 API。
+- `backend/data/`：前端直接浏览的静态快照
+- `backend/runtime/`：后端 API 和任务执行产生的动态状态
 
-### 2.1 主要页面职责
+## 2. 仓库结构总览
 
-- `index.html`：主页面，加载 ranking/master 数据并进行 3D 结构交互展示  
-  [index.html](file:///root/data-platform/frontend/index.html#L36-L43)
-- `diffdock_compare.html`：DiffDock 对比与在线推理提交  
-  [diffdock_compare.html](file:///root/data-platform/frontend/diffdock_compare.html#L39-L67)
-- `fpocket.html`：提交 fpocket 任务、查看 pocket 参数与可视化  
-  [fpocket.html](file:///root/data-platform/frontend/fpocket.html#L45-L61)
-- `tmalign.html`：单任务与 1 对多 TM-align 评估  
-  [tmalign.html](file:///root/data-platform/frontend/tmalign.html#L39-L76)
-- `master_table.html`：主表筛选、排序、跳转  
-  [master_table.html](file:///root/data-platform/frontend/master_table.html#L32-L44)
-- `pdbzn_workflow.html`：PDB-ZN 工作流主控（Step1~Step5）  
-  [pdbzn_workflow.html](file:///root/data-platform/frontend/pdbzn_workflow.html#L69-L116)
+建议把仓库理解成下面 6 层：
 
-### 2.2 前端的“工作流编排”职责
+```text
+.
+├── frontend/
+│   ├── index.html
+│   ├── master_table.html
+│   ├── diffdock_compare.html
+│   ├── fpocket.html
+│   ├── tmalign.html
+│   └── pdbzn_workflow.html
+├── backend/
+│   ├── diffdock_api_server.py
+│   ├── generate_data.py
+│   ├── ingest_ranking.py
+│   ├── data/
+│   ├── runtime/
+│   ├── pdbzn_workflow.db
+│   └── __pycache__/
+├── scripts/
+│   └── download_pdb.sh
+├── data/
+│   └── pdb/                   # 额外下载的 mmCIF，非后端默认主路径
+├── 各类说明文档 *.md
+└── ids*.txt / ids72.tet 等辅助清单
+```
 
-`pdbzn_workflow.html` 主要做三件事：
+各层职责如下：
 
-- 采集参数并构造 payload（Step1/2/3/4/5）
-- 调用后端 `/run`、`/cluster`、`/filter`、`/validate`、`/finalize`
-- 渲染每一步的 `columns + rows + summary`
+- `frontend/`：页面和浏览器端逻辑，负责 UI、参数输入、结果展示、3D 交互、轮询任务状态。
+- `backend/diffdock_api_server.py`：统一后端入口，负责 API、工作流、结构解析、任务调度、文件输出。
+- `backend/data/`：仓库自带静态数据，前端即使不跑重计算，也可以直接浏览这些数据。
+- `backend/runtime/`：运行时产物，包含 SQLite、任务目录、日志、导出表。
+- `scripts/`：辅助脚本，目前主要是批量下载 PDB/mmCIF。
+- 根目录说明文档：历史分散说明，现已被本文档整合。
 
-关键逻辑位置：
-- API 地址候选与自动探测：  
-  [pdbzn_workflow.html](file:///root/data-platform/frontend/pdbzn_workflow.html#L166-L171)
-- Step2 payload（含聚类模式）：  
-  [pdbzn_workflow.html](file:///root/data-platform/frontend/pdbzn_workflow.html#L372-L381)
-- Step2 执行（聚类）：  
-  [pdbzn_workflow.html](file:///root/data-platform/frontend/pdbzn_workflow.html#L536-L593)
-- Step3 执行（二次筛选）：  
-  [pdbzn_workflow.html](file:///root/data-platform/frontend/pdbzn_workflow.html#L594-L622)
+## 3. 代码架构
 
----
+## 3.1 前端架构
 
-## 3. 后端在做什么
+前端是 6 个独立 HTML 页面，没有前端框架，核心是原生 JavaScript + 3Dmol.js + `fetch()`。
 
-后端是一个基于 `ThreadingHTTPServer` 的统一 API 服务，负责：
+页面职责如下：
 
-- 路由分发（GET/POST）
-- 本地任务管理（DiffDock/fpocket/TM-align）
-- 工作流计算（Step1~Step5）
-- 文件读写与结果输出（CSV/SQLite）
+- `frontend/index.html`
+  - 主入口页
+  - 加载 `backend/data/data.json` 或 `backend/data/master_full.json`
+  - 展示结构、配体、Zn 邻域、口袋高亮、序列联动
+- `frontend/master_table.html`
+  - 主表浏览页
+  - 读取 `backend/data/master_full.json`
+  - 支持字段过滤、排序、跳转
+- `frontend/diffdock_compare.html`
+  - DiffDock pose 对比页
+  - 读取 `backend/data/diffdock_index.json` 和 `backend/data/data.json`
+  - 支持本地 pose 对比，也支持在线提交 DiffDock
+- `frontend/fpocket.html`
+  - 在线提交 fpocket
+  - 轮询任务状态
+  - 加载 pocket 参数、pocket 点云和结构文件
+- `frontend/tmalign.html`
+  - 在线提交 TM-align
+  - 支持 1 对 1 和 1 对多
+- `frontend/pdbzn_workflow.html`
+  - PDB-ZN 工作流控制台
+  - 负责 Step1 到 Step5 参数输入、调用 API、表格渲染
 
-路由总入口：
-- [diffdock_api_server.py](file:///root/data-platform/backend/diffdock_api_server.py#L2124-L2460)
+前端有两个设计特点：
 
-服务启动入口：
-- [diffdock_api_server.py](file:///root/data-platform/backend/diffdock_api_server.py#L2462-L2469)
+- 所有页面都尽量支持自动探测后端地址。
+- 页面既能直接读静态文件，也能通过后端 `/api/data/file` 来取数据。
 
----
+当前常见端口约定：
 
-## 4. PDB-ZN 工作流（Step1~Step5）
+- 前端静态页：`8020`
+- 后端默认 API：`8015`
+- 某些页面会继续尝试 `8017`、`8016`、`8021`、`8019`、`8018`
 
-默认参数定义：
-- [_pdbzn_workflow_defaults](file:///root/data-platform/backend/diffdock_api_server.py#L414-L444)
+## 3.2 后端架构
 
-### Step1：初筛（`/api/pdbzn/workflow/run`）
-- 从数据库中按金属离子、残基要求、名称关键字等过滤
-- 若数据库未准备好，会自动触发导入
-- 实现入口：  
-  [_pdbzn_run_workflow](file:///root/data-platform/backend/diffdock_api_server.py#L1101-L1218)
+当前后端几乎全部集中在 `backend/diffdock_api_server.py` 这一份文件里。它不是“薄路由 + 多模块服务”的结构，而是“单文件集成式服务”。
 
-### Step2：聚类（`/api/pdbzn/workflow/cluster`）
-- 支持三种模式：
-  - `preset_clusters`：按 `optimized_tmalign_clusters1.csv` 映射
-  - `recompute_tmalign`：用 TM-align 重新聚类
-  - `recompute_neighbor`：按邻域特征相似度聚类
-- 入口：  
-  [_pdbzn_cluster_workflow](file:///root/data-platform/backend/diffdock_api_server.py#L1396-L1496)
+可以把这个文件拆成 7 个逻辑块来理解。
 
-与模式相关的关键实现：
-- 预设聚类映射：  
-  [_pdbzn_cluster_rows_from_step1_clusters](file:///root/data-platform/backend/diffdock_api_server.py#L582-L677)
-- 邻域相似度聚类：  
-  [_pdbzn_cluster_rows](file:///root/data-platform/backend/diffdock_api_server.py#L517-L579)
-- TM-align 聚类：  
-  [_pdbzn_cluster_rows_tmalign](file:///root/data-platform/backend/diffdock_api_server.py#L872-L944)
+### A. 基础路径与环境探测
 
-当前逻辑里，Step2 会在三种模式下统一剔除没有本地 PDB 结构的条目，并在 summary 输出 `dropped_no_pdb_count` / `dropped_no_pdb_members`。
+负责：
 
-### Step3：第二次筛选（`/api/pdbzn/workflow/filter`）
-- 在 Step2 的簇结果上进行结构规则筛选
-- 典型规则包括：大配体距离、其他金属干扰、长度/聚体限制
-- 入口：  
-  [_pdbzn_step3_filter_workflow](file:///root/data-platform/backend/diffdock_api_server.py#L1314-L1419)
+- 项目目录定位
+- `backend/data`、`backend/runtime` 定位
+- 外部 `PDB_ZN` 数据目录探测
+- DiffDock / fpocket / TM-align 二进制探测
 
-### Step4：综合验证（`/api/pdbzn/workflow/validate`）
-- 仅做 3HIS 几何复核（不再做二次聚类）
-- 输出 5A 范围内全部残基、3 个 HIS 与 ZN 的键长和键角
-- 对对称/空间构象误配进行剔除并记录原因
-- 入口：  
-  [_pdbzn_step4_validate_workflow](file:///root/data-platform/backend/diffdock_api_server.py#L1607-L1745)
+关键变量：
 
-### Step5：收口与主表写回（`/api/pdbzn/workflow/finalize`）
-- 把 Step4 结果与主表/DiffDock/fpocket 信息整合
-- 同步写入 Step4 的几何字段（TriHis、ZN位点、键长/键角、5A残基、空间构象过滤结果）
-- 可选触发 fpocket 快速补全，并可写回主表
-- 入口：  
-  [_pdbzn_step5_finalize_workflow](file:///root/data-platform/backend/diffdock_api_server.py#L1905-L2085)
+- `BASE_DIR`
+- `PROJECT_DIR`
+- `DATA_DIR`
+- `RUNTIME_DIR`
+- `PDBZN_BASE_DIR`
+- `PDBZN_PDB_DIR`
+- `PDBZN_DB_PATH`
+- `PDBZN_EXPORT_DIR`
+- `HOST`
+- `PORT`
 
----
+外部依赖定位函数：
 
-## 5. 任务型 API（DiffDock / fpocket / TM-align）
+- `discover_infer_py()`
+- `discover_fpocket_bin()`
+- `discover_tmalign_bin()`
 
-后端还提供独立任务接口（提交、查状态、看日志、取文件）：
+### B. 结构解析与工具输出解析
 
-- DiffDock：
-  - 提交：`POST /api/diffdock/submit`
-  - 状态：`GET /api/diffdock/status/{job_id}`
-  - 日志：`GET /api/diffdock/log/{job_id}`
-- fpocket：
-  - 提交：`POST /api/fpocket/submit`
-  - 状态：`GET /api/fpocket/status/{job_id}`
-  - 口袋详情：`GET /api/fpocket/pockets/{job_id}`
-- TM-align：
-  - 提交：`POST /api/tmalign/submit`
-  - 状态：`GET /api/tmalign/status/{job_id}`
-  - 日志：`GET /api/tmalign/log/{job_id}`
+负责读取和理解结构文件与外部工具输出。
 
-路由集中在：
-- [diffdock_api_server.py](file:///root/data-platform/backend/diffdock_api_server.py#L2124-L2460)
+包含：
 
----
+- mmCIF / PDB 原子解析
+  - `_pdbzn_mmcif_atom_rows()`
+  - `_pdbzn_pdb_atom_rows()`
+  - `_pdbzn_structure_atom_rows()`
+- 几何计算
+  - `_pdbzn_dist()`
+  - `_pdbzn_angle_deg()`
+  - `_pdbzn_step4_geometry_report()`
+- fpocket 输出解析
+  - `parse_fpocket_info_file()`
+  - `parse_fpocket_vert_file()`
+  - `build_fpocket_pocket_payload()`
+- TM-align 日志解析
+  - `parse_tmalign_log()`
 
-## 6. 前后端协作方式（一次完整链路）
+### C. PDB-ZN 工作流引擎
 
-以 `pdbzn_workflow.html` 为例：
+负责 Step1 到 Step5 的主流程。
 
-1. 前端读取参数并调用 `workflow/config` 获取默认配置
-2. 用户触发 Step1/2/3/4/5，前端逐步发起对应 POST
-3. 后端返回标准结构：`steps[] + summary`
-4. 前端按表格渲染结果并显示摘要（总数、代表条目等）
+核心函数如下：
 
-这个设计的好处是：页面可视化逻辑与计算逻辑解耦，后续你调整阈值、模式、筛选规则，只需改后端或 payload，不需要重写可视化框架。
+- `_pdbzn_run_workflow()`
+- `_pdbzn_cluster_workflow()`
+- `_pdbzn_step3_filter_workflow()`
+- `_pdbzn_step4_validate_workflow()`
+- `_pdbzn_step5_finalize_workflow()`
 
----
+辅助能力：
 
-## 7. 本地运行（最小方式）
+- `_pdbzn_workflow_defaults()`
+- `_pdbzn_cluster_rows()`
+- `_pdbzn_cluster_rows_from_step1_clusters()`
+- `_pdbzn_cluster_rows_tmalign()`
+- `_pdbzn_step3_structure_reasons()`
+- `_pdbzn_step5_final_score()`
+
+### D. runtime 数据库管理
+
+负责 `backend/runtime/pdbzn.sqlite` 的读写。
+
+关键函数：
+
+- `_pdbzn_db_connect()`
+- `_pdbzn_db_ensure()`
+- `_pdbzn_db_stats()`
+- `_pdbzn_import_database()`
+
+当前 `proteins` 表结构如下：
+
+```text
+pdb_id
+file_name
+file_path
+has_zn_his_cluster
+metal_ions
+his_count_max
+neighbor_residue_counts
+similarity_score
+protein_name
+protein_category
+details
+imported_at
+```
+
+注意：
+
+- 这个库是工作流的查询底座。
+- 它保存的是“结构文件 + 主表关键字段”的导入结果。
+- 当前库中有 `7688` 条记录，其中 `72` 条带 `protein_name`，也就是当前“with_master=72”的来源。
+
+### E. 任务运行器
+
+负责启动外部计算任务。
+
+包括：
+
+- `run_job()`：DiffDock
+- `run_fpocket_job()`：fpocket
+- `run_tmalign_job()`：TM-align
+- `recover_fpocket_job()`：后端重启后恢复 fpocket 任务状态
+
+运行方式都是：
+
+- 创建 job 目录
+- 写入输入文件
+- 启动子进程
+- 将 stdout/stderr 写入 `run.log`
+- 轮询状态时返回 job 元信息
+
+### F. HTTP API 路由层
+
+通过 `class Handler(BaseHTTPRequestHandler)` 提供所有接口。
+
+GET 类接口负责：
+
+- 健康检查
+- 读取任务状态
+- 读取日志
+- 读取静态数据文件
+- 读取任务输出文件
+- 获取工作流默认配置
+
+POST 类接口负责：
+
+- 提交 DiffDock / fpocket / TM-align
+- 运行 PDB-ZN Step1 到 Step5
+- 手动触发数据库导入
+
+### G. 服务启动层
+
+最后通过：
+
+```python
+server = ThreadingHTTPServer((HOST, PORT), Handler)
+```
+
+启动服务。
+
+所以这是一个：
+
+- 单进程
+- 多线程请求处理
+- 文件系统重依赖
+- 本地工具强依赖
+
+的后端。
+
+## 3.3 其他后端脚本
+
+除了主服务文件，后端还有两个数据构建脚本。
+
+### `backend/generate_data.py`
+
+作用：
+
+- 从主表 CSV 生成前端更容易直接使用的 JSON
+
+输出：
+
+- `backend/data/data.json`
+- `backend/data/master_full.json`
+
+特点：
+
+- `data.json` 是更轻的列表数据
+- `master_full.json` 是完整表格视图数据
+
+### `backend/ingest_ranking.py`
+
+作用：
+
+- 从 ranking CSV 提取 PDB ID
+- 尝试复制或下载结构文件
+- 生成 `backend/data/ranking.json`
+
+这个脚本更像历史数据准备脚本，不是当前主工作流的核心入口。
+
+## 3.4 辅助脚本
+
+### `scripts/download_pdb.sh`
+
+作用：
+
+- 根据 ID 清单批量从 RCSB 下载 `.cif.gz`
+
+现在支持：
+
+- 自定义输入 ID 文件
+- 自定义输出目录
+- 自定义失败清单文件
+
+例如：
+
+```bash
+bash scripts/download_pdb.sh ids72.txt data/pdb data/failed_ids72.txt
+```
+
+这个脚本下载到的是根目录下的 `data/pdb/`，它不是后端默认读取结构的主路径，但可作为额外结构仓库使用。
+
+## 4. 后端数据集说明
+
+这一节只讲“后端会读到哪些数据”。
+
+## 4.1 `backend/data/`：静态数据层
+
+`backend/data/` 是前端静态浏览和后端兜底查找的第一层数据源。
+
+当前主要文件如下。
+
+### 1. `backend/data/master_table.csv`
+
+作用：
+
+- 当前仓库内的主表 CSV 快照
+- 是 Step5 写回的默认主表候选文件之一
+- 也是 `generate_data.py` 理论上的源表
+
+当前状态：
+
+- 121 行
+- 57 列
+
+典型字段：
+
+- `Representative`
+- `Similarity_Score`
+- `Best_Confidence`
+- `NearestDistanceTo3HisZn`
+- `ZN_Depth`
+- `Length;Oligomer;Monomer`
+- `Protein_Name`
+- `Protein_Category`
+- `Cluster_ID`
+- `Neighbor_List`
+- `TriHisSatisfied`
+- `TriHisCountMax`
+- `Receptor_PDB`
+- `Best_SDF`
+
+### 2. `backend/data/pocket.csv`
+
+作用：
+
+- 预先整理好的 pocket 汇总表
+
+当前状态：
+
+- 1806 行
+- 22 列
+
+典型字段：
+
+- `Representative`
+- `Protein_Name`
+- `Protein_Category`
+- `Receptor_PDB`
+- `pocket_id`
+- `score`
+- `druggability_score`
+- `volume`
+- `total_sasa`
+- `pocket_his_count`
+- `pocket_zn_count`
+
+### 3. `backend/data/data.json`
+
+作用：
+
+- 主页面常用的轻量主表 JSON
+
+当前状态：
+
+- `items` 长度为 72
+
+单条记录字段：
+
+- `id`
+- `name`
+- `cluster`
+- `receptor_pdb`
+- `receptor_rel`
+- `best_sdf`
+- `species`
+- `monomer_seq`
+- `residue_length`
+- `oligomer`
+- `monomer_length`
+
+### 4. `backend/data/master_full.json`
+
+作用：
+
+- Master Table 页面使用的完整行数据
+
+当前状态：
+
+- `rows` 长度为 72
+- `header` 长度为 36
+
+它本质上是面向前端表格展示的 JSON 化主表。
+
+### 5. `backend/data/diffdock_index.json`
+
+作用：
+
+- DiffDock 对比页的索引数据
+- 用于列出每个蛋白有哪些 pose 文件
+
+当前状态：
+
+- `items` 长度为 71
+- `total_proteins = 71`
+
+单条记录字段：
+
+- `id`
+- `pose_count`
+- `poses`
+
+每个 `pose` 包含：
+
+- `file`
+- `filename`
+- `rank`
+- `confidence`
+
+### 6. `backend/data/structures/`
+
+作用：
+
+- 仓库内置结构文件目录
+- 是后端默认的结构查找目录之一
+
+当前状态：
+
+- 顶层 76 个结构文件
+- 其中大多数是 72 个主表蛋白的 `.pdb`
+- 还包含少量额外 `.cif`
+- 另有 20 个 `*_out` 子目录，存放某些结构相关衍生产物
+
+### 7. `backend/data/ligands/`
+
+作用：
+
+- 仓库内置配体 SDF
+
+当前状态：
+
+- 71 个 `.sdf`
+
+注意：
+
+- 当前 72 个主表条目里，有 1 个不在这里面。
+- 缺失的是 `2IMR`。
+
+### 8. `backend/data/diffdock/`
+
+作用：
+
+- 每个蛋白的本地 DiffDock pose 文件目录
+
+当前状态：
+
+- 71 个蛋白目录
+- 总大小约 1.12 MB
+
+目录结构示例：
+
+```text
+backend/data/diffdock/1AF0/
+├── rank1_confidence-0.82.sdf
+├── rank2_confidence-1.34.sdf
+├── ...
+└── rank10_confidence-7.29.sdf
+```
+
+### 9. `backend/data/pockets/`
+
+作用：
+
+- 每个蛋白的 pocket 相关静态文件目录
+
+当前状态：
+
+- 72 个蛋白目录
+- 总大小约 0.74 MB
+
+通常每个目录包含 2 个核心文件：
+
+- pocket 信息文件
+- pocket 点云/顶点文件
+
+## 4.2 `backend/runtime/`：运行时状态层
+
+`backend/runtime/` 是后端执行后的动态状态目录。
+
+当前包含 4 类内容。
+
+### 1. `backend/runtime/pdbzn.sqlite`
+
+作用：
+
+- 当前工作流真实使用的 SQLite 数据库
+
+当前状态：
+
+- 大小约 648 KB
+- `proteins` 表 7688 行
+- `with_master = 72`
+
+它是 Step1 的直接输入底座，也是 `/api/pdbzn/workflow/config` 返回的数据库状态来源。
+
+### 2. `backend/runtime/diffdock_jobs/`
+
+作用：
+
+- 在线 DiffDock 提交任务目录
+
+当前状态：
+
+- 3 个 job 目录
+
+典型结构：
+
+```text
+backend/runtime/diffdock_jobs/<job_id>/
+├── input/
+│   ├── receptor.pdb
+│   └── ligand.sdf
+└── run.log
+```
+
+如果推理成功，代码设计上还会有 `output/` 目录和 pose SDF。
+
+当前样本日志显示，历史运行里曾出现环境依赖缺失：
+
+- `ModuleNotFoundError: No module named 'yaml'`
+
+这说明 DiffDock 在线推理依赖独立 Python 环境，不能只靠仓库静态文件。
+
+### 3. `backend/runtime/fpocket_jobs/`
+
+作用：
+
+- 在线 fpocket 任务目录
+
+当前状态：
+
+- 27 个 job 目录
+- 总大小约 24.63 MB
+
+典型结构：
+
+```text
+backend/runtime/fpocket_jobs/<job_id>/
+├── input/
+│   ├── <pdb>.pdb
+│   └── <pdb>_out/
+│       ├── <pdb>_info.txt
+│       ├── <pdb>_out.pdb
+│       ├── <pdb>_pockets.pqr
+│       └── pockets/
+│           ├── pocket1_atm.pdb
+│           ├── pocket1_vert.pqr
+│           └── ...
+└── run.log
+```
+
+这是 runtime 中最“重”的目录，因为 fpocket 会落很多 pocket 文件。
+
+### 4. `backend/runtime/tmalign_jobs/`
+
+作用：
+
+- 在线 TM-align 任务目录
+
+当前状态：
+
+- 38 个 job 目录
+- 总大小约 18.28 MB
+
+典型结构：
+
+```text
+backend/runtime/tmalign_jobs/<job_id>/
+├── input/
+│   ├── pdb1.pdb
+│   └── pdb2.pdb
+└── run.log
+```
+
+日志里保留原始 TM-align 输出，后端再从日志中提取：
+
+- `tm_score_1`
+- `tm_score_2`
+- `tm_score_max`
+- `aligned_length`
+- `rmsd`
+- `seq_id`
+
+### 5. `backend/runtime/exports/`
+
+作用：
+
+- 工作流导出结果
+
+当前状态：
+
+- 1 个导出文件
+- `zn_his_master_table_step5.csv`
+
+这个目录是 Step5 默认写导出文件的位置。
+
+## 4.3 旧库与遗留文件
+
+### `backend/pdbzn_workflow.db`
+
+当前状态：
+
+- 0 字节
+- 无表结构
+
+结论：
+
+- 当前代码不会把它当成主数据库使用
+- 它只是历史遗留文件名
+
+### 运行状态和静态快照不一致的原因
+
+仓库内同时存在：
+
+- 静态主表快照
+- runtime 导入库
+- 历史导出 CSV
+- 外部 `PDB_ZN` 路径可选接入
+
+所以看到 `121`、`72`、`7688` 这几组数字同时存在是正常的，它们分别代表：
+
+- 121：当前仓库里的主表 CSV 行数
+- 72：当前前端静态主表 JSON 和 runtime 中有效主表条目数
+- 7688：runtime SQLite 中的全部导入蛋白条目数
+
+## 5. API 架构
+
+当前 API 可以分成 5 组。
+
+### 1. 健康检查
+
+- `GET /api/diffdock/ping`
+- `GET /api/fpocket/ping`
+- `GET /api/tmalign/ping`
+- `GET /api/pdbzn/workflow/config`
+
+### 2. 静态数据访问
+
+- `GET /api/data/file?path=...`
+
+这个接口用于前端通过 API 读取 `backend/data/` 中的 JSON、结构、pose、pocket 文件。
+
+### 3. 任务型接口
+
+DiffDock：
+
+- `POST /api/diffdock/submit`
+- `GET /api/diffdock/status/<job_id>`
+- `GET /api/diffdock/log/<job_id>`
+- `GET /api/diffdock/file/<job_id>/<file>`
+
+fpocket：
+
+- `POST /api/fpocket/submit`
+- `GET /api/fpocket/status/<job_id>`
+- `GET /api/fpocket/log/<job_id>`
+- `GET /api/fpocket/pockets/<job_id>`
+- `GET /api/fpocket/file/<job_id>/<rel_path>`
+
+TM-align：
+
+- `POST /api/tmalign/submit`
+- `GET /api/tmalign/status/<job_id>`
+- `GET /api/tmalign/log/<job_id>`
+
+### 4. PDB-ZN 工作流接口
+
+- `POST /api/pdbzn/workflow/import`
+- `POST /api/pdbzn/workflow/run`
+- `POST /api/pdbzn/workflow/cluster`
+- `POST /api/pdbzn/workflow/filter`
+- `POST /api/pdbzn/workflow/validate`
+- `POST /api/pdbzn/workflow/finalize`
+
+### 5. 任务列表接口
+
+- `GET /api/diffdock/jobs`
+- `GET /api/fpocket/jobs`
+- `GET /api/tmalign/jobs`
+
+## 6. 运行方法
+
+## 6.1 最小可运行方式
+
+如果你只想打开页面和浏览仓库自带数据，不跑重计算，最小启动方式如下。
 
 后端：
 
 ```bash
-python /root/data-platform/backend/diffdock_api_server.py
+python3 backend/diffdock_api_server.py
 ```
 
-前端（任意静态文件服务器）：
+前端：
 
 ```bash
-cd /root/data-platform/frontend
-python -m http.server 8020
+python3 -m http.server 8020
 ```
 
-浏览器打开：
+然后访问：
 
-- `http://127.0.0.1:8020/pdbzn_workflow.html`
-- 或 `http://127.0.0.1:8020/index.html`
+- `http://127.0.0.1:8020/frontend/index.html`
+- `http://127.0.0.1:8020/frontend/master_table.html`
+- `http://127.0.0.1:8020/frontend/diffdock_compare.html`
+- `http://127.0.0.1:8020/frontend/fpocket.html`
+- `http://127.0.0.1:8020/frontend/tmalign.html`
+- `http://127.0.0.1:8020/frontend/pdbzn_workflow.html`
 
-注意：前端页面端口与后端 API 端口不同，API 地址需要填后端端口（例如 8130 / 8015）。
+## 6.2 后端默认地址
 
----
+默认绑定：
 
-## 8. 页面功能说明书（主页面 / fpocket / DiffDock / TM-align / 工作流 / Master Table）
+- Host: `127.0.0.1`
+- Port: `8015`
 
-这一节专门说明每个页面的定位和区别。
+对应环境变量：
 
-### 8.1 主页面（`index.html`）
+- `DIFFDOCK_API_HOST`
+- `DIFFDOCK_API_PORT`
 
-定位：总览 + 快速可视化入口。
+改端口示例：
 
-- 展示 ranking / master 数据并支持按 PDB 查询
-- 进行 3D 结构可视化（蛋白、配体、金属位点）
-- 适合做“先看结果，再决定去哪个专项页面深挖”
+```bash
+DIFFDOCK_API_PORT=8017 python3 backend/diffdock_api_server.py
+```
 
-入口参考：  
-[index.html](file:///root/data-platform/frontend/index.html)
+## 6.3 常用环境变量
 
-### 8.2 DiffDock 对比页面（`diffdock_compare.html`）
+### 后端服务
 
-定位：对接结果比对 + 在线推理。
+- `DIFFDOCK_API_HOST`
+- `DIFFDOCK_API_PORT`
 
-- 左右双视图对比不同 PDB 或不同 pose
-- 支持在线提交 DiffDock 推理并轮询任务状态
-- 支持按 ZN 距离自动挑选 top pose 进行快速比较
+### 外部数据目录
 
-入口参考：  
-[diffdock_compare.html](file:///root/data-platform/frontend/diffdock_compare.html)
+- `PDBZN_BASE_DIR`
+- `PDBZN_PDB_DIR`
 
-### 8.3 fpocket 页面（`fpocket.html`）
+### DiffDock
 
-定位：口袋识别与口袋参数分析。
+- `DIFFDOCK_INFER_PY`
+- `DIFFDOCK_PYTHON_BIN`
 
-- 上传 PDB 提交 fpocket 任务
-- 查看 pocket 参数表（如 druggability、score、volume）
-- 在 3D 视图中可视化 pocket 位置
+### fpocket / TM-align
 
-入口参考：  
-[fpocket.html](file:///root/data-platform/frontend/fpocket.html)
+- `FPOCKET_BIN`
+- `TMALIGN_BIN`
 
-### 8.4 TM-align 页面（`tmalign.html`）
+### 数据构建脚本
 
-定位：结构相似性评估。
+- `PDBZN_MASTER_TABLE`
+- `PDBZN_RANKING_CSV`
 
-- 单任务：1 对 1 结构比对（TM-score、RMSD 等）
-- 批任务：1 对多比对并排序
-- 支持不同评分归一方式（short_chain / tm1 / tm2 / tm_max）
+## 6.4 启动后验证
 
-入口参考：  
-[tmalign.html](file:///root/data-platform/frontend/tmalign.html)
+先验证后端：
 
-### 8.5 工作流页面（`pdbzn_workflow.html`）
+```bash
+curl http://127.0.0.1:8015/api/pdbzn/workflow/config
+```
 
-定位：全链路筛选主控台（Step1~Step5）。
+验证 DiffDock API：
 
-- Step1：按金属离子和残基规则初筛
-- Step2：聚类（并统一剔除无 PDB 条目）
-- Step3：二次结构规则筛选
-- Step4：3HIS 几何复核（含 5A 残基、键长、键角、构象剔除）
-- Step5：结果收口，写回主表并补全 DiffDock/fpocket
+```bash
+curl http://127.0.0.1:8015/api/diffdock/ping
+```
 
-入口参考：  
-[pdbzn_workflow.html](file:///root/data-platform/frontend/pdbzn_workflow.html)
+如果要换端口，比如 `8017`，把上面的端口一起换掉。
 
-### 8.6 Master Table 页面（`master_table.html`）
+## 6.5 端口冲突处理
 
-定位：主结果表检索、排序、人工复核。
+如果出现：
 
-- 全局搜索 + 指定列筛选
-- 任意列排序（升/降序）
-- 作为最终结果导出前核查页面
+```text
+OSError: [Errno 98] Address already in use
+```
 
-入口参考：  
-[master_table.html](file:///root/data-platform/frontend/master_table.html)
+优先按下面顺序处理：
 
-### 8.7 页面怎么选（实操建议）
+1. 先 `curl` 检查 `8015` 是否已经有可用后端
+2. 如果已有服务正常，就不要重复启动
+3. 如果确实要重启，再查占用 PID
+4. 如果不想影响旧服务，就换 `8017`
 
-- 想快速看整体候选：主页面 + Master Table
-- 想看口袋质量：fpocket
-- 想看对接 pose 细节：DiffDock 对比
-- 想做结构相似性分群/比对：TM-align
-- 想跑完整筛选链路并沉淀主表：工作流页面
+常用命令：
+
+```bash
+ss -ltnp '( sport = :8015 )'
+ps -fp <PID>
+kill <PID>
+DIFFDOCK_API_PORT=8017 python3 backend/diffdock_api_server.py
+```
+
+## 6.6 外部工具依赖
+
+### 只浏览静态数据
+
+不强依赖：
+
+- DiffDock
+- fpocket
+- TM-align
+
+### 跑在线任务或完整工作流
+
+需要至少满足：
+
+- DiffDock 推理脚本可用
+- fpocket 可执行文件可用
+- TMalign 可执行文件可用
+
+否则会出现：
+
+- DiffDock 没有 `inference.py`
+- fpocket / TMalign not found
+- job 只有 `run.log`，没有结果文件
+
+## 7. 运行逻辑：从输入到输出
+
+这里按 3 条主链路讲。
+
+## 7.1 链路一：静态浏览链路
+
+适用页面：
+
+- `index.html`
+- `master_table.html`
+- `diffdock_compare.html`
+
+流程如下：
+
+1. 浏览器打开 HTML 页面
+2. 页面读取 `backend/data/*.json`
+3. 页面根据 JSON 中的相对路径加载 `.pdb`、`.sdf`、pocket 文件
+4. 3Dmol.js 在前端本地渲染
+5. 用户得到结构、配体、口袋和表格展示
+
+这条链路的特点：
+
+- 不一定依赖 runtime
+- 主要依赖 `backend/data/`
+- 页面能用静态文件就优先用静态文件
+
+## 7.2 链路二：在线任务链路
+
+适用页面：
+
+- `diffdock_compare.html`
+- `fpocket.html`
+- `tmalign.html`
+
+以 fpocket 为例，完整路径如下：
+
+1. 用户上传或粘贴 PDB 文本
+2. 前端 `POST /api/fpocket/submit`
+3. 后端创建 `backend/runtime/fpocket_jobs/<job_id>/input/<pdb>.pdb`
+4. 后端后台线程启动 `fpocket`
+5. `fpocket` 产出 `<pdb>_out/` 全套结果
+6. 日志写入 `run.log`
+7. 前端轮询 `/api/fpocket/status/<job_id>`
+8. 前端再请求 `/api/fpocket/pockets/<job_id>`
+9. 后端解析 `*_info.txt` 和 `pocket*_vert.pqr`
+10. 前端渲染口袋参数和 pocket 点云
+
+DiffDock 和 TM-align 也是同样的模式：
+
+- 提交文本
+- 写 job 目录
+- 启动外部程序
+- 写日志
+- 查询状态
+- 拉回结果
+
+## 7.3 链路三：PDB-ZN 工作流链路
+
+这是整个项目最核心的一条链。
+
+### Step0：数据库准备
+
+入口：
+
+- `POST /api/pdbzn/workflow/import`
+- 或 Step1 自动触发导入
+
+逻辑：
+
+1. 后端扫描结构文件来源
+2. 读取主表 CSV
+3. 按 `pdb_id` 建立 `proteins` 表
+4. 把主表中的关键信息灌进 `pdbzn.sqlite`
+
+输出：
+
+- `backend/runtime/pdbzn.sqlite`
+
+### Step1：金属和残基初筛
+
+入口：
+
+- `POST /api/pdbzn/workflow/run`
+
+输入：
+
+- 金属离子
+- 残基需求，例如 `HIS:3`
+- 名称过滤
+- PDB ID 过滤
+
+逻辑：
+
+1. 从 `pdbzn.sqlite` 读 `proteins`
+2. 按 `metal_ions` 过滤
+3. 按 `neighbor_residue_counts` / `his_count_max` 过滤
+4. 输出匹配行
+
+输出：
+
+- Step1 表格
+- `summary.step1_count`
+
+### Step2：聚类
+
+入口：
+
+- `POST /api/pdbzn/workflow/cluster`
+
+输入：
+
+- Step1 结果
+- 聚类模式
+- 阈值
+
+逻辑：
+
+1. 先把没有本地 PDB 的条目剔除
+2. 再按模式聚类
+
+三种模式：
+
+- `preset_clusters`
+- `recompute_tmalign`
+- `recompute_neighbor`
+
+输出：
+
+- Cluster 表
+- `dropped_no_pdb_count`
+- `dropped_outside_cluster_count`
+
+### Step3：第二次结构筛选
+
+入口：
+
+- `POST /api/pdbzn/workflow/filter`
+
+输入：
+
+- Step2 代表结构
+- `ligand_distance`
+- `metal_distance`
+- `max_residue_per_oligomer`
+
+逻辑：
+
+1. 读取结构文件
+2. 检查 ZN 附近是否有大配体
+3. 检查 ZN 附近是否有其他金属
+4. 检查单体长度/聚体限制
+5. 检查 TriHis 是否至少满足基本要求
+
+输出：
+
+- 保留列表
+- 剔除列表
+- 每条剔除原因
+
+### Step4：3HIS 几何复核
+
+入口：
+
+- `POST /api/pdbzn/workflow/validate`
+
+输入：
+
+- Step3 保留结果
+- 是否必须通过 `require_his3`
+
+逻辑：
+
+1. 重新读取结构
+2. 找 ZN
+3. 找可配位 HIS 原子
+4. 计算 3 个 HIS 到 ZN 的键长
+5. 计算配位角
+6. 统计 5A 内残基
+7. 排除对称构象和几何异常
+
+输出：
+
+- `TriHis_Recheck_Pass`
+- `Symmetry_Spatial_Filter_Pass`
+- `TriHis_Residues`
+- `ZN_Site`
+- `His_ZN_Bond_Lengths_A`
+- `His_ZN_Bond_Angles_Deg`
+- `Residues_Within_5A`
+
+### Step5：主表收口
+
+入口：
+
+- `POST /api/pdbzn/workflow/finalize`
+
+输入：
+
+- Step4 通过结果
+- 是否运行 `fpocket`
+- 是否写回主表
+- 导出文件名
+
+逻辑：
+
+1. 读取主表 CSV
+2. 把 Step4 字段拼接回主表
+3. 补 DiffDock 字段
+4. 可选快速补跑 fpocket
+5. 计算 `Step5_FinalScore`
+6. 写出到 `backend/runtime/exports/<output>.csv`
+7. 如果允许，再覆盖主表 CSV
+
+输出：
+
+- Step5 汇总表
+- `backend/runtime/exports/zn_his_master_table_step5.csv`
+- 可选写回 `backend/data/master_table.csv` 或外部主表
+
+## 8. 1QRG 系列筛选在当前系统中的位置
+
+这部分整合自 `PDB_ZN_1QRG系列筛选说明.md`。
+
+当前这条“约 70 个候选”的复现口径是：
+
+- Step1：`ZN + HIS:3`
+- Step2：`recompute_tmalign`, `cluster_threshold=0.7`
+- Step3：`ligand_distance=5.0`, `metal_distance=8.0`, `max_residue_per_oligomer=180`
+- Step4：`require_his3=true`
+- Step5：`run_fpocket=false`, `write_to_master=false`
+
+按这个口径，文档记录的复现实测结果为：
+
+- Step1：1265
+- Step2 输入：1229
+- Step2 输出簇：148
+- Step3 保留：78
+- Step4 通过：72
+- Step5 appended：72
+
+同时需要注意：
+
+- `1QRG` 作为参考对象在主表中存在
+- 但在 Step2 之前会因为“无本地 TM-align PDB”被剔除
+
+也就是说：
+
+- `1QRG` 在这个流程里更像“规则锚点”
+- 不是当前聚类输入里一定参与计算的成员
+
+## 9. 当前代码的现实约束与风险
+
+这一节很重要，因为它解释了为什么有些旧文档会让人误判。
+
+### 1. 后端是单文件架构
+
+优点：
+
+- 查逻辑快
+- 部署简单
+
+缺点：
+
+- 代码边界弱
+- 修改容易互相影响
+- 工作流、任务调度、文件解析、HTTP 路由全部耦合在一起
+
+### 2. 数据有静态快照和 runtime 双轨
+
+优点：
+
+- 前端可离线式浏览
+- runtime 可保存历史任务
+
+缺点：
+
+- `master_table.csv`
+- `master_full.json`
+- `data.json`
+- `pdbzn.sqlite`
+
+这几层很容易不同步。
+
+### 3. 对文件系统依赖非常重
+
+当前系统强依赖：
+
+- 目录命名
+- 文件名模式
+- `rank*_confidence-*.sdf`
+- `*_info.txt`
+- `pocket*_vert.pqr`
+- `*_out/`
+
+只要文件命名或目录结构变了，很多解析逻辑就会失效。
+
+### 4. 外部工具依赖不是“软依赖”
+
+静态浏览可以没有外部工具。
+
+但一旦你要跑：
+
+- DiffDock 在线推理
+- fpocket 在线任务
+- TMalign 在线任务
+- Step5 的 `run_fpocket`
+
+环境必须完整，否则 runtime 只会留下失败日志。
+
+### 5. `backend/data` 里静态结果不一定代表当前 Step5 最新结果
+
+当前仓库里就存在这个现象：
+
+- `backend/data/master_table.csv` 是 121 行
+- `backend/data/data.json` / `master_full.json` 是 72 条
+
+这意味着：
+
+- 前端静态浏览看到的“主表”
+- 后端 workflow 看到的“主表”
+
+可能不是同一个时间点的版本。
+
+## 10. 推荐的理解方式
+
+如果你以后要继续维护这个仓库，建议用下面这个脑图来理解。
+
+### 第一层：前端页面
+
+就是 6 个 HTML 工具页。
+
+### 第二层：统一后端
+
+就是 `backend/diffdock_api_server.py`。
+
+### 第三层：两类数据
+
+- `backend/data/` 静态快照
+- `backend/runtime/` 动态状态
+
+### 第四层：三类外部工具
+
+- DiffDock
+- fpocket
+- TM-align
+
+### 第五层：一条核心工作流
+
+- Step1 初筛
+- Step2 聚类
+- Step3 结构规则筛选
+- Step4 3HIS 几何复核
+- Step5 主表收口
+
+## 11. 最短使用建议
+
+如果你的目标是“先跑通，再细化”，建议按这个顺序：
+
+1. 先启动后端 `8015`
+2. 再启动前端 `8020`
+3. 先打开 `frontend/pdbzn_workflow.html`
+4. 用 `/api/pdbzn/workflow/config` 看数据库状态和数据源
+5. 跑 Step1 到 Step5
+6. 再去 `master_table.html`、`index.html`、`diffdock_compare.html` 验证结果
+
+如果你的目标是“只看已有结果，不跑重计算”，建议按这个顺序：
+
+1. 启动前端静态服务
+2. 启动后端，只用于 `api/data/file` 和健康检查
+3. 先看 `master_table.html`
+4. 再看 `index.html`
+5. 最后看 `diffdock_compare.html`
+
+## 12. 本文档和旧文档的关系
+
+本文档已经吸收了原来 4 份文档中的核心内容：
+
+- 从 `README.md` 吸收了页面、API、运行方式
+- 从 `架构说明_论文素材.md` 吸收了架构表述，但修正了“Flask”和数据库描述
+- 从 `PDB_ZN_1QRG系列筛选说明.md` 吸收了 1QRG 系列复现口径和 72 候选逻辑
+- 从 `backend-port-conflict.md` 吸收了端口冲突排查和推荐端口策略
+
+如果后面继续维护，建议优先维护本文档，其他历史说明文档只作为补充记录保留。

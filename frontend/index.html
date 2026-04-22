@@ -2,7 +2,8 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>chemcial reaction search engine</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zn 金属酶筛选平台</title>
 <script src="https://unpkg.com/3dmol/build/3Dmol-min.js"></script>
 <style>
 body { font-family: system-ui, sans-serif; margin: 16px; }
@@ -15,7 +16,8 @@ body { font-family: system-ui, sans-serif; margin: 16px; }
 #seq_panel { min-height: 74px; max-height: 180px; border: 1px solid #ddd; background: #fff; padding: 8px; overflow: auto; }
 #seq_title { font-weight: 700; margin-bottom: 6px; color: #333; }
 #seq_content { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; line-height: 1.6; word-break: break-all; font-size: 13px; color: #555; }
-.seq_aa { display: inline-block; min-width: 10px; text-align: center; border-radius: 3px; padding: 0 1px; }
+.seq_aa { display: inline-block; min-width: 10px; text-align: center; border-radius: 3px; padding: 0 1px; cursor: pointer; transition: background 140ms ease, color 140ms ease; }
+.seq_aa:hover { background: rgba(255, 196, 84, 0.28); color: #1d2a34; }
 .seq_aa.active { color: #fff; background: #d62828; }
 #viewer_wrap { height: 720px; border: 1px solid #ddd; position: relative; overflow: hidden; z-index: 1; }
 #viewer { height: 100%; }
@@ -24,15 +26,22 @@ body { font-family: system-ui, sans-serif; margin: 16px; }
 .item:hover { background: #f7f7f7; }
 label { display: block; margin-bottom: 8px; }
 select, input, button { width: 100%; padding: 6px; box-sizing: border-box; }
+.tool_hint { margin: 10px 0 8px; font-size: 12px; color: #52636d; }
+.tool_actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0 14px; }
+.tool_actions button { margin: 0; }
 .list { background: #fff; }
 #status { margin-top: 10px; color: #333; }
 #zn_error { margin-top: 6px; color: #8a1f11; background: #fff8f4; border: 1px solid #f3d2c7; padding: 6px; white-space: pre-wrap; word-break: break-word; max-height: 120px; overflow: auto; }
 #debug_error { margin-top: 6px; color: #8a1f11; background: #fff3f0; border: 1px solid #f0c2ba; padding: 6px; white-space: pre-wrap; word-break: break-word; max-height: 180px; overflow: auto; }
 #picked { margin-top: 8px; font-weight: 600; color: #0b5394; }
 #hover_info { position: absolute; right: 8px; bottom: 8px; background: rgba(0,0,0,0.7); color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 12px; z-index: 5; }
+@media (max-width: 760px) {
+  .tool_actions { grid-template-columns: 1fr; }
+}
 </style>
+<link rel="stylesheet" href="./theme.css">
 </head>
-<body>
+<body class="page-index">
 <div class="top_nav">
   <a href="./index.html">主页面</a>
   <a href="./diffdock_compare.html">DiffDock对比</a>
@@ -41,14 +50,13 @@ select, input, button { width: 100%; padding: 6px; box-sizing: border-box; }
   <a href="./tmalign.html">TM-align</a>
   <a href="./pdbzn_workflow.html">PDB-ZN工作流</a>
 </div>
-<h2>chemcial reaction search engine</h2>
+<h2>Zn 金属酶筛选平台</h2>
 <noscript>请启用浏览器的JavaScript以显示内容</noscript>
 <div class="row">
   <div id="controls">
     <label>数据源
       <select id="dataset">
-        <option value="../backend/data/master_full.json">master_full（主表全量）</option>
-        <option value="../backend/data/data.json">master（主表）</option>
+        <option value="table1">Table 1</option>
       </select>
     </label>
     <label>按PDB查找
@@ -69,12 +77,15 @@ select, input, button { width: 100%; padding: 6px; box-sizing: border-box; }
     <label>搜索名称
       <input id="search" type="text" placeholder="输入关键字">
     </label>
-    <button id="zn_mode_btn" type="button">ZN邻域模式：关</button>
-    <button id="res_label_btn" type="button">残基标签：关</button>
-    <button id="fivea_mode_btn" type="button">5Å相互作用+标签：关</button>
-    <button id="measure_mode_btn" type="button">测量模式：关</button>
-    <button id="measure_clear_btn" type="button">清空测量</button>
-    <button id="pocket_mode_btn" type="button">口袋包锌可视化：开</button>
+    <div class="tool_hint">可视化工具</div>
+    <div class="tool_actions">
+      <button id="zn_mode_btn" type="button">ZN邻域模式：关</button>
+      <button id="res_label_btn" type="button">残基标签：关</button>
+      <button id="fivea_mode_btn" type="button">5Å相互作用+标签：关</button>
+      <button id="measure_mode_btn" type="button">测量模式：关</button>
+      <button id="measure_clear_btn" type="button">清空测量</button>
+      <button id="pocket_mode_btn" type="button">口袋包锌可视化：开</button>
+    </div>
     <div class="list" id="list"></div>
   </div>
   <div id="viewer_col">
@@ -123,9 +134,13 @@ let structureModelRef = null;
 let ligandModelRef = null;
 let znVisibleShapes = [];
 let znVisibleLabels = [];
-let seqState = {text:"", residueMap:new Map(), selectedKey:"", hoverKey:""};
-const routePdb = (new URLSearchParams(window.location.search).get("pdb") || "").trim();
+let seqState = {text:"", residueMap:new Map(), indexMap:new Map(), residueInfo:new Map(), selectedKey:"", hoverKey:""};
+const routeParams = new URLSearchParams(window.location.search);
+const routePdb = (routeParams.get("pdb") || "").trim();
+const routeDataset = (routeParams.get("dataset") || "").trim().toLowerCase();
 let routeHandled = false;
+let tableRegistry = [];
+let currentDatasetEntry = null;
 try {
   if (window.$3Dmol) {
     viewer = $3Dmol.createViewer("viewer", {backgroundColor:"white"});
@@ -135,22 +150,70 @@ try {
 } catch (e) {
   viewer = { clear(){}, addModel(){ return { setStyle(){}, }; }, setStyle(){}, zoomTo(){}, render(){} };
 }
+function datasetPath(entry, key) {
+  const file = entry && entry[key] ? String(entry[key]) : "";
+  return file ? `../backend/data/${file}` : "";
+}
+function getSelectedDatasetEntry() {
+  const id = String(document.getElementById("dataset").value || "").trim();
+  return tableRegistry.find((t) => String(t.id || "") === id) || tableRegistry[0] || null;
+}
+function populateDatasetOptions() {
+  const sel = document.getElementById("dataset");
+  sel.innerHTML = "";
+  for (const table of tableRegistry) {
+    const op = document.createElement("option");
+    op.value = table.id;
+    op.textContent = table.label || table.id;
+    sel.appendChild(op);
+  }
+  if (routeDataset && tableRegistry.some((t) => String(t.id || "") === routeDataset)) {
+    sel.value = routeDataset;
+  } else if (tableRegistry.some((t) => String(t.id || "") === "table1")) {
+    sel.value = "table1";
+  }
+}
+async function loadDatasetRegistry() {
+  try {
+    const res = await fetch("../backend/data/table_registry.json?t=" + Date.now());
+    if (!res.ok) throw new Error("registry unavailable");
+    const obj = await res.json();
+    const tables = Array.isArray(obj?.tables) ? obj.tables.filter((t) => t && t.id) : [];
+    tableRegistry = tables.length ? tables : [{
+      id: "table1",
+      label: "Table 1",
+      data: "table1_data.json",
+      full: "table1_master_full.json"
+    }];
+  } catch (_) {
+    tableRegistry = [{
+      id: "table1",
+      label: "Table 1",
+      data: "table1_data.json",
+      full: "table1_master_full.json"
+    }];
+  }
+  populateDatasetOptions();
+}
 function loadData() {
-  const src = document.getElementById("dataset").value;
+  currentDatasetEntry = getSelectedDatasetEntry();
+  const src = datasetPath(currentDatasetEntry, "data") || datasetPath(currentDatasetEntry, "full") || "../backend/data/data.json";
   const status = document.getElementById("status");
-  status.textContent = "正在加载数据源：" + src;
+  const label = currentDatasetEntry && currentDatasetEntry.label ? currentDatasetEntry.label : src;
+  status.textContent = "正在加载数据源：" + label;
   const url = src + "?t=" + Date.now();
+  masterFull = null;
   fetch(url).then(r=>{
     if(!r.ok) throw new Error("数据源不可用");
     return r.json();
   }).then(j=>{ 
     db=j; 
     const count = Array.isArray(db.items) ? db.items.length : (Array.isArray(db.rows) ? db.rows.length : 0);
-    status.textContent = "已加载：" + src + "，条目数：" + count;
+    status.textContent = "已加载：" + label + "，条目数：" + count;
     loadList();
     tryOpenRoutePdb();
   }).catch((e)=>{
-    const fallback = src.includes("master_full") ? "../backend/data/data.json" : "../backend/data/master_full.json";
+    const fallback = datasetPath(currentDatasetEntry, "full") || "../backend/data/master_full.json";
     status.textContent = "当前数据源不可用，尝试备用：" + fallback + "；错误：" + (e && e.message ? e.message : "unknown");
     fetch(fallback + "?t=" + Date.now()).then(r=>{
       if(!r.ok) throw new Error("备用数据源不可用");
@@ -291,7 +354,9 @@ function loadList() {
 }
 async function ensureMasterFull() {
   if (masterFull) return masterFull;
-  const res = await fetch("../backend/data/master_full.json?t=" + Date.now());
+  const entry = getSelectedDatasetEntry();
+  const src = datasetPath(entry, "full") || "../backend/data/master_full.json";
+  const res = await fetch(src + "?t=" + Date.now());
   if (!res.ok) throw new Error("master_full.json 不可用");
   masterFull = await res.json();
   return masterFull;
@@ -354,8 +419,9 @@ function parseResiOrder(v) {
 }
 function buildResidueMapFromModel() {
   seqState.residueMap = new Map();
-  if (!viewer.getModel) return;
-  const model = viewer.getModel();
+  seqState.indexMap = new Map();
+  seqState.residueInfo = new Map();
+  const model = structureModelRef && structureModelRef.selectedAtoms ? structureModelRef : null;
   if (!model || !model.selectedAtoms) return;
   const caAtoms = model.selectedAtoms({atom:"CA"}) || [];
   const source = caAtoms.length ? caAtoms : (model.selectedAtoms({}) || []);
@@ -378,7 +444,11 @@ function buildResidueMapFromModel() {
   const n = Math.min(len, residues.length);
   for (let i = 0; i < n; i++) {
     const a = residues[i];
-    seqState.residueMap.set(residueKey(a.chain, a.resi), i + 1);
+    const key = residueKey(a.chain, a.resi);
+    const idx = i + 1;
+    seqState.residueMap.set(key, idx);
+    seqState.indexMap.set(idx, key);
+    seqState.residueInfo.set(key, {key, index: idx, atom: a});
   }
 }
 async function resolveSequenceText(it) {
@@ -403,9 +473,16 @@ async function renderSequenceForItem(it) {
   setSequenceStatus("序列加载中...");
   const text = await resolveSequenceText(it);
   seqState.text = text || "";
+  seqState.residueMap = new Map();
+  seqState.indexMap = new Map();
+  seqState.residueInfo = new Map();
   seqState.selectedKey = "";
   seqState.hoverKey = "";
   renderSequenceText(seqState.text);
+  if (structureModelRef && structureModelRef.selectedAtoms) {
+    buildResidueMapFromModel();
+    highlightSequenceResidues();
+  }
 }
 function setSequenceHoverFromAtom(atom) {
   if (!atom) return;
@@ -420,6 +497,96 @@ function setSequenceSelectedFromAtom(atom) {
 function clearSequenceHover() {
   seqState.hoverKey = "";
   highlightSequenceResidues();
+}
+function clearPickedLabel() {
+  if (pickedLabel && viewer.removeLabel) {
+    try { viewer.removeLabel(pickedLabel); } catch (_) {}
+  }
+  pickedLabel = null;
+}
+function setPickedResidueLabel(atom, text, color = "black") {
+  clearPickedLabel();
+  if (!atom || !viewer.addLabel) return;
+  pickedLabel = viewer.addLabel(text, {
+    position: {x: atom.x, y: atom.y, z: atom.z},
+    backgroundColor: color,
+    fontColor: "white"
+  });
+}
+function isZnAtom(atom) {
+  const elem = String(atom?.elem || "").toUpperCase();
+  const resn = String(atom?.resn || "").toUpperCase();
+  const atomName = String(atom?.atom || "").toUpperCase();
+  return elem === "ZN" || resn === "ZN" || atomName === "ZN";
+}
+function interactionLabelText(atom, distanceValue) {
+  const base = `${atom.chain || ""}:${atom.resn || ""}${atom.resi || ""}`;
+  const ds = Number.isFinite(distanceValue) ? ` · ${distanceValue.toFixed(1)}Å` : "";
+  return `⚡ ${base}${ds}`;
+}
+function addInteractionLabel(targetList, atom, anchorAtom, distanceValue) {
+  if (!viewer.addLabel || !atom) return;
+  const lb = viewer.addLabel(interactionLabelText(atom, distanceValue), {
+    position: offsetLabelPos(atom, anchorAtom),
+    backgroundColor: "rgba(255, 196, 84, 0.95)",
+    fontColor: "#2f1800",
+    fontSize: 15,
+    inFront: true
+  });
+  targetList.push(lb);
+}
+function focusResidueNeighborhood(atom, source = "viewer") {
+  if (!atom || !Number.isFinite(atom.x) || !Number.isFinite(atom.y) || !Number.isFinite(atom.z)) return;
+  applyBaseStyles();
+  drawZnVisibleAtoms(false);
+  applyZnNeighborhood();
+  const nearSel = {within:{distance:5.0, sel:{chain: atom.chain, resi: atom.resi}}, byres:true};
+  viewer.setStyle(nearSel, {stick:{colorscheme:"whiteCarbon", radius:0.2}});
+  viewer.setStyle({chain: atom.chain, resi: atom.resi}, {stick:{color:"orange", radius:0.28}});
+  const nearLabelCount = labelResiduesAroundAtom(atom);
+  const rrCount = drawResidueInteractionsAroundAtom(atom);
+  setPickedResidueLabel(atom, `${atom.chain}:${atom.resn}${atom.resi}`);
+  document.getElementById("picked").textContent = `当前残基：链 ${atom.chain}，${atom.resn}${atom.resi}`;
+  document.getElementById("status").textContent = source === "sequence"
+    ? `已从序列定位到 ${atom.chain}:${atom.resn}${atom.resi}；5Å范围残基标签 ${nearLabelCount} 个，残基相互作用线 ${rrCount} 条`
+    : `5Å范围：残基标签 ${nearLabelCount} 个，残基相互作用线 ${rrCount} 条`;
+  setSequenceSelectedFromAtom(atom);
+  viewer.zoomTo(nearSel);
+  viewer.render();
+}
+function focusZnNeighborhood(atom) {
+  applyBaseStyles();
+  drawZnVisibleAtoms(false);
+  const targetZn = toZnLikeAtom(atom, 0);
+  const targetSel = znAtomSelection(targetZn);
+  if (structureModelRef && structureModelRef.setStyle) {
+    structureModelRef.setStyle({within:{distance:5.0, sel:targetSel}}, {stick:{colorscheme:"yellowCarbon", radius:0.24}});
+    structureModelRef.setStyle(targetSel, {sphere:{radius:1.15, color:"#c100ff"}, stick:{radius:0.26, color:"#c100ff"}});
+  }
+  drawZnInteractionsAndLabels({force:true, emphasize:true, targetZnAtom: targetZn});
+  setPickedResidueLabel(atom, "Zn", "#7a0088");
+  document.getElementById("picked").textContent = "当前残基：Zn 位点";
+  seqState.selectedKey = "";
+  highlightSequenceResidues();
+  try {
+    viewer.zoomTo({within:{distance:5.0, sel:targetSel}});
+  } catch (_) {
+    viewer.zoomTo();
+  }
+  viewer.render();
+}
+function focusResidueBySequenceIndex(idx) {
+  const key = seqState.indexMap.get(idx);
+  if (!key) {
+    document.getElementById("status").textContent = `序列位置 ${idx} 暂无结构映射`;
+    return;
+  }
+  const info = seqState.residueInfo.get(key);
+  if (!info || !info.atom) {
+    document.getElementById("status").textContent = `序列位置 ${idx} 没有可点击的结构坐标`;
+    return;
+  }
+  focusResidueNeighborhood(info.atom, "sequence");
 }
 async function syncDetailById(id) {
   if (!id) return;
@@ -524,9 +691,10 @@ async function loadLigandForItem(it) {
 }
 function applyBaseStyles() {
   if (structureModelRef && structureModelRef.setStyle) {
-    structureModelRef.setStyle({}, {cartoon:{color:"steelblue", opacity:0.86}});
+    structureModelRef.setStyle({}, {cartoon:{color:"#7f97af", opacity:0.78}});
     structureModelRef.setStyle({elem:"ZN"}, {sphere:{radius:1.0, color:"magenta"}, stick:{radius:0.2, color:"magenta"}});
     structureModelRef.setStyle({within:{distance:3.0, sel:{elem:"ZN"}}}, {stick:{colorscheme:"greenCarbon", radius:0.18}});
+    structureModelRef.setStyle({within:{distance:5.0, sel:{elem:"ZN"}}, byres:true}, {stick:{colorscheme:"yellowCarbon", radius:0.22}});
   }
   if (ligandModelRef && ligandModelRef.setStyle) {
     ligandModelRef.setStyle({}, {stick:{colorscheme:"cyanCarbon", radius:0.2}});
@@ -591,7 +759,7 @@ function drawZnVisibleAtoms(forceFocus) {
   }
   if (forceFocus && viewer.zoomTo && structureModelRef && structureModelRef.selectedAtoms) {
     try {
-      viewer.zoomTo({elem:"ZN"});
+      viewer.zoomTo({within:{distance:5.0, sel:{elem:"ZN"}}, byres:true});
     } catch (_) {}
   }
   setZnError(`Zn显示正常：${drawOk} 个（绘制失败 ${drawFail} 个）`);
@@ -845,94 +1013,113 @@ function getStructureAtomsForNeighborhood() {
   if (!m || !m.selectedAtoms) return [];
   return m.selectedAtoms({}) || [];
 }
-function getZnNeighborhood() {
-  const znRaw = getStructureZnAtoms();
-  const znAtoms = znRaw.map((z, i)=>({x:z.x, y:z.y, z:z.z, serial:-(i+1), chain:"ZN", resn:"ZN", resi:i+1, atom:"ZN", elem:"ZN"}));
+function toZnLikeAtom(z, i = 0) {
+  return {
+    x: z.x,
+    y: z.y,
+    z: z.z,
+    serial: z.serial != null ? z.serial : -(i + 1),
+    chain: z.chain || "ZN",
+    resn: z.resn || "ZN",
+    resi: z.resi != null ? z.resi : (i + 1),
+    atom: z.atom || "ZN",
+    elem: z.elem || "ZN"
+  };
+}
+function znAtomSelection(atom) {
+  if (atom && Number.isFinite(Number(atom.serial)) && Number(atom.serial) > 0) {
+    return {serial: Number(atom.serial)};
+  }
+  return {x: atom.x, y: atom.y, z: atom.z};
+}
+function getZnNeighborhood(targetZnAtom = null) {
+  const znRaw = targetZnAtom ? [targetZnAtom] : getStructureZnAtoms();
+  const znAtoms = znRaw.map((z, i)=>toZnLikeAtom(z, i));
   const atoms = getStructureAtomsForNeighborhood();
-  const nearMap = new Map();
+  const residueMap = new Map();
   for (const a of atoms) {
     if (!a || !Number.isFinite(a.x) || !Number.isFinite(a.y) || !Number.isFinite(a.z)) continue;
+    if (String(a.elem || "").toUpperCase() === "H") continue;
+    if (String(a.elem || "").toUpperCase() === "ZN" || String(a.resn || "").toUpperCase() === "ZN") continue;
     let mind = Infinity;
+    let closestZn = null;
     for (const z of znAtoms) {
       const d = dist(a, z);
-      if (d < mind) mind = d;
+      if (d < mind) {
+        mind = d;
+        closestZn = z;
+      }
     }
     if (mind > 5.0) continue;
-    nearMap.set(`${a.serial}:${a.chain || ""}:${a.resi || ""}`, a);
-  }
-  const nearAtoms = Array.from(nearMap.values());
-  const resMap = new Map();
-  for (const a of nearAtoms) {
-    if (!a || a.elem === "H") continue;
     const key = `${a.chain || ""}:${a.resn || ""}${a.resi || ""}`;
-    const prev = resMap.get(key);
-    if (!prev || a.atom === "CA") resMap.set(key, a);
+    const prev = residueMap.get(key);
+    if (!prev) {
+      residueMap.set(key, {
+        chain: a.chain,
+        resn: a.resn,
+        resi: a.resi,
+        labelAtom: a,
+        interactionAtom: a,
+        closestZn,
+        minDist: mind
+      });
+      continue;
+    }
+    if (a.atom === "CA" && (!prev.labelAtom || prev.labelAtom.atom !== "CA")) {
+      prev.labelAtom = a;
+    }
+    if (mind < prev.minDist) {
+      prev.interactionAtom = a;
+      prev.closestZn = closestZn;
+      prev.minDist = mind;
+      if (!prev.labelAtom) prev.labelAtom = a;
+    }
   }
-  return {znAtoms, nearAtoms, resMap};
+  return {znAtoms, residueHits: Array.from(residueMap.values())};
 }
-function drawZnInteractionsAndLabels() {
+function drawZnInteractionsAndLabels(options = {}) {
   clearZnOverlays();
-  if (!znMode) return;
-  const {znAtoms, nearAtoms, resMap} = getZnNeighborhood();
+  const force = !!options.force;
+  const emphasize = !!options.emphasize;
+  const targetZnAtom = options.targetZnAtom || null;
+  if (!force && !znMode) return;
+  const {znAtoms, residueHits} = getZnNeighborhood(targetZnAtom);
   if (!znAtoms.length) {
     document.getElementById("status").textContent = "未在结构文本中解析到 Zn 原子";
     setZnError("Zn显示异常：未解析到Zn坐标，无法绘制Zn邻域");
     return;
   }
   let interactionCount = 0;
-  for (const zn of znAtoms) {
-    for (const a of nearAtoms) {
-      if (!a || a.serial === zn.serial) continue;
-      const d = dist(zn, a);
-      if (d > 5.0) continue;
-      if (viewer.addLine) {
-        const line = viewer.addLine({
-          start: {x: zn.x, y: zn.y, z: zn.z},
-          end: {x: a.x, y: a.y, z: a.z},
-          color: d <= 3.2 ? "orange" : "gold",
-          dashed: true,
-          linewidth: 2
-        });
-        znInteractionShapes.push(line);
-        interactionCount += 1;
-      }
-    }
+  for (const hit of residueHits) {
+    const a = hit.interactionAtom;
+    const zn = hit.closestZn;
+    if (!a || !zn || !viewer.addLine) continue;
+    const line = viewer.addLine({
+      start: {x: zn.x, y: zn.y, z: zn.z},
+      end: {x: a.x, y: a.y, z: a.z},
+      color: hit.minDist <= 3.2 ? "#ff8a00" : "#d7a22a",
+      dashed: emphasize,
+      linewidth: emphasize ? (hit.minDist <= 3.2 ? 5 : 4) : (hit.minDist <= 3.2 ? 3 : 2)
+    });
+    znInteractionShapes.push(line);
+    interactionCount += 1;
   }
   if (residueLabelMode && viewer.addLabel) {
-    const anchor = znAtoms[0];
-    for (const a of resMap.values()) {
-      const txt = `${a.chain || ""}:${a.resn || ""}${a.resi || ""}`;
-      const lb = viewer.addLabel(txt, {
-        position: offsetLabelPos(a, anchor),
-        backgroundColor: "rgba(255,255,255,0.9)",
-        fontColor: "black",
-        fontSize: 15,
-        inFront: true
-      });
-      znResidueLabels.push(lb);
+    for (const hit of residueHits) {
+      const a = hit.labelAtom || hit.interactionAtom;
+      if (!a) continue;
+      addInteractionLabel(znResidueLabels, a, hit.closestZn || znAtoms[0], hit.minDist);
     }
   }
-  if (residueLabelMode && viewer.addLabel) {
-    for (const a of nearAtoms) {
-      if (!a || a.elem === "H") continue;
-      const atomTxt = `${a.chain || ""}:${a.resn || ""}${a.resi || ""}:${a.atom || a.elem || ""}`;
-      const lb = viewer.addLabel(atomTxt, {
-        position: {x: a.x, y: a.y, z: a.z},
-        backgroundColor: "rgba(0,0,0,0.75)",
-        fontColor: "white",
-        fontSize: 12,
-        inFront: true
-      });
-      fiveAAtomLabels.push(lb);
-    }
-  }
-  document.getElementById("status").textContent = `已显示5Å邻域：相互作用线 ${interactionCount} 条，残基标签 ${residueLabelMode ? znResidueLabels.length : 0} 个，原子标签 ${residueLabelMode ? fiveAAtomLabels.length : 0} 个`;
+  document.getElementById("status").textContent = emphasize
+    ? `已选中 Zn：5Å 范围残基相互作用线 ${interactionCount} 条，残基标签 ${residueLabelMode ? znResidueLabels.length : 0} 个`
+    : `已显示5Å邻域：残基相互作用线 ${interactionCount} 条，残基标签 ${residueLabelMode ? znResidueLabels.length : 0} 个`;
 }
 function labelResiduesInSelection(sel) {
-  if (!residueLabelMode || !viewer.getModel || !viewer.addLabel) return;
+  if (!residueLabelMode || !viewer.addLabel) return;
   for (const l of residueNeighborLabels) viewer.removeLabel(l);
   residueNeighborLabels = [];
-  const model = viewer.getModel();
+  const model = structureModelRef && structureModelRef.selectedAtoms ? structureModelRef : null;
   if (!model || !model.selectedAtoms) return;
   const coreSel = sel && sel.within ? {within: sel.within} : sel;
   const atoms = model.selectedAtoms(coreSel) || [];
@@ -957,8 +1144,8 @@ function labelResiduesInSelection(sel) {
   document.getElementById("status").textContent = `已显示邻域残基标签：${residueNeighborLabels.length}`;
 }
 function collectNearResiduesByAtom(anchorAtom, cutoff) {
-  if (!anchorAtom || !viewer.getModel) return [];
-  const model = viewer.getModel();
+  if (!anchorAtom) return [];
+  const model = structureModelRef && structureModelRef.selectedAtoms ? structureModelRef : null;
   if (!model || !model.selectedAtoms) return [];
   const atoms = model.selectedAtoms({}) || [];
   const centerKey = `${anchorAtom.chain || ""}:${anchorAtom.resn || ""}${anchorAtom.resi || ""}`;
@@ -1001,15 +1188,7 @@ function labelResiduesAroundAtom(anchorAtom) {
   const near = collectNearResiduesByAtom(anchorAtom, 5.0);
   for (const item of near) {
     const a = item.atom;
-    const txt = `${a.chain || ""}:${a.resn || ""}${a.resi || ""}`;
-    const lb = viewer.addLabel(txt, {
-      position: offsetLabelPos(a, anchorAtom),
-      backgroundColor: "rgba(255,255,255,0.92)",
-      fontColor: "black",
-      fontSize: 16,
-      inFront: true
-    });
-    residueNeighborLabels.push(lb);
+    addInteractionLabel(residueNeighborLabels, a, anchorAtom, item.d);
   }
   return near.length;
 }
@@ -1018,10 +1197,10 @@ function applyZnNeighborhood() {
     clearZnOverlays();
     return;
   }
-  const {resMap} = getZnNeighborhood();
+  const {residueHits} = getZnNeighborhood();
   if (structureModelRef && structureModelRef.setStyle) {
-    for (const a of resMap.values()) {
-      structureModelRef.setStyle({chain:a.chain, resi:a.resi}, {stick:{colorscheme:"yellowCarbon", radius:0.2}});
+    for (const hit of residueHits) {
+      structureModelRef.setStyle({chain:hit.chain, resi:hit.resi}, {stick:{colorscheme:"yellowCarbon", radius:0.22}});
     }
   }
   drawZnInteractionsAndLabels();
@@ -1102,15 +1281,12 @@ function show(it) {
   setZnError("Zn显示：加载中");
   loadList();
   syncDetailById(selectedId);
-  renderSequenceForItem(it);
+  const sequencePromise = renderSequenceForItem(it);
   clearZnVisibleAtoms();
   viewer.clear();
   clearPocketOverlays();
   clearMeasurement();
-  if (pickedLabel && viewer.removeLabel) {
-    viewer.removeLabel(pickedLabel);
-    pickedLabel = null;
-  }
+  clearPickedLabel();
   document.getElementById("picked").textContent = "当前残基：未选择";
   loadStructureForItem(it).then(async (ok)=>{
     if (!ok) return;
@@ -1120,6 +1296,7 @@ function show(it) {
     drawZnVisibleAtoms(true);
     applyZnNeighborhood();
     await loadBestPocketOverlay(it);
+    await sequencePromise;
     buildResidueMapFromModel();
     highlightSequenceResidues();
     if (viewer.setClickable) {
@@ -1129,30 +1306,11 @@ function show(it) {
           handleMeasureClick(atom);
           return;
         }
-        applyBaseStyles();
-        drawZnVisibleAtoms(false);
-        applyZnNeighborhood();
-        const nearSel = {within:{distance:5.0, sel:{chain: atom.chain, resi: atom.resi}}, byres:true};
-        viewer.setStyle(nearSel, {stick:{colorscheme:"whiteCarbon", radius:0.18}});
-        viewer.setStyle({chain: atom.chain, resi: atom.resi}, {stick:{color:"orange"}});
-        viewer.setStyle({elem:"ZN"}, {sphere:{radius:1.0, color:"magenta"}, stick:{radius:0.2, color:"magenta"}});
-        drawZnInteractionsAndLabels();
-        labelResiduesInSelection(nearSel);
-        const nearLabelCount = labelResiduesAroundAtom(atom);
-        const rrCount = drawResidueInteractionsAroundAtom(atom);
-        if (pickedLabel && viewer.removeLabel) viewer.removeLabel(pickedLabel);
-        if (viewer.addLabel) {
-          pickedLabel = viewer.addLabel(`${atom.chain}:${atom.resn}${atom.resi}`, {
-            position: {x: atom.x, y: atom.y, z: atom.z},
-            backgroundColor: "black",
-            fontColor: "white"
-          });
+        if (isZnAtom(atom)) {
+          focusZnNeighborhood(atom);
+          return;
         }
-        document.getElementById("picked").textContent = `当前残基：链 ${atom.chain}，${atom.resn}${atom.resi}`;
-        document.getElementById("status").textContent = `5Å范围：残基标签 ${nearLabelCount} 个，残基相互作用线 ${rrCount} 条`;
-        setSequenceSelectedFromAtom(atom);
-        viewer.zoomTo(nearSel);
-        viewer.render();
+        focusResidueNeighborhood(atom, "viewer");
       });
     }
     if (viewer.setHoverable) {
@@ -1165,7 +1323,11 @@ function show(it) {
         clearSequenceHover();
       });
     }
-    viewer.zoomTo();
+    try {
+      viewer.zoomTo({within:{distance:5.0, sel:{elem:"ZN"}}, byres:true});
+    } catch (_) {
+      viewer.zoomTo();
+    }
     viewer.render();
   });
 }
@@ -1201,8 +1363,10 @@ function find() {
     renderDetailTable(target, j.header);
   }).catch(()=>{ box.textContent = "查询失败"; });
 }
-document.getElementById("dataset").value = "../backend/data/data.json";
-window.addEventListener("load", loadData);
+window.addEventListener("load", async () => {
+  await loadDatasetRegistry();
+  loadData();
+});
 document.getElementById("cluster").addEventListener("change", loadList);
 document.getElementById("search").addEventListener("input", loadList);
 document.getElementById("dataset").addEventListener("change", loadData);
@@ -1243,6 +1407,13 @@ document.getElementById("measure_clear_btn").addEventListener("click", ()=>{
   clearMeasurement();
   viewer.render();
   document.getElementById("status").textContent = "测量结果已清空";
+});
+document.getElementById("seq_content").addEventListener("click", (e)=>{
+  const span = e.target && e.target.closest ? e.target.closest(".seq_aa") : null;
+  if (!span) return;
+  const idx = Number(span.dataset.idx || "0");
+  if (!idx) return;
+  focusResidueBySequenceIndex(idx);
 });
 document.getElementById("pocket_mode_btn").addEventListener("click", ()=>{
   pocketMode = !pocketMode;

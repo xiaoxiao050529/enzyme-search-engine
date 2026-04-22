@@ -1,14 +1,22 @@
-import os, csv, json, shutil, urllib.request
+import csv
+import json
+import os
+import shutil
+import urllib.request
+from pathlib import Path
 
-RANKING_CSV = "/root/PDB_ZN/zn_his_similarity_ranking2.csv"
-OUT_STRUCT_DIR = "/root/data-platform/backend/data/structures"
-OUT_JSON = "/root/data-platform/backend/data/ranking.json"
+BASE_DIR = Path(__file__).resolve().parent
+PROJECT_DIR = BASE_DIR.parent
+DATA_DIR = BASE_DIR / "data"
+RANKING_CSV = Path(os.environ.get("PDBZN_RANKING_CSV", PROJECT_DIR / "PDB_ZN" / "zn_his_similarity_ranking2.csv"))
+OUT_STRUCT_DIR = DATA_DIR / "structures"
+OUT_JSON = DATA_DIR / "ranking.json"
 
 def read_ids():
     ids = []
-    if not os.path.exists(RANKING_CSV):
+    if not RANKING_CSV.exists():
         raise SystemExit("ranking csv not found")
-    with open(RANKING_CSV, newline="") as f:
+    with RANKING_CSV.open(newline="", encoding="utf-8", errors="ignore") as f:
         rdr = csv.reader(f)
         for row in rdr:
             if not row: continue
@@ -27,22 +35,23 @@ def read_ids():
     return ids
 
 def ensure_structure(pdbid):
-    os.makedirs(OUT_STRUCT_DIR, exist_ok=True)
-    local_pdb = f"/root/PDB_ZN/diffdock_inputs/receptors/{pdbid}.pdb"
-    local_cif = f"/root/PDB_ZN/diffdock_inputs/receptors/{pdbid}.cif"
-    if os.path.exists(local_pdb):
-        dst = os.path.join(OUT_STRUCT_DIR, f"{pdbid}.pdb")
-        shutil.copy(local_pdb, dst)
+    OUT_STRUCT_DIR.mkdir(parents=True, exist_ok=True)
+    root = PROJECT_DIR / "PDB_ZN" / "diffdock_inputs" / "receptors"
+    local_pdb = root / f"{pdbid}.pdb"
+    local_cif = root / f"{pdbid}.cif"
+    if local_pdb.exists():
+        dst = OUT_STRUCT_DIR / f"{pdbid}.pdb"
+        shutil.copy(str(local_pdb), str(dst))
         return f"../backend/data/structures/{pdbid}.pdb"
-    if os.path.exists(local_cif):
-        dst = os.path.join(OUT_STRUCT_DIR, f"{pdbid}.cif")
-        shutil.copy(local_cif, dst)
+    if local_cif.exists():
+        dst = OUT_STRUCT_DIR / f"{pdbid}.cif"
+        shutil.copy(str(local_cif), str(dst))
         return f"../backend/data/structures/{pdbid}.cif"
     # try download cif
     url = f"https://files.rcsb.org/download/{pdbid}.cif"
-    dst = os.path.join(OUT_STRUCT_DIR, f"{pdbid}.cif")
+    dst = OUT_STRUCT_DIR / f"{pdbid}.cif"
     try:
-        urllib.request.urlretrieve(url, dst)
+        urllib.request.urlretrieve(url, str(dst))
         return f"../backend/data/structures/{pdbid}.cif"
     except Exception:
         return ""
@@ -52,7 +61,7 @@ def main():
     for pdbid, score in read_ids():
         rel = ensure_structure(pdbid)
         items.append({"id": pdbid, "score": score, "receptor_rel": rel})
-    with open(OUT_JSON, "w") as f:
+    with OUT_JSON.open("w", encoding="utf-8") as f:
         json.dump({"items": items}, f, ensure_ascii=False, indent=2)
     print("OK", OUT_JSON, len(items))
 

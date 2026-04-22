@@ -2,6 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>fpocket 页面</title>
 <script src="https://unpkg.com/3dmol/build/3Dmol-min.js"></script>
@@ -16,6 +17,11 @@ label { display: block; margin-bottom: 8px; }
 input, button, textarea { width: 100%; box-sizing: border-box; padding: 6px; }
 button { margin-top: 4px; }
 #status { margin-top: 10px; color: #333; }
+.muted { margin: -4px 0 8px 0; color: #666; font-size: 12px; }
+.progress_box { margin-top: 8px; padding: 8px; border: 1px solid #e1e8f0; background: #f8fbff; border-radius: 8px; }
+.progress_head { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 6px; font-size: 12px; color: #325b88; }
+.progress_track { height: 10px; background: #e4edf7; border-radius: 999px; overflow: hidden; }
+.progress_fill { width: 0%; height: 100%; background: linear-gradient(90deg, #4f8cc9, #67b99a); transition: width 220ms ease, background 220ms ease; }
 #result { border: 1px solid #ddd; background: #fff; min-height: 420px; padding: 10px; display: flex; flex-direction: column; gap: 10px; position: relative; overflow: hidden; }
 #viewer_panel { border: 1px solid #e5e7eb; background: #fcfdff; padding: 8px; display: none; overflow: hidden; }
 #data_panel { border: 1px solid #e5e7eb; background: #fff; padding: 8px; }
@@ -32,8 +38,9 @@ pre { white-space: pre-wrap; word-break: break-word; background: #f8f8f8; border
 #params_table th, #params_table td { border: 1px solid #ddd; padding: 4px 6px; text-align: right; white-space: nowrap; }
 #params_table th:first-child, #params_table td:first-child { text-align: left; position: sticky; left: 0; background: #fff; }
 </style>
+<link rel="stylesheet" href="./theme.css">
 </head>
-<body>
+<body class="page-fpocket">
 <div class="top_nav">
   <a href="./index.html">主页面</a>
   <a href="./diffdock_compare.html">DiffDock对比</a>
@@ -46,12 +53,17 @@ pre { white-space: pre-wrap; word-break: break-word; background: #f8f8f8; border
 <div class="layout">
   <div id="controls">
     <label>API地址
-      <input id="api_base" type="text" value="http://127.0.0.1:8017" placeholder="例如 http://127.0.0.1:8017">
+      <input id="api_base" type="text" value="http://127.0.0.1:8015" placeholder="例如 http://127.0.0.1:8015">
     </label>
-    <div style="margin:-4px 0 8px 0;color:#666;font-size:12px;">支持自动探测 8021/8019/8018/8017/8016；不要填写前端页面端口（如 8020）</div>
-    <label>PDB文件
+    <div class="muted">支持自动探测 8015/8021/8019/8018/8017/8016；不要填写前端页面端口（如 8020）</div>
+    <label>PDB文件（可上传本地结构）
       <input id="pdb_file" type="file" accept=".pdb,.ent">
     </label>
+    <label>或选择库内蛋白
+      <input id="protein_pick" type="text" list="protein_options" placeholder="例如 3MWM | Graded expression ...">
+    </label>
+    <div class="muted">如果未上传文件，提交时会自动使用这里选中的蛋白结构。</div>
+    <datalist id="protein_options"></datalist>
     <button id="submit_btn" type="button">提交 fpocket 任务</button>
     <label>任务ID
       <input id="job_id" type="text" placeholder="提交后自动填入，或手工输入">
@@ -59,6 +71,10 @@ pre { white-space: pre-wrap; word-break: break-word; background: #f8f8f8; border
     <button id="poll_btn" type="button">查询任务状态</button>
     <button id="log_btn" type="button">查看任务日志</button>
     <div id="status">待提交</div>
+    <div class="progress_box">
+      <div class="progress_head"><span id="progress_label">任务进度</span><span id="progress_pct">0%</span></div>
+      <div class="progress_track"><div id="progress_fill" class="progress_fill"></div></div>
+    </div>
     <pre id="debug_error">phase=idle</pre>
   </div>
   <div id="result">
@@ -83,8 +99,150 @@ pre { white-space: pre-wrap; word-break: break-word; background: #f8f8f8; border
 let pollTimer = null;
 let pollCount = 0;
 let viewer = null;
+let proteinCatalog = [];
+let proteinLookup = new Map();
+let currentProgressValue = 0;
 function getApiBase() {
   return (document.getElementById("api_base").value || "").trim().replace(/\/+$/, "");
+}
+function viewerUnavailableMessage() {
+  return "3Dmol 未加载，通常是浏览器无法访问 https://unpkg.com/3dmol/build/3Dmol-min.js；fpocket 任务和参数表仍可查看，但图像无法渲染。";
+}
+function appendNoCache(url) {
+  return url + (url.includes("?") ? "&" : "?") + "t=" + Date.now();
+}
+function setProgress(value, label, tone = "normal") {
+  const pct = Math.max(0, Math.min(100, Math.round(Number(value) || 0)));
+  currentProgressValue = pct;
+  document.getElementById("progress_fill").style.width = pct + "%";
+  document.getElementById("progress_fill").style.background = tone === "error" ? "linear-gradient(90deg, #d62828, #f77f00)" : "linear-gradient(90deg, #4f8cc9, #67b99a)";
+  document.getElementById("progress_label").textContent = label || "任务进度";
+  document.getElementById("progress_pct").textContent = pct + "%";
+}
+function resetProgress(label = "任务进度") {
+  setProgress(0, label, "normal");
+}
+function jobProgressValue(job) {
+  const phase = String(job?.phase || job?.status || "queued");
+  const table = {
+    queued: 6,
+    starting: 12,
+    prepare_dirs: 20,
+    discover_bin: 32,
+    open_log: 40,
+    spawn: 55,
+    waiting: 78,
+    done: 100,
+    done_recovered: 100,
+    recovered: 92,
+    failed: Math.max(currentProgressValue, 100),
+    failed_no_bin: Math.max(currentProgressValue, 100),
+    failed_exit: Math.max(currentProgressValue, 100),
+    failed_exception: Math.max(currentProgressValue, 100),
+    failed_bootstrap: Math.max(currentProgressValue, 100),
+    failed_watchdog: Math.max(currentProgressValue, 100)
+  };
+  return table[phase] != null ? table[phase] : (String(job?.status || "") === "done" ? 100 : Math.max(8, currentProgressValue));
+}
+function updateProgressFromJob(job) {
+  const st = String(job?.status || "queued");
+  const phase = String(job?.phase || st || "queued");
+  const pct = jobProgressValue(job);
+  const tone = st === "failed" ? "error" : "normal";
+  const label = st === "done"
+    ? `任务完成 (${phase})`
+    : (st === "failed" ? `任务失败 (${phase})` : `任务进行中 (${phase})`);
+  setProgress(pct, label, tone);
+}
+function normalizeDataRelPath(ref) {
+  const s = String(ref || "").trim();
+  if (!s) return "";
+  const directPrefixes = ["../backend/data/", "./backend/data/", "/backend/data/", "backend/data/"];
+  for (const p of directPrefixes) {
+    if (s.startsWith(p)) return s.slice(p.length);
+  }
+  if (s.startsWith("structures/") || s === "data.json") return s;
+  if (s.startsWith("/root/PDB_ZN/diffdock_inputs/receptors/")) {
+    return "structures/" + s.split("/").pop();
+  }
+  return "";
+}
+function dataUrlCandidates(apiBase, ref) {
+  const rel = normalizeDataRelPath(ref);
+  if (!rel) return [];
+  const out = [];
+  if (apiBase) out.push(`${apiBase}/api/data/file?path=${encodeURIComponent(rel)}`);
+  out.push(`../backend/data/${rel}`);
+  return [...new Set(out)];
+}
+async function fetchPlainJson(url) {
+  const r = await fetch(appendNoCache(url));
+  if (!r.ok) throw new Error(`${url} 不可用`);
+  return await r.json();
+}
+async function fetchPlainText(url) {
+  const r = await fetch(appendNoCache(url));
+  if (!r.ok) throw new Error(`${url} 不可用`);
+  return await r.text();
+}
+async function fetchFirstSuccessful(urls, loader) {
+  let lastErr = null;
+  for (const u of urls) {
+    try {
+      return await loader(u);
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr || new Error("资源不可用");
+}
+function proteinOptionValue(it) {
+  const id = String(it?.id || "").toUpperCase();
+  const name = String(it?.name || "").trim();
+  return name ? `${id} | ${name}` : id;
+}
+function populateProteinOptions() {
+  const list = document.getElementById("protein_options");
+  list.innerHTML = "";
+  for (const it of proteinCatalog) {
+    const op = document.createElement("option");
+    op.value = proteinOptionValue(it);
+    list.appendChild(op);
+  }
+}
+async function loadProteinCatalog(apiBase) {
+  try {
+    const payload = await fetchFirstSuccessful(dataUrlCandidates(apiBase, "data.json"), fetchPlainJson);
+    const items = Array.isArray(payload?.items) ? payload.items : [];
+    proteinCatalog = items.map((it) => ({
+      id: String(it.id || "").toUpperCase(),
+      name: String(it.name || ""),
+      receptor_rel: String(it.receptor_rel || ""),
+      receptor_pdb: String(it.receptor_pdb || "")
+    })).filter((it) => it.id);
+    proteinLookup = new Map(proteinCatalog.map((it) => [it.id, it]));
+    populateProteinOptions();
+  } catch (e) {
+    setDebugError((document.getElementById("debug_error").textContent || "phase=idle") + `\nwarn=protein_catalog_unavailable ${e && e.message ? e.message : "unknown"}`);
+  }
+}
+function findProteinEntry(text) {
+  const raw = String(text || "").trim();
+  if (!raw) return null;
+  const id = raw.split("|")[0].trim().toUpperCase();
+  if (proteinLookup.has(id)) return proteinLookup.get(id);
+  return proteinCatalog.find((it) => proteinOptionValue(it).toUpperCase() === raw.toUpperCase()) || null;
+}
+async function loadSelectedProteinStructure(apiBase) {
+  const entry = findProteinEntry(document.getElementById("protein_pick").value);
+  if (!entry) throw new Error("请选择库内蛋白，或上传本地PDB文件");
+  const refs = [entry.receptor_rel, entry.receptor_pdb, `structures/${entry.id}.pdb`];
+  const text = await fetchFirstSuccessful(
+    refs.flatMap((ref) => dataUrlCandidates(apiBase, ref)),
+    fetchPlainText
+  );
+  if (!text || text.trim().length < 50) throw new Error(`库内蛋白 ${entry.id} 结构为空或过短`);
+  return {entry, text};
 }
 function setStatus(t) {
   document.getElementById("status").textContent = t;
@@ -136,7 +294,7 @@ async function detectApiBase() {
   const cands = [];
   if (userBase) cands.push(userBase);
   const h = window.location.hostname || "127.0.0.1";
-  cands.push(`http://${h}:8021`, `http://${h}:8019`, `http://${h}:8018`, `http://${h}:8017`, `http://${h}:8016`, "http://127.0.0.1:8021", "http://127.0.0.1:8019", "http://127.0.0.1:8018", "http://127.0.0.1:8017", "http://127.0.0.1:8016");
+  cands.push(`http://${h}:8015`, `http://${h}:8021`, `http://${h}:8019`, `http://${h}:8018`, `http://${h}:8017`, `http://${h}:8016`, "http://127.0.0.1:8015", "http://127.0.0.1:8021", "http://127.0.0.1:8019", "http://127.0.0.1:8018", "http://127.0.0.1:8017", "http://127.0.0.1:8016");
   const uniq = [];
   for (const c of cands) if (!uniq.includes(c)) uniq.push(c);
   let lastErr = "";
@@ -153,7 +311,7 @@ async function detectApiBase() {
       lastErr = e && e.message ? e.message : String(e || "");
     }
   }
-  throw new Error("无法连接fpocket API。请确认后端已启动并监听 8021/8019/8018/8017/8016。最后错误：" + lastErr);
+  throw new Error("无法连接fpocket API。请确认后端已启动并监听 8015/8021/8019/8018/8017/8016。最后错误：" + lastErr);
 }
 function readFileText(file) {
   return new Promise((resolve, reject)=>{
@@ -244,6 +402,11 @@ function collectMetalAtoms(model) {
   const atoms = model.selectedAtoms({}) || [];
   return atoms.filter(a => METAL_ELEMENTS.has(String(a.elem || "").toUpperCase()));
 }
+function collectZnAtoms(model) {
+  if (!model || !model.selectedAtoms) return [];
+  const atoms = model.selectedAtoms({elem:"ZN"}) || [];
+  return atoms.filter(a => Number.isFinite(a.x) && Number.isFinite(a.y) && Number.isFinite(a.z));
+}
 function parsePdbMetals(structureText) {
   const out = [];
   if (!structureText) return out;
@@ -278,11 +441,16 @@ function renderPocketViewer(structureText, pockets) {
   }
   const m = v.addModel(structureText, "pdb");
   if (m && m.setStyle) {
-    m.setStyle({}, {cartoon:{color:"lightblue", opacity:0.9}});
+    m.setStyle({}, {cartoon:{color:"#b8c7d8", opacity:0.18}});
+    m.setStyle({within:{distance:3.0, sel:{elem:"ZN"}}}, {stick:{colorscheme:"greenCarbon", radius:0.2}});
+    m.setStyle({within:{distance:5.0, sel:{elem:"ZN"}}, byres:true}, {stick:{colorscheme:"yellowCarbon", radius:0.24}});
   }
+  const modelZn = collectZnAtoms(m);
   const modelMetals = collectMetalAtoms(m);
   const pdbMetals = parsePdbMetals(structureText);
-  const metalAtoms = pdbMetals.length >= modelMetals.length ? pdbMetals : modelMetals;
+  const pdbZn = pdbMetals.filter(a => String(a.elem || "").toUpperCase() === "ZN");
+  const znAtoms = pdbZn.length >= modelZn.length ? pdbZn : modelZn;
+  const metalAtoms = znAtoms.length ? znAtoms : (pdbMetals.length >= modelMetals.length ? pdbMetals : modelMetals);
   let idx = 0;
   for (const a of metalAtoms) {
     idx += 1;
@@ -349,7 +517,13 @@ function renderPocketViewer(structureText, pockets) {
       });
     }
   }
-  if (v.zoomTo) v.zoomTo();
+  if (v.zoomTo) {
+    if (znAtoms.length) {
+      v.zoomTo({within:{distance:5.0, sel:{elem:"ZN"}}, byres:true});
+    } else {
+      v.zoomTo();
+    }
+  }
   if (v.resize) v.resize();
   if (v.render) v.render();
   return metalAtoms.length;
@@ -379,26 +553,36 @@ async function loadPocketData() {
 async function submitJob() {
   let apiBase = getApiBase();
   const file = (document.getElementById("pdb_file").files || [])[0];
-  if (!file) {
-    setStatus("请先选择PDB文件");
-    setDebugError("phase=submit_validate\nerror=missing_file");
-    return;
-  }
   if (pollTimer) {
     clearInterval(pollTimer);
     pollTimer = null;
   }
   clearPocketPanels();
+  resetProgress("准备提交 fpocket 任务");
   try {
-    setDebugError(`phase=submit_prepare\nfile=${file.name}\nsize=${file.size}`);
     const detect = await detectApiBase();
     apiBase = detect.base;
     setDebugError(`phase=api_ready\napi=${apiBase}\nfpocket_bin=${(detect.ping && detect.ping.fpocket_bin) || "-"}`);
-    const text = await readFileText(file);
+    let pdbName = "";
+    let text = "";
+    let source = "";
+    if (file) {
+      pdbName = file.name;
+      text = await readFileText(file);
+      source = `upload:${file.name}`;
+      setDebugError(`phase=submit_prepare\nsource=${source}\nsize=${file.size}`);
+    } else {
+      const selected = await loadSelectedProteinStructure(apiBase);
+      pdbName = `${selected.entry.id}.pdb`;
+      text = selected.text;
+      source = `catalog:${selected.entry.id}`;
+      setDebugError(`phase=submit_prepare\nsource=${source}\npdb_name=${pdbName}\npdb_len=${text.length}`);
+    }
     if (!text || text.trim().length < 50) throw new Error("PDB文件内容为空或过短");
-    const payload = {pdb_name: file.name, pdb_text: text};
+    const payload = {pdb_name: pdbName, pdb_text: text};
     setStatus("正在提交任务...");
-    setDebugError(`phase=submit_request\napi=${apiBase}\nendpoint=/api/fpocket/submit\npdb_len=${text.length}`);
+    setProgress(10, "已准备结构，正在提交");
+    setDebugError(`phase=submit_request\napi=${apiBase}\nendpoint=/api/fpocket/submit\nsource=${source}\npdb_len=${text.length}`);
     const {json: j} = await fetchJsonWithDetail(apiBase + "/api/fpocket/submit", {
       method: "POST",
       headers: {"Content-Type":"application/json"},
@@ -406,6 +590,7 @@ async function submitJob() {
     }, "submit");
     document.getElementById("job_id").value = j.job_id || "";
     setStatus(`提交成功：${j.job_id}`);
+    setProgress(18, `任务已提交 (${j.job_id})`);
     setDebugError(`phase=submitted\njob_id=${j.job_id}\nstatus_url=${j.status_url || "-"}`);
     pollCount = 0;
     await pollStatus();
@@ -423,6 +608,7 @@ async function submitJob() {
   } catch (e) {
     const msg = (e && e.message ? e.message : "unknown");
     setStatus("提交失败：" + msg);
+    setProgress(Math.max(12, currentProgressValue), "提交失败", "error");
     setDebugError(`phase=submit_error\nerror=${msg}`);
   }
 }
@@ -443,6 +629,7 @@ async function pollStatus() {
     const phase = job.phase || "-";
     const runningSec = fmtSec(job.started_at);
     setStatus(`状态：${st}`);
+    updateProgressFromJob(job);
     setJobMeta(`任务 ${job.id} | pdb=${job.pdb_name || "-"} | pid=${job.pid || "-"} | exit_code=${job.exit_code == null ? "-" : job.exit_code} | phase=${phase} | running=${runningSec}s`);
     renderOutputs(apiBase, job.outputs || []);
     setDebugError(`phase=status_ok\napi=${apiBase}\njob_id=${id}\nstatus=${st}\nphase_detail=${phase}\nrunning_sec=${runningSec}\npid=${job.pid || "-"}\nexit_code=${job.exit_code == null ? "-" : job.exit_code}\nerror=${job.error || "-"}`);
@@ -468,6 +655,7 @@ async function pollStatus() {
   } catch (e) {
     const msg = (e && e.message ? e.message : "unknown");
     setStatus("查询失败：" + msg);
+    setProgress(Math.max(currentProgressValue, 20), "任务状态查询失败", "error");
     setDebugError(`phase=status_error\njob_id=${id}\nerror=${msg}`);
   }
 }
@@ -493,15 +681,29 @@ async function loadLog() {
   }
 }
 window.addEventListener("load", async ()=>{
+  resetProgress("等待提交");
   try {
     setStatus("正在探测API...");
     const d = await detectApiBase();
     setStatus("API可用：" + d.base);
     setDebugError(`phase=ready\napi=${d.base}\nfpocket_bin=${(d.ping && d.ping.fpocket_bin) || "-"}`);
+    await loadProteinCatalog(d.base);
   } catch (e) {
     const msg = e && e.message ? e.message : "unknown";
     setStatus("API不可用：" + msg);
     setDebugError(`phase=init_error\nerror=${msg}`);
+    setProgress(100, "API不可用", "error");
+  }
+  if (!window.$3Dmol) {
+    const msg = viewerUnavailableMessage();
+    setStatus((document.getElementById("status").textContent || "状态未知") + " | " + msg);
+    setDebugError((document.getElementById("debug_error").textContent || "phase=idle") + `\nwarn=${msg}`);
+  }
+});
+document.getElementById("protein_pick").addEventListener("change", ()=>{
+  const entry = findProteinEntry(document.getElementById("protein_pick").value);
+  if (entry) {
+    setStatus(`已选择库内蛋白：${entry.id}`);
   }
 });
 document.getElementById("submit_btn").addEventListener("click", submitJob);

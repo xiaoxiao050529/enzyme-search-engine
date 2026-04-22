@@ -1,0 +1,40 @@
+# Local Codex state
+/.codex
+
+# Local toolchains, binary deps, and virtualenvs
+/.tools/
+/.venv/
+/venv/
+
+# Python caches and test tooling
+**/__pycache__/
+*.py[cod]
+/.pytest_cache/
+/.mypy_cache/
+/.ruff_cache/
+
+# Backend runtime outputs
+/backend/runtime/
+/backend/*.sqlite
+/backend/*.sqlite-*
+/backend/*.db-wal
+/backend/*.db-shm
+/backend/data/structures/*_out/
+
+# Local downloads and scratch data outside tracked snapshots
+/data/
+ids*.txt
+ids*.tet
+
+# Logs and ad hoc exports
+*.log
+屏幕截图 *.png
+Screenshot *.png
+
+# Editor and OS noise
+/.idea/
+/.vscode/
+.DS_Store
+*.swp
+*.swo
+*~

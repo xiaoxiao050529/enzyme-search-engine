@@ -11,6 +11,19 @@
       "description": "主表快照（Table 1）"
     },
     {
+      "id": "6j4c",
+      "label": "6J4C",
+      "full": "6j4c_master_full.json",
+      "data": "6j4c_data.json",
+      "csv": "6j4c_master_table.csv",
+      "ids": "6j4c_ids.json",
+      "row_count": 1,
+      "stage": "step5_finalize",
+      "description": "PDB 工作流生成结果（包含 DiffDock / fpocket / 3HIS 几何补全）",
+      "updated_at": 1776871411,
+      "updated_at_text": "2026-04-22 23:23:31"
+    },
+    {
       "id": "1jdi",
       "label": "1JDI",
       "full": "1jdi_master_full.json",

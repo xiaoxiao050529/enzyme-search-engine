@@ -31,6 +31,8 @@ IMPORT_STRUCT_DIR = RUNTIME_DIR / "import_structures"
 _pdbzn_tmalign_cache = {}
 _pdbzn_tmalign_cache_lock = threading.Lock()
 _pdbzn_table_registry_lock = threading.Lock()
+_pdbzn_pocket_table_cache = None
+_pdbzn_pocket_table_cache_lock = threading.Lock()
 
 IMPORT_STRUCT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -173,6 +175,42 @@ PDBZN_METAL_ELEMENTS = {
     "LI", "NA", "K", "RB", "CS", "MG", "CA", "SR", "BA",
     "MN", "FE", "CO", "NI", "CU", "ZN", "CD", "HG", "AL",
     "GA", "IN", "TL", "CR", "MO", "W", "V", "TI", "Y", "ZR",
+}
+PDBZN_HIS_RESIDUES = {"HIS", "HID", "HIE", "HIP", "HSD", "HSE", "HSP"}
+PDBZN_PROTEIN_DONOR_ATOMS = {
+    "ALA": set(),
+    "ARG": {"NE", "NH1", "NH2"},
+    "ASN": {"OD1", "ND2"},
+    "ASP": {"OD1", "OD2"},
+    "ASH": {"OD1", "OD2"},
+    "CYS": {"SG"},
+    "CYM": {"SG"},
+    "CYX": {"SG"},
+    "GLN": {"OE1", "NE2"},
+    "GLU": {"OE1", "OE2"},
+    "GLH": {"OE1", "OE2"},
+    "GLY": set(),
+    "HIS": {"ND1", "NE2"},
+    "HID": {"ND1", "NE2"},
+    "HIE": {"ND1", "NE2"},
+    "HIP": {"ND1", "NE2"},
+    "HSD": {"ND1", "NE2"},
+    "HSE": {"ND1", "NE2"},
+    "HSP": {"ND1", "NE2"},
+    "ILE": set(),
+    "LEU": set(),
+    "LYS": {"NZ"},
+    "LYN": {"NZ"},
+    "MET": {"SD"},
+    "MSE": {"SE"},
+    "PHE": set(),
+    "PRO": set(),
+    "SEC": {"SE"},
+    "SER": {"OG"},
+    "THR": {"OG1"},
+    "TRP": {"NE1"},
+    "TYR": {"OH"},
+    "VAL": set(),
 }
 
 
@@ -1185,6 +1223,137 @@ def _pdbzn_residue_label(res_key):
     s = seq or "?"
     ic = "" if (not icode or icode in {"?", "."}) else icode
     return f"{comp}:{c}:{s}{ic}"
+
+
+def _pdbzn_is_truthy(value):
+    if isinstance(value, bool):
+        return value
+    text = str(value or "").strip().lower()
+    return text in {"1", "true", "yes", "y", "ok"}
+
+
+def _pdbzn_coord_donor_atom_allowed(atom):
+    comp = str((atom or {}).get("comp", "") or "").strip().upper()
+    atom_name = str((atom or {}).get("atom", "") or "").strip().upper()
+    return atom_name in PDBZN_PROTEIN_DONOR_ATOMS.get(comp, set())
+
+
+def _pdbzn_coord_site_sort_key(site):
+    return (
+        -int(site.get("his_count", 0)),
+        int(site.get("non_his_count", 10**9)),
+        int(site.get("residue_count", 10**9)),
+        float(site.get("dist_sum", 9999.0)),
+        str(site.get("site", "")),
+        int(site.get("index", 10**9)),
+    )
+
+
+def _pdbzn_coord_site_summary(site):
+    if not site:
+        return ""
+    return (
+        f"Zn{site.get('index', '?')}@{site.get('site', '?')}: "
+        f"total={site.get('residue_count', 0)}, "
+        f"his={site.get('his_count', 0)}, "
+        f"non_his={site.get('non_his_count', 0)}, "
+        f"residues={site.get('residues_text', '') or '-'}"
+    )
+
+
+def _pdbzn_collect_coord_sites(atoms):
+    zn_atoms = [
+        a for a in atoms
+        if str(a.get("comp") or "").upper() == "ZN" or str(a.get("element") or "").upper() == "ZN"
+    ]
+    donor_atoms = [a for a in atoms if _pdbzn_coord_donor_atom_allowed(a)]
+    sites = []
+    for idx, zn in enumerate(zn_atoms, start=1):
+        nearest = {}
+        for atom in donor_atoms:
+            d = _pdbzn_dist(zn, atom)
+            if d > 3.2:
+                continue
+            rk = _pdbzn_residue_key(atom)
+            old = nearest.get(rk)
+            if old is None or d < old["distance"]:
+                nearest[rk] = {"atom": atom, "distance": float(d)}
+        his_count = sum(1 for rk in nearest if rk[3] in PDBZN_HIS_RESIDUES)
+        total_count = len(nearest)
+        dist_sum = sum(sorted(x["distance"] for x in nearest.values())[:3]) if nearest else 9999.0
+        ordered = sorted(nearest.items(), key=lambda kv: (kv[1]["distance"], _pdbzn_residue_label(kv[0])))
+        residue_labels = [f"{_pdbzn_residue_label(rk)}:{round(item['distance'], 3)}" for rk, item in ordered]
+        sites.append(
+            {
+                "index": idx,
+                "his_count": his_count,
+                "residue_count": total_count,
+                "non_his_count": max(0, total_count - his_count),
+                "dist_sum": dist_sum,
+                "site": f"{str(zn.get('chain') or '?')}:{str(zn.get('seq') or '?')}",
+                "residues_text": "; ".join(residue_labels),
+            }
+        )
+    return sorted(sites, key=_pdbzn_coord_site_sort_key)
+
+
+def _pdbzn_coordination_metrics(rep, receptor_file=None):
+    fp = _safe_existing_file(receptor_file) if receptor_file else None
+    if fp is None:
+        fp = _pdbzn_find_tmalign_pdb_path(rep)
+    if fp is None:
+        return None
+    try:
+        atoms = _pdbzn_structure_atom_rows(fp)
+    except Exception:
+        return None
+    if not atoms:
+        return None
+    sites = _pdbzn_collect_coord_sites(atoms)
+    if not sites:
+        return None
+    is_multi_zn = len(sites) > 1
+    if is_multi_zn:
+        qualified = [s for s in sites if int(s.get("his_count", 0)) >= 3]
+        if qualified:
+            best = sorted(
+                qualified,
+                key=lambda s: (
+                    int(s.get("non_his_count", 10**9)),
+                    -int(s.get("his_count", 0)),
+                    int(s.get("residue_count", 10**9)),
+                    float(s.get("dist_sum", 9999.0)),
+                    str(s.get("site", "")),
+                    int(s.get("index", 10**9)),
+                ),
+            )[0]
+            non_his_value = best.get("non_his_count", "")
+            note_sites = sorted(
+                qualified,
+                key=lambda s: (
+                    int(s.get("non_his_count", 10**9)),
+                    -int(s.get("his_count", 0)),
+                    str(s.get("site", "")),
+                    int(s.get("index", 10**9)),
+                ),
+            )
+        else:
+            best = sorted(sites, key=_pdbzn_coord_site_sort_key)[0]
+            non_his_value = ""
+            note_sites = sorted(sites, key=_pdbzn_coord_site_sort_key)
+    else:
+        best = sorted(sites, key=_pdbzn_coord_site_sort_key)[0]
+        non_his_value = best.get("non_his_count", "")
+        note_sites = sites
+    others = [s for s in note_sites if s is not best]
+    return {
+        "Zn_CoordResidueCount": best.get("residue_count", 0),
+        "Zn_CoordHisCount": best.get("his_count", 0),
+        "Zn_CoordNonHisCount": non_his_value,
+        "Zn_CoordResidues": best.get("residues_text", ""),
+        "Zn_CoordSite": best.get("site", ""),
+        "Zn_CoordNote": " | ".join(_pdbzn_coord_site_summary(site) for site in others),
+    }
 
 
 def _pdbzn_angle_deg(v1, v2):
@@ -2356,9 +2525,9 @@ def _pdbzn_dataset_item_from_row(row):
         "residue_length": "" if length is None else int(length),
         "oligomer": "" if oligomer is None else int(oligomer),
         "monomer_length": "" if monomer is None else int(monomer),
-        "zn_coord_residue_count": str((row or {}).get("Residues_Within_5A_Count", "") or ""),
-        "zn_coord_his_count": str((row or {}).get("TriHisCountMax", "") or (row or {}).get("Step5_TriHis_Count", "") or ""),
-        "zn_coord_non_his_count": "",
+        "zn_coord_residue_count": str((row or {}).get("Zn_CoordResidueCount", "") or (row or {}).get("Residues_Within_5A_Count", "") or ""),
+        "zn_coord_his_count": str((row or {}).get("Zn_CoordHisCount", "") or (row or {}).get("TriHisCountMax", "") or (row or {}).get("Step5_TriHis_Count", "") or ""),
+        "zn_coord_non_his_count": str((row or {}).get("Zn_CoordNonHisCount", "") or ""),
     }
 
 
@@ -2458,6 +2627,145 @@ def _pdbzn_guess_diffdock_for_rep(rep):
     return out
 
 
+def _pdbzn_resolve_best_sdf_path(rep, best_sdf_path):
+    direct = _safe_existing_file(best_sdf_path)
+    if direct is not None:
+        return direct
+    pid = str(rep or "").strip().upper()
+    if not pid:
+        return None
+    name = Path(str(best_sdf_path or "").strip()).name
+    if not name:
+        return None
+    candidates = [
+        DATA_DIR / "diffdock" / pid / name,
+        PDBZN_BASE_DIR / "diffdock_outputs" / pid / pid / name,
+        PDBZN_BASE_DIR / "diffdock" / pid / name,
+    ]
+    for cand in candidates:
+        hit = _safe_existing_file(cand)
+        if hit is not None:
+            return hit
+    return None
+
+
+def _pdbzn_parse_sdf_atoms_text(text):
+    lines = str(text or "").splitlines()
+    if len(lines) < 4:
+        return []
+    try:
+        n_atoms = int(str(lines[3] or "")[:3].strip())
+    except Exception:
+        return []
+    if n_atoms <= 0:
+        return []
+    atoms = []
+    for i in range(4, min(4 + n_atoms, len(lines))):
+        line = str(lines[i] or "")
+        try:
+            x = float(line[0:10].strip())
+            y = float(line[10:20].strip())
+            z = float(line[20:30].strip())
+        except Exception:
+            continue
+        elem = str(line[31:34] or "").strip().upper()
+        atoms.append({"x": x, "y": y, "z": z, "elem": elem})
+    return atoms
+
+
+def _pdbzn_best_his_zn_site(atoms):
+    if not atoms:
+        return {"zn": None, "zn_atoms": [], "tri_his_zn_atoms": []}
+    zn_atoms = [
+        a for a in atoms
+        if str(a.get("comp") or "").upper() == "ZN" or str(a.get("element") or "").upper() == "ZN"
+    ]
+    if not zn_atoms:
+        return {"zn": None, "zn_atoms": [], "tri_his_zn_atoms": []}
+    his_atoms = [
+        a for a in atoms
+        if str(a.get("comp") or "").upper() in {"HIS", "HID", "HIE", "HIP", "HSD", "HSE", "HSP"}
+        and str(a.get("atom") or "").upper() in {"ND1", "NE2"}
+    ]
+    best_any = None
+    best_3 = None
+    tri_his_zn_atoms = []
+    for z in zn_atoms:
+        nearest_by_res = {}
+        for ha in his_atoms:
+            d = _pdbzn_dist(z, ha)
+            if d > 3.0:
+                continue
+            rk = _pdbzn_residue_key(ha)
+            old = nearest_by_res.get(rk)
+            if old is None or d < old["distance"]:
+                nearest_by_res[rk] = {"atom": ha, "distance": float(d)}
+        picked = sorted(nearest_by_res.items(), key=lambda kv: kv[1]["distance"])
+        tri = picked[:3]
+        candidate = {
+            "zn": z,
+            "his_count": len(picked),
+            "score_sum3": sum(x[1]["distance"] for x in tri) if len(tri) >= 3 else 9999.0,
+        }
+        if best_any is None or candidate["his_count"] > best_any["his_count"] or (
+            candidate["his_count"] == best_any["his_count"] and candidate["score_sum3"] < best_any["score_sum3"]
+        ):
+            best_any = candidate
+        if candidate["his_count"] >= 3:
+            tri_his_zn_atoms.append(z)
+            if best_3 is None or candidate["his_count"] > best_3["his_count"] or (
+                candidate["his_count"] == best_3["his_count"] and candidate["score_sum3"] < best_3["score_sum3"]
+            ):
+                best_3 = candidate
+    best = best_3 or best_any
+    return {"zn": (best or {}).get("zn"), "zn_atoms": zn_atoms, "tri_his_zn_atoms": tri_his_zn_atoms}
+
+
+def _pdbzn_compute_diffdock_zn_metrics(rep, best_sdf_path, receptor_file):
+    sdf_hit = _pdbzn_resolve_best_sdf_path(rep, best_sdf_path)
+    receptor_hit = _safe_existing_file(receptor_file)
+    if sdf_hit is None or receptor_hit is None:
+        return {}
+    try:
+        lig_atoms = [a for a in _pdbzn_parse_sdf_atoms_text(sdf_hit.read_text(encoding="utf-8", errors="ignore")) if str(a.get("elem") or "").upper() != "H"]
+    except Exception:
+        return {}
+    if not lig_atoms:
+        return {}
+    try:
+        receptor_atoms = _pdbzn_structure_atom_rows(receptor_hit)
+    except Exception:
+        return {}
+    best_site = _pdbzn_best_his_zn_site(receptor_atoms)
+    target_zn = best_site.get("zn")
+    zn_atoms = list(best_site.get("tri_his_zn_atoms") or [])
+    if not zn_atoms:
+        zn_atoms = [target_zn] if target_zn is not None else list(best_site.get("zn_atoms") or [])
+    if target_zn is None or not zn_atoms:
+        return {}
+    nearest = None
+    for a in lig_atoms:
+        d = _pdbzn_dist(a, target_zn)
+        if nearest is None or d < nearest:
+            nearest = float(d)
+    all_zn = []
+    for z in zn_atoms:
+        zmin = None
+        for a in lig_atoms:
+            d = _pdbzn_dist(a, z)
+            if zmin is None or d < zmin:
+                zmin = float(d)
+        if zmin is not None:
+            all_zn.append(zmin)
+    all_zn.sort()
+    out = {}
+    if nearest is not None:
+        out["NearestDistanceTo3HisZn"] = round(nearest, 12)
+    if all_zn:
+        out["AllZnDistancesSorted"] = ";".join(f"{x:.3f}" for x in all_zn)
+    return out
+
+
 def _pdbzn_fpocket_num(params, key_contains):
     if not isinstance(params, dict):
         return None
@@ -2468,6 +2776,157 @@ def _pdbzn_fpocket_num(params, key_contains):
             if n is not None:
                 return float(n)
     return None
+
+
+def _pdbzn_fpocket_param_num(params, keywords):
+    if not isinstance(params, dict):
+        return None
+    wanted = [str(x or "").strip().lower() for x in (keywords or []) if str(x or "").strip()]
+    if not wanted:
+        return None
+    for k, v in params.items():
+        key = str(k or "").strip().lower()
+        if all(token in key for token in wanted):
+            n = _pdbzn_to_num(v)
+            if n is not None:
+                return float(n)
+    return None
+
+
+def _pdbzn_fpocket_best_from_rows(rows):
+    best = None
+    for row in rows or []:
+        params = row.get("params", {}) if isinstance(row, dict) else {}
+        drug = _pdbzn_fpocket_param_num(params, ["drug", "score"])
+        pocket_score = _pdbzn_fpocket_param_num(params, ["pocket", "score"])
+        vol = _pdbzn_fpocket_param_num(params, ["volume"])
+        alpha = _pdbzn_fpocket_param_num(params, ["number", "alpha", "sphere"])
+        item = {
+            "pocket_id": row.get("pocket_id"),
+            "druggability": drug,
+            "score": pocket_score,
+            "volume": vol,
+            "alpha_spheres": alpha,
+        }
+        if best is None:
+            best = item
+            continue
+        best_drug = best.get("druggability")
+        best_score = best.get("score")
+        best_volume = best.get("volume")
+        if drug is not None and (best_drug is None or drug > best_drug):
+            best = item
+            continue
+        if drug is None and best_drug is None and pocket_score is not None and (best_score is None or pocket_score > best_score):
+            best = item
+            continue
+        if drug is None and best_drug is None and pocket_score is None and best_score is None and vol is not None and (best_volume is None or vol > best_volume):
+            best = item
+    return best
+
+
+def _pdbzn_num_or(value, default):
+    n = _pdbzn_to_num(value)
+    return default if n is None else n
+
+
+def _pdbzn_load_pocket_rows_by_rep():
+    global _pdbzn_pocket_table_cache
+    with _pdbzn_pocket_table_cache_lock:
+        if _pdbzn_pocket_table_cache is not None:
+            return _pdbzn_pocket_table_cache
+        path = _safe_existing_file(DATA_DIR / "pocket.csv")
+        grouped = {}
+        if path is not None:
+            data = _pdbzn_read_table(path)
+            for row in data.get("rows", []):
+                rep = str((row or {}).get("Representative", "") or "").strip().upper()
+                if rep:
+                    grouped.setdefault(rep, []).append(row)
+        _pdbzn_pocket_table_cache = grouped
+        return grouped
+
+
+def _pdbzn_best_pocket_catalog_row(rep):
+    grouped = _pdbzn_load_pocket_rows_by_rep()
+    rows = list(grouped.get(str(rep or "").strip().upper(), []) or [])
+    if not rows:
+        return None
+    matching = [r for r in rows if _pdbzn_is_truthy((r or {}).get("zn_match", ""))]
+    if matching:
+        best = sorted(
+            matching,
+            key=lambda r: (
+                float(_pdbzn_num_or((r or {}).get("min_dist_to_any_zn", ""), 10**9)),
+                -float(_pdbzn_num_or((r or {}).get("druggability_score", ""), -10**9)),
+                -float(_pdbzn_num_or((r or {}).get("score", ""), -10**9)),
+                -float(_pdbzn_num_or((r or {}).get("volume", ""), -10**9)),
+                int(_pdbzn_num_or((r or {}).get("pocket_id", ""), 10**9)),
+            ),
+        )[0]
+        rule = "zn_priority"
+    else:
+        best = sorted(
+            rows,
+            key=lambda r: (
+                -float(_pdbzn_num_or((r or {}).get("volume", ""), -10**9)),
+                -float(_pdbzn_num_or((r or {}).get("druggability_score", ""), -10**9)),
+                -float(_pdbzn_num_or((r or {}).get("score", ""), -10**9)),
+                int(_pdbzn_num_or((r or {}).get("pocket_id", ""), 10**9)),
+            ),
+        )[0]
+        rule = "largest_volume"
+    return {
+        "Representative": str(rep or "").strip().upper(),
+        "Protein_Name": best.get("Protein_Name", ""),
+        "Protein_Category": best.get("Protein_Category", ""),
+        "Species": best.get("Species", ""),
+        "Receptor_PDB": best.get("Receptor_PDB", ""),
+        "BestPocket_ID": best.get("pocket_id", ""),
+        "BestPocket_Score": best.get("score", ""),
+        "BestPocket_Druggability": best.get("druggability_score", ""),
+        "BestPocket_Volume": best.get("volume", ""),
+        "BestPocket_TotalSASA": best.get("total_sasa", ""),
+        "BestPocket_PolarSASA": best.get("polar_sasa", ""),
+        "BestPocket_ApolarSASA": best.get("apolar_sasa", ""),
+        "BestPocket_AlphaSpheres": best.get("alpha_spheres", ""),
+        "BestPocket_HisCount": best.get("pocket_his_count", ""),
+        "BestPocket_ZnCount": best.get("pocket_zn_count", ""),
+        "BestPocket_MinDistToZn": best.get("min_dist_to_any_zn", ""),
+        "BestPocket_ZnMatch": best.get("zn_match", ""),
+        "BestPocket_SelectRule": rule,
+    }
+
+
+def _pdbzn_geometry_summary_from_step4(row):
+    if not isinstance(row, dict):
+        return ""
+    lengths = []
+    for part in str(row.get("His_ZN_Bond_Lengths_A", "") or "").split(";"):
+        seg = str(part or "").strip()
+        if not seg:
+            continue
+        tail = seg.rsplit(":", 1)[-1]
+        val = _pdbzn_to_num(tail)
+        if val is not None:
+            lengths.append(float(val))
+    angles = []
+    for part in str(row.get("His_ZN_Bond_Angles_Deg", "") or "").split(";"):
+        seg = str(part or "").strip()
+        if not seg:
+            continue
+        tail = seg.rsplit(":", 1)[-1]
+        val = _pdbzn_to_num(tail)
+        if val is not None:
+            angles.append(float(val))
+    if not lengths and not angles:
+        return ""
+    pieces = []
+    if lengths:
+        pieces.append("D=[" + ",".join(f"{x:.2f}" for x in lengths) + "]")
+    if angles:
+        pieces.append("A=[" + ",".join(f"{x:.1f}" for x in angles) + "]")
+    return ",".join(pieces)
 
 
 def _pdbzn_run_fpocket_quick(pdb_path: Path, timeout_sec: float):
@@ -2503,35 +2962,16 @@ def _pdbzn_run_fpocket_quick(pdb_path: Path, timeout_sec: float):
         rows = list(info.get("rows", []))
         if not rows:
             return {"status": "fpocket_empty"}
-        best = None
-        for row in rows:
-            params = row.get("params", {}) if isinstance(row, dict) else {}
-            drug = _pdbzn_fpocket_num(params, "druggability")
-            score = _pdbzn_fpocket_num(params, "score")
-            vol = _pdbzn_fpocket_num(params, "volume")
-            item = {
-                "pocket_id": row.get("pocket_id"),
-                "druggability": drug,
-                "score": score,
-                "volume": vol,
-            }
-            if best is None:
-                best = item
-                continue
-            best_drug = best.get("druggability")
-            best_score = best.get("score")
-            if drug is not None and (best_drug is None or drug > best_drug):
-                best = item
-                continue
-            if drug is None and best_drug is None and score is not None and (best_score is None or score > best_score):
-                best = item
-        if best is None:
+        best = _pdbzn_fpocket_best_from_rows(rows)
+        if not best:
             return {"status": "fpocket_empty"}
         return {
             "status": "ok",
             "best_pocket_id": best.get("pocket_id"),
-            "best_score": best.get("druggability") if best.get("druggability") is not None else best.get("score"),
+            "best_score": best.get("score"),
+            "best_druggability": best.get("druggability"),
             "best_volume": best.get("volume"),
+            "best_alpha_spheres": best.get("alpha_spheres"),
         }
     except subprocess.TimeoutExpired:
         return {"status": "fpocket_timeout"}
@@ -2555,7 +2995,11 @@ def _pdbzn_step5_final_score(row):
     conf = _pdbzn_to_num((row or {}).get("Best_Confidence"))
     near = _pdbzn_to_num((row or {}).get("NearestDistanceTo3HisZn"))
     his = _pdbzn_to_num((row or {}).get("TriHisCountMax"))
-    fp = _pdbzn_to_num((row or {}).get("Step5_FPocket_BestScore"))
+    fp = _pdbzn_to_num((row or {}).get("BestPocket_Druggability"))
+    if fp is None:
+        fp = _pdbzn_to_num((row or {}).get("BestPocket_Score"))
+    if fp is None:
+        fp = _pdbzn_to_num((row or {}).get("Step5_FPocket_BestScore"))
     score = 0.0
     if conf is not None:
         score += float(conf)
@@ -2609,9 +3053,9 @@ def _pdbzn_step5_finalize_workflow(filters):
     step4_rows = list((((step4_result.get("steps") or [{}])[0].get("rows")) or []))
     master_path = _pdbzn_existing_file(["zn_his_master_table7.csv", "zn_his_master_table.csv"])
     base_header, base_master_rows = _pdbzn_base_table_rows()
-    master_cols = list(base_header or [])
+    master_cols = [c for c in (base_header or []) if c and c != "_id" and not str(c).startswith("Step5_")]
     if not master_cols and base_master_rows:
-        master_cols = list(base_master_rows[0].keys())
+        master_cols = [c for c in base_master_rows[0].keys() if c and c != "_id" and not str(c).startswith("Step5_")]
     required_cols = [
         "Representative",
         "Similarity_Score",
@@ -2649,33 +3093,14 @@ def _pdbzn_step5_finalize_workflow(filters):
         "BestPocket_MinDistToZn",
         "BestPocket_ZnMatch",
         "BestPocket_SelectRule",
+        "Zn_CoordResidueCount",
+        "Zn_CoordHisCount",
+        "Zn_CoordNonHisCount",
+        "Zn_CoordResidues",
+        "Zn_CoordSite",
+        "Zn_CoordNote",
     ]
     for c in required_cols:
-        if c not in master_cols:
-            master_cols.append(c)
-    extra_cols = [
-        "Step5_Source",
-        "Step5_Cluster_ID",
-        "Step5_Cluster_Size",
-        "Step5_Cluster_Members",
-        "Step5_TMAlign_Threshold",
-        "Step5_TriHis_Recheck_Pass",
-        "Step5_Symmetry_Spatial_Filter_Pass",
-        "Step5_TriHis_Count",
-        "Step5_TriHis_Residues",
-        "Step5_ZN_Site",
-        "Step5_His_ZN_Bond_Lengths_A",
-        "Step5_His_ZN_Bond_Angles_Deg",
-        "Step5_Residues_Within_5A_Count",
-        "Step5_Residues_Within_5A",
-        "Step5_Validation_Reasons",
-        "Step5_FPocket_Status",
-        "Step5_FPocket_BestPocketID",
-        "Step5_FPocket_BestScore",
-        "Step5_FPocket_BestVolume",
-        "Step5_FinalScore",
-    ]
-    for c in extra_cols:
         if c not in master_cols:
             master_cols.append(c)
     base_rows = []
@@ -2694,6 +3119,7 @@ def _pdbzn_step5_finalize_workflow(filters):
     fpocket_run_count = 0
     fpocket_status_count = {}
     appended_rows = []
+    step_result_rows = []
     for s4 in step4_rows:
         rep = str((s4 or {}).get("Representative", "") or "").strip().upper()
         if not rep:
@@ -2705,39 +3131,26 @@ def _pdbzn_step5_finalize_workflow(filters):
             if v is not None and str(v) != "":
                 row[c] = v
         row["Representative"] = rep
-        row["Step5_Source"] = "step4_finalize"
-        row["Step5_Cluster_ID"] = s4.get("Cluster_ID", "")
-        row["Step5_Cluster_Size"] = s4.get("Size", "")
-        row["Step5_Cluster_Members"] = s4.get("Members", "")
-        row["Step5_TMAlign_Threshold"] = s4.get("TMAlign_Threshold", "")
-        row["Step5_TriHis_Recheck_Pass"] = s4.get("TriHis_Recheck_Pass", "")
-        row["Step5_Symmetry_Spatial_Filter_Pass"] = s4.get("Symmetry_Spatial_Filter_Pass", "")
-        row["Step5_TriHis_Count"] = s4.get("TriHis_Count", "")
-        row["Step5_TriHis_Residues"] = s4.get("TriHis_Residues", "")
-        row["Step5_ZN_Site"] = s4.get("ZN_Site", "")
-        row["Step5_His_ZN_Bond_Lengths_A"] = s4.get("His_ZN_Bond_Lengths_A", "")
-        row["Step5_His_ZN_Bond_Angles_Deg"] = s4.get("His_ZN_Bond_Angles_Deg", "")
-        row["Step5_Residues_Within_5A_Count"] = s4.get("Residues_Within_5A_Count", "")
-        row["Step5_Residues_Within_5A"] = s4.get("Residues_Within_5A", "")
-        row["Step5_Validation_Reasons"] = s4.get("Validation_Reasons", "")
-        if str(row.get("Cluster_ID", "")).strip() == "":
+        pocket_catalog = _pdbzn_best_pocket_catalog_row(rep) or {}
+        for k, v in pocket_catalog.items():
+            if k in row and str(row.get(k, "")).strip() == "" and str(v or "").strip() != "":
+                row[k] = v
+        if str(s4.get("Cluster_ID", "")).strip() != "":
             row["Cluster_ID"] = s4.get("Cluster_ID", "")
-        if str(row.get("Details", "")).strip() == "":
-            row["Details"] = "STEP5_FROM_STEP4"
-        if str(row.get("TriHisSatisfied", "")).strip() == "":
-            row["TriHisSatisfied"] = "true" if bool(s4.get("TriHis_Recheck_Pass")) else "false"
-        tri_his = _pdbzn_to_num(row.get("TriHisCountMax"))
-        if tri_his is None:
-            s4_his = _pdbzn_to_num(s4.get("TriHis_Count"))
-            if s4_his is not None:
-                row["TriHisCountMax"] = int(s4_his)
-            else:
+        row["TriHisSatisfied"] = "true" if _pdbzn_is_truthy(s4.get("TriHis_Recheck_Pass")) else "false"
+        s4_his = _pdbzn_to_num(s4.get("TriHis_Count"))
+        if s4_his is not None:
+            row["TriHisCountMax"] = int(s4_his)
+        else:
+            tri_his = _pdbzn_to_num(row.get("TriHisCountMax"))
+            if tri_his is None:
                 reasons, stats = _pdbzn_step3_structure_reasons(rep, step3_used.get("ligand_distance", 5.0), step3_used.get("metal_distance", 8.0))
                 max_his = stats.get("max_his_coord")
                 if max_his is not None:
                     row["TriHisCountMax"] = int(max_his)
-                if str(row.get("Step5_Validation_Reasons", "")).strip() == "" and reasons:
-                    row["Step5_Validation_Reasons"] = " | ".join(reasons)
+        details_summary = _pdbzn_geometry_summary_from_step4(s4)
+        if details_summary and str(row.get("Details", "")).strip() in {"", "STEP5_FROM_STEP4"}:
+            row["Details"] = details_summary
         drow = diffdock_by_rep.get(rep, {})
         if not drow:
             drow = _pdbzn_guess_diffdock_for_rep(rep)
@@ -2748,31 +3161,72 @@ def _pdbzn_step5_finalize_workflow(filters):
         receptor_file = _pdbzn_resolve_receptor_pdb_path(rep, receptor_path)
         if receptor_file is not None:
             row["Receptor_PDB"] = str(receptor_file)
-        row["Step5_Source"] = "step5_finalize"
-        if run_fpocket and receptor_file and fpocket_run_count < fpocket_max_runs and str(row.get("Step5_FPocket_BestScore", "")).strip() == "":
+        diffdock_geom = _pdbzn_compute_diffdock_zn_metrics(rep, row.get("Best_SDF", ""), receptor_file)
+        for k, v in diffdock_geom.items():
+            if v is not None and str(v).strip() != "":
+                row[k] = v
+        coord = _pdbzn_coordination_metrics(rep, receptor_file)
+        if coord:
+            for k, v in coord.items():
+                row[k] = v
+        fp_status = "not_run"
+        pocket_minimal_missing = any(
+            str(row.get(k, "")).strip() == ""
+            for k in ["BestPocket_ID", "BestPocket_Score", "BestPocket_Druggability", "BestPocket_Volume"]
+        )
+        if run_fpocket and receptor_file and fpocket_run_count < fpocket_max_runs and pocket_minimal_missing:
             fp_res = _pdbzn_run_fpocket_quick(receptor_file, fpocket_timeout_sec)
             fp_status = str(fp_res.get("status", "fpocket_error"))
-            row["Step5_FPocket_Status"] = fp_status
             if fp_status == "ok":
-                row["Step5_FPocket_BestPocketID"] = fp_res.get("best_pocket_id", "")
-                row["Step5_FPocket_BestScore"] = fp_res.get("best_score", "")
-                row["Step5_FPocket_BestVolume"] = fp_res.get("best_volume", "")
+                best_pocket_id = fp_res.get("best_pocket_id", "")
+                best_score = fp_res.get("best_score")
+                best_druggability = fp_res.get("best_druggability")
+                best_volume = fp_res.get("best_volume")
+                best_alpha_spheres = fp_res.get("best_alpha_spheres")
+                if str(row.get("BestPocket_ID", "")).strip() == "" and str(best_pocket_id or "").strip() != "":
+                    row["BestPocket_ID"] = best_pocket_id
+                if str(row.get("BestPocket_Score", "")).strip() == "" and best_score is not None:
+                    row["BestPocket_Score"] = best_score
+                if str(row.get("BestPocket_Druggability", "")).strip() == "" and best_druggability is not None:
+                    row["BestPocket_Druggability"] = best_druggability
+                if str(row.get("BestPocket_Volume", "")).strip() == "" and best_volume is not None:
+                    row["BestPocket_Volume"] = best_volume
+                if str(row.get("BestPocket_AlphaSpheres", "")).strip() == "" and best_alpha_spheres is not None:
+                    row["BestPocket_AlphaSpheres"] = best_alpha_spheres
             fpocket_run_count += 1
-            fpocket_status_count[fp_status] = int(fpocket_status_count.get(fp_status, 0) or 0) + 1
-        elif run_fpocket and not receptor_file and str(row.get("Step5_FPocket_Status", "")).strip() == "":
-            row["Step5_FPocket_Status"] = "pdb_unavailable"
-            fpocket_status_count["pdb_unavailable"] = int(fpocket_status_count.get("pdb_unavailable", 0) or 0) + 1
-        elif str(row.get("Step5_FPocket_Status", "")).strip() == "":
-            row["Step5_FPocket_Status"] = "not_run"
-            fpocket_status_count["not_run"] = int(fpocket_status_count.get("not_run", 0) or 0) + 1
-        row["Step5_FinalScore"] = _pdbzn_step5_final_score(row)
+        elif run_fpocket and not receptor_file:
+            fp_status = "pdb_unavailable"
+        fpocket_status_count[fp_status] = int(fpocket_status_count.get(fp_status, 0) or 0) + 1
+        final_score = _pdbzn_step5_final_score(row)
         appended_rows.append(row)
+        step_result_rows.append(
+            {
+                "Representative": rep,
+                "Cluster_ID": s4.get("Cluster_ID", ""),
+                "Cluster_Size": s4.get("Size", ""),
+                "TriHis_Recheck_Pass": s4.get("TriHis_Recheck_Pass", ""),
+                "Symmetry_Spatial_Filter_Pass": s4.get("Symmetry_Spatial_Filter_Pass", ""),
+                "TriHis_Count": row.get("TriHisCountMax", ""),
+                "Zn_CoordSite": row.get("Zn_CoordSite", "") or s4.get("ZN_Site", ""),
+                "Zn_CoordResidues": row.get("Zn_CoordResidues", ""),
+                "Best_Confidence": row.get("Best_Confidence", ""),
+                "NearestDistanceTo3HisZn": row.get("NearestDistanceTo3HisZn", ""),
+                "BestPocket_ID": row.get("BestPocket_ID", ""),
+                "BestPocket_Druggability": row.get("BestPocket_Druggability", ""),
+                "BestPocket_Score": row.get("BestPocket_Score", ""),
+                "BestPocket_Volume": row.get("BestPocket_Volume", ""),
+                "FPocket_Status": fp_status,
+                "FinalScore": final_score,
+                "Receptor_PDB": row.get("Receptor_PDB", ""),
+                "Best_SDF": row.get("Best_SDF", ""),
+            }
+        )
     generated_table = _pdbzn_write_named_table(
         table_label,
         master_cols,
         appended_rows,
         "step5_finalize",
-        "PDB 工作流生成结果（包含 DiffDock / fpocket / 3HIS 几何补全）",
+        "PDB 工作流生成结果（主表标准列）",
     )
     _pdbzn_write_table(output_path, master_cols, appended_rows)
     written_master = False
@@ -2785,26 +3239,25 @@ def _pdbzn_step5_finalize_workflow(filters):
         written_master = True
     step_cols = [
         "Representative",
-        "Step5_Cluster_ID",
-        "Step5_Cluster_Size",
-        "Step5_TriHis_Recheck_Pass",
-        "Step5_Symmetry_Spatial_Filter_Pass",
-        "Step5_TriHis_Count",
-        "Step5_ZN_Site",
+        "Cluster_ID",
+        "Cluster_Size",
+        "TriHis_Recheck_Pass",
+        "Symmetry_Spatial_Filter_Pass",
+        "TriHis_Count",
+        "Zn_CoordSite",
+        "Zn_CoordResidues",
         "Best_Confidence",
         "NearestDistanceTo3HisZn",
-        "TriHisCountMax",
-        "Step5_His_ZN_Bond_Lengths_A",
-        "Step5_His_ZN_Bond_Angles_Deg",
-        "Step5_Residues_Within_5A_Count",
-        "Step5_FPocket_Status",
-        "Step5_FPocket_BestScore",
-        "Step5_FinalScore",
+        "BestPocket_ID",
+        "BestPocket_Druggability",
+        "BestPocket_Score",
+        "BestPocket_Volume",
+        "FPocket_Status",
+        "FinalScore",
         "Receptor_PDB",
         "Best_SDF",
     ]
-    step_rows = [{c: r.get(c, "") for c in step_cols} for r in appended_rows]
-    step5 = _pdbzn_step_payload("step5_master_finalize", "Step 5: 生成新的命名结果表并补全 DiffDock / fpocket 信息", step_cols, step_rows, len(step4_rows), row_limit)
+    step5 = _pdbzn_step_payload("step5_master_finalize", "Step 5: 生成主表列并补全 DiffDock / fpocket / Zn 配位信息", step_cols, step_result_rows, len(step4_rows), row_limit)
     return {
         "ok": True,
         "db_path": str(PDBZN_DB_PATH),
@@ -2827,8 +3280,8 @@ def _pdbzn_step5_finalize_workflow(filters):
         "summary": {
             "step4_valid_count": len(step4_rows),
             "appended_count": len(appended_rows),
-            "step5_trihis_pass_count": len([x for x in appended_rows if str(x.get("Step5_TriHis_Recheck_Pass", "")).strip().lower() in {"true", "1", "yes"}]),
-            "step5_symmetry_pass_count": len([x for x in appended_rows if str(x.get("Step5_Symmetry_Spatial_Filter_Pass", "")).strip().lower() in {"true", "1", "yes"}]),
+            "step5_trihis_pass_count": len([x for x in step4_rows if _pdbzn_is_truthy((x or {}).get("TriHis_Recheck_Pass", ""))]),
+            "step5_symmetry_pass_count": len([x for x in step4_rows if _pdbzn_is_truthy((x or {}).get("Symmetry_Spatial_Filter_Pass", ""))]),
             "fpocket_runs": fpocket_run_count,
             "fpocket_status_count": fpocket_status_count,
             "final_count": len(appended_rows),

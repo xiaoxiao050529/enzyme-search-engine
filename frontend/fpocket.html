@@ -30,6 +30,7 @@ pre { white-space: pre-wrap; word-break: break-word; background: #f8f8f8; border
 #debug_error { color: #8a1f11; background: #fff3f0; border: 1px solid #f0c2ba; min-height: 92px; }
 #viewer { height: 560px; border: 1px solid #ddd; background: #fff; position: relative; overflow: hidden; width: 100%; }
 #viewer canvas { position: static !important; display: block; width: 100% !important; height: 100% !important; }
+#viewer_hint { margin-top: 8px; color: #445; font-size: 12px; line-height: 1.5; }
 #pocket_list { margin-top: 8px; max-height: 180px; overflow: auto; border: 1px solid #eee; padding: 6px; }
 .pocket_item { font-size: 12px; border-bottom: 1px dashed #eee; padding: 4px 0; display: flex; align-items: center; gap: 8px; }
 .swatch { width: 12px; height: 12px; border-radius: 2px; border: 1px solid #999; flex: 0 0 12px; }
@@ -81,6 +82,7 @@ pre { white-space: pre-wrap; word-break: break-word; background: #f8f8f8; border
     <div id="viewer_panel">
       <h3>口袋可视化（右侧）</h3>
       <div id="viewer"></div>
+      <div id="viewer_hint">点击 Zn 可查看 5A 邻域残基；点击普通残基可查看该残基周围 5A 邻域。</div>
       <div id="pocket_list">暂无</div>
     </div>
     <div id="data_panel">
@@ -99,6 +101,14 @@ pre { white-space: pre-wrap; word-break: break-word; background: #f8f8f8; border
 let pollTimer = null;
 let pollCount = 0;
 let viewer = null;
+let structureModelRef = null;
+let znMarkerModelRef = null;
+let currentStructureText = "";
+let currentStructureZnAtoms = [];
+let znInteractionShapes = [];
+let residueInteractionShapes = [];
+let residueNeighborLabels = [];
+let pickedLabel = null;
 let proteinCatalog = [];
 let proteinLookup = new Map();
 let currentProgressValue = 0;
@@ -253,12 +263,40 @@ function setDebugError(t) {
 function setJobMeta(t) {
   document.getElementById("job_meta").textContent = t;
 }
+function setViewerHint(t) {
+  document.getElementById("viewer_hint").textContent = t || "";
+}
+function resetViewerState() {
+  structureModelRef = null;
+  znMarkerModelRef = null;
+  currentStructureText = "";
+  currentStructureZnAtoms = [];
+  znInteractionShapes = [];
+  residueInteractionShapes = [];
+  residueNeighborLabels = [];
+  pickedLabel = null;
+}
 function ensureViewer() {
   if (viewer) return viewer;
   if (window.$3Dmol) {
     viewer = $3Dmol.createViewer("viewer", {backgroundColor: "white"});
   } else {
-    viewer = { clear(){}, addModel(){ return { setStyle(){} }; }, addSphere(){}, zoomTo(){}, render(){} };
+    viewer = {
+      clear(){},
+      addModel(){ return { setStyle(){}, setClickable(){}, selectedAtoms(){ return []; } }; },
+      addSphere(){ return null; },
+      addLabel(){ return null; },
+      addLine(){ return null; },
+      removeModel(){},
+      removeLabel(){},
+      removeShape(){},
+      setStyle(){},
+      setClickable(){},
+      zoomTo(){},
+      render(){},
+      resize(){},
+      getModel(){ return null; }
+    };
   }
   return viewer;
 }
@@ -341,6 +379,8 @@ function clearPocketPanels() {
   document.getElementById("viewer_panel").style.display = "none";
   document.getElementById("pocket_list").textContent = "暂无";
   document.getElementById("params_table").innerHTML = "";
+  setViewerHint("点击 Zn 可查看 5A 邻域残基；点击普通残基可查看该残基周围 5A 邻域。");
+  resetViewerState();
   const v = ensureViewer();
   if (v && v.clear) {
     v.clear();
@@ -407,6 +447,365 @@ function collectZnAtoms(model) {
   const atoms = model.selectedAtoms({elem:"ZN"}) || [];
   return atoms.filter(a => Number.isFinite(a.x) && Number.isFinite(a.y) && Number.isFinite(a.z));
 }
+function dist(a, b) {
+  const dx = Number(a.x) - Number(b.x);
+  const dy = Number(a.y) - Number(b.y);
+  const dz = Number(a.z) - Number(b.z);
+  return Math.sqrt(dx * dx + dy * dy + dz * dz);
+}
+function getStructureZnAtoms() {
+  if (Array.isArray(currentStructureZnAtoms) && currentStructureZnAtoms.length) return currentStructureZnAtoms;
+  if (structureModelRef) {
+    const atoms = collectZnAtoms(structureModelRef);
+    if (atoms.length) {
+      currentStructureZnAtoms = atoms.map((a) => ({
+        x: a.x, y: a.y, z: a.z,
+        serial: a.serial, chain: a.chain, resn: a.resn, resi: a.resi, atom: a.atom, elem: a.elem || "ZN"
+      }));
+      return currentStructureZnAtoms;
+    }
+  }
+  return [];
+}
+function offsetLabelPos(a, ref) {
+  const r = ref || {x:a.x, y:a.y - 1, z:a.z};
+  let vx = a.x - r.x;
+  let vy = a.y - r.y;
+  let vz = a.z - r.z;
+  const n = Math.sqrt(vx * vx + vy * vy + vz * vz);
+  if (n < 1e-6) {
+    vx = 0;
+    vy = 1;
+    vz = 0;
+  } else {
+    vx /= n;
+    vy /= n;
+    vz /= n;
+  }
+  return {x:a.x + vx * 1.0, y:a.y + vy * 1.0, z:a.z + vz * 1.0};
+}
+function clearPickedLabel() {
+  if (pickedLabel && viewer && viewer.removeLabel) {
+    try { viewer.removeLabel(pickedLabel); } catch (_) {}
+  }
+  pickedLabel = null;
+}
+function setPickedLabel(atom, text, color) {
+  clearPickedLabel();
+  if (!viewer || !viewer.addLabel || !atom) return;
+  pickedLabel = viewer.addLabel(text, {
+    position: {x: atom.x, y: atom.y, z: atom.z},
+    backgroundColor: color || "#36506b",
+    fontColor: "white",
+    inFront: true
+  });
+}
+function clearInteractionOverlays() {
+  if (viewer && viewer.removeShape) {
+    for (const s of znInteractionShapes) {
+      try { viewer.removeShape(s); } catch (_) {}
+    }
+    for (const s of residueInteractionShapes) {
+      try { viewer.removeShape(s); } catch (_) {}
+    }
+  }
+  znInteractionShapes = [];
+  residueInteractionShapes = [];
+  if (viewer && viewer.removeLabel) {
+    for (const l of residueNeighborLabels) {
+      try { viewer.removeLabel(l); } catch (_) {}
+    }
+  }
+  residueNeighborLabels = [];
+  clearPickedLabel();
+}
+function getStructureAtomsForNeighborhood() {
+  if (!structureModelRef || !structureModelRef.selectedAtoms) return [];
+  return structureModelRef.selectedAtoms({}) || [];
+}
+function isZnAtom(atom) {
+  const elem = String(atom?.elem || "").toUpperCase();
+  const resn = String(atom?.resn || "").toUpperCase();
+  const atomName = String(atom?.atom || "").toUpperCase();
+  return elem === "ZN" || resn === "ZN" || atomName === "ZN";
+}
+function interactionStyleForResidue(atom, distanceValue) {
+  const resn = String(atom?.resn || "").toUpperCase();
+  if (["HIS","HID","HIE","HIP","HSD","HSE","HSP"].includes(resn)) {
+    return {line: distanceValue <= 3.2 ? "#ff8a00" : "#ffb347", labelBg: "rgba(255, 204, 122, 0.96)", labelFg: "#422100"};
+  }
+  if (resn === "ASP" || resn === "GLU") {
+    return {line: distanceValue <= 3.2 ? "#d94f4f" : "#ef7d7d", labelBg: "rgba(239, 125, 125, 0.96)", labelFg: "#3a0f0f"};
+  }
+  if (["CYS","CYX","CYM"].includes(resn)) {
+    return {line: distanceValue <= 3.2 ? "#20a36a" : "#5dcf98", labelBg: "rgba(93, 207, 152, 0.96)", labelFg: "#093120"};
+  }
+  return {line: distanceValue <= 3.2 ? "#2a7fd6" : "#78aee8", labelBg: "rgba(120, 174, 232, 0.96)", labelFg: "#102235"};
+}
+function addInteractionLabel(targetList, atom, anchorAtom, distanceValue) {
+  if (!viewer || !viewer.addLabel || !atom) return;
+  const style = interactionStyleForResidue(atom, distanceValue);
+  const lb = viewer.addLabel(`${atom.chain || ""}:${atom.resn || ""}${atom.resi || ""} ${distanceValue.toFixed(1)}A`, {
+    position: offsetLabelPos(atom, anchorAtom),
+    backgroundColor: style.labelBg,
+    fontColor: style.labelFg,
+    fontSize: 14,
+    inFront: true
+  });
+  targetList.push(lb);
+}
+function toZnLikeAtom(z, i = 0) {
+  return {
+    x: z.x,
+    y: z.y,
+    z: z.z,
+    serial: z.serial != null ? z.serial : -(i + 1),
+    chain: z.chain || "ZN",
+    resn: z.resn || "ZN",
+    resi: z.resi != null ? z.resi : (i + 1),
+    atom: z.atom || "ZN",
+    elem: z.elem || "ZN"
+  };
+}
+function znAtomSelection(atom) {
+  if (atom && Number.isFinite(Number(atom.serial)) && Number(atom.serial) > 0) return {serial: Number(atom.serial)};
+  return {x: atom.x, y: atom.y, z: atom.z};
+}
+function collectNearResiduesByAtom(anchorAtom, cutoff) {
+  if (!anchorAtom) return [];
+  const atoms = getStructureAtomsForNeighborhood();
+  const centerKey = `${anchorAtom.chain || ""}:${anchorAtom.resn || ""}${anchorAtom.resi || ""}`;
+  const resMap = new Map();
+  for (const a of atoms) {
+    if (!a || String(a.elem || "").toUpperCase() === "H") continue;
+    if (String(a.elem || "").toUpperCase() === "ZN" || String(a.resn || "").toUpperCase() === "ZN") continue;
+    const key = `${a.chain || ""}:${a.resn || ""}${a.resi || ""}`;
+    if (key === centerKey) continue;
+    const d = dist(anchorAtom, a);
+    if (d > cutoff) continue;
+    const prev = resMap.get(key);
+    if (!prev || d < prev.d || (a.atom === "CA" && prev.atom.atom !== "CA")) {
+      resMap.set(key, {atom:a, d});
+    }
+  }
+  return Array.from(resMap.values());
+}
+function getZnNeighborhood(targetZnAtom = null) {
+  const znRaw = targetZnAtom ? [targetZnAtom] : getStructureZnAtoms();
+  const znAtoms = znRaw.map((z, i) => toZnLikeAtom(z, i));
+  const atoms = getStructureAtomsForNeighborhood();
+  const residueMap = new Map();
+  for (const a of atoms) {
+    if (!a || !Number.isFinite(a.x) || !Number.isFinite(a.y) || !Number.isFinite(a.z)) continue;
+    if (String(a.elem || "").toUpperCase() === "H") continue;
+    if (String(a.elem || "").toUpperCase() === "ZN" || String(a.resn || "").toUpperCase() === "ZN") continue;
+    let mind = Infinity;
+    let closestZn = null;
+    for (const z of znAtoms) {
+      const d = dist(a, z);
+      if (d < mind) {
+        mind = d;
+        closestZn = z;
+      }
+    }
+    if (mind > 5.0) continue;
+    const key = `${a.chain || ""}:${a.resn || ""}${a.resi || ""}`;
+    const prev = residueMap.get(key);
+    if (!prev) {
+      residueMap.set(key, {
+        chain: a.chain,
+        resn: a.resn,
+        resi: a.resi,
+        labelAtom: a,
+        interactionAtom: a,
+        closestZn,
+        minDist: mind
+      });
+      continue;
+    }
+    if (a.atom === "CA" && (!prev.labelAtom || prev.labelAtom.atom !== "CA")) prev.labelAtom = a;
+    if (mind < prev.minDist) {
+      prev.interactionAtom = a;
+      prev.closestZn = closestZn;
+      prev.minDist = mind;
+      if (!prev.labelAtom) prev.labelAtom = a;
+    }
+  }
+  return {znAtoms, residueHits: Array.from(residueMap.values())};
+}
+function applyBaseStyles() {
+  if (structureModelRef && structureModelRef.setStyle) {
+    structureModelRef.setStyle({}, {cartoon:{color:"#7f97af", opacity:0.78}});
+    structureModelRef.setStyle({within:{distance:3.0, sel:{elem:"ZN"}}}, {stick:{colorscheme:"greenCarbon", radius:0.18}});
+    structureModelRef.setStyle({within:{distance:5.0, sel:{elem:"ZN"}}, byres:true}, {stick:{colorscheme:"yellowCarbon", radius:0.22}});
+  }
+}
+function buildZnMarkerPdbText() {
+  const znAtoms = getStructureZnAtoms();
+  const lines = [];
+  for (let i = 0; i < znAtoms.length; i += 1) {
+    const z = znAtoms[i];
+    if (!Number.isFinite(z.x) || !Number.isFinite(z.y) || !Number.isFinite(z.z)) continue;
+    const serial = String(i + 1).padStart(5, " ");
+    const resi = String(i + 1).padStart(4, " ");
+    const x = Number(z.x).toFixed(3).padStart(8, " ");
+    const y = Number(z.y).toFixed(3).padStart(8, " ");
+    const zz = Number(z.z).toFixed(3).padStart(8, " ");
+    lines.push(`HETATM${serial} ZN   ZN Z${resi}    ${x}${y}${zz}  1.00 20.00          ZN`);
+  }
+  return lines.join("\n") + (lines.length ? "\nEND\n" : "");
+}
+function rebuildZnMarkerModel() {
+  if (znMarkerModelRef && viewer && viewer.removeModel) {
+    try { viewer.removeModel(znMarkerModelRef); } catch (_) {}
+  }
+  znMarkerModelRef = null;
+  const pdbText = buildZnMarkerPdbText();
+  if (!pdbText.trim() || !viewer || !viewer.addModel) return 0;
+  try {
+    const model = viewer.addModel(pdbText, "pdb");
+    if (!model) return 0;
+    znMarkerModelRef = model;
+    if (model.setStyle) model.setStyle({}, {sphere:{radius:0.58, color:"#c100ff", opacity:0.98}});
+    if (model.setClickable) {
+      model.setClickable({}, true, function(atom) {
+        if (!atom) return;
+        focusZnNeighborhood(atom);
+      });
+    }
+    return getStructureZnAtoms().length;
+  } catch (_) {
+    znMarkerModelRef = null;
+    return 0;
+  }
+}
+function drawZnVisibleAtoms(forceFocus) {
+  const drawOk = rebuildZnMarkerModel();
+  if (!drawOk) return 0;
+  if (forceFocus && viewer && viewer.zoomTo) {
+    try {
+      viewer.zoomTo({within:{distance:5.0, sel:{elem:"ZN"}}, byres:true});
+    } catch (_) {}
+  }
+  return drawOk;
+}
+function drawZnInteractionsAndLabels(options = {}) {
+  clearInteractionOverlays();
+  const targetZnAtom = options.targetZnAtom || null;
+  const emphasize = !!options.emphasize;
+  const {znAtoms, residueHits} = getZnNeighborhood(targetZnAtom);
+  if (!znAtoms.length) {
+    setViewerHint("当前结构未解析到 Zn 原子，无法显示 5A 邻域。");
+    return 0;
+  }
+  let interactionCount = 0;
+  for (const hit of residueHits) {
+    const a = hit.interactionAtom;
+    const zn = hit.closestZn;
+    if (!a || !zn || !viewer || !viewer.addLine) continue;
+    const style = interactionStyleForResidue(a, hit.minDist);
+    const line = viewer.addLine({
+      start: {x: zn.x, y: zn.y, z: zn.z},
+      end: {x: a.x, y: a.y, z: a.z},
+      color: style.line,
+      dashed: emphasize,
+      linewidth: emphasize ? (hit.minDist <= 3.2 ? 6 : 5) : (hit.minDist <= 3.2 ? 4 : 3)
+    });
+    znInteractionShapes.push(line);
+    addInteractionLabel(residueNeighborLabels, hit.labelAtom || hit.interactionAtom, hit.closestZn || znAtoms[0], hit.minDist);
+    interactionCount += 1;
+  }
+  return interactionCount;
+}
+function drawResidueInteractionsAroundAtom(anchorAtom) {
+  if (!viewer || !viewer.addLine) return 0;
+  const near = collectNearResiduesByAtom(anchorAtom, 5.0);
+  for (const item of near) {
+    const a = item.atom;
+    const line = viewer.addLine({
+      start: {x: anchorAtom.x, y: anchorAtom.y, z: anchorAtom.z},
+      end: {x: a.x, y: a.y, z: a.z},
+      color: "#2a7fd6",
+      dashed: true,
+      linewidth: 2
+    });
+    residueInteractionShapes.push(line);
+  }
+  return near.length;
+}
+function labelResiduesAroundAtom(anchorAtom) {
+  const near = collectNearResiduesByAtom(anchorAtom, 5.0);
+  for (const item of near) addInteractionLabel(residueNeighborLabels, item.atom, anchorAtom, item.d);
+  return near.length;
+}
+function focusResidueNeighborhood(atom) {
+  if (!atom || !Number.isFinite(atom.x) || !Number.isFinite(atom.y) || !Number.isFinite(atom.z)) return;
+  applyBaseStyles();
+  drawZnVisibleAtoms(false);
+  clearInteractionOverlays();
+  const nearSel = {within:{distance:5.0, sel:{chain: atom.chain, resi: atom.resi}}, byres:true};
+  if (structureModelRef && structureModelRef.setStyle) {
+    structureModelRef.setStyle(nearSel, {stick:{colorscheme:"whiteCarbon", radius:0.2}});
+    structureModelRef.setStyle({chain: atom.chain, resi: atom.resi}, {stick:{color:"orange", radius:0.28}});
+  }
+  const nearLabelCount = labelResiduesAroundAtom(atom);
+  const rrCount = drawResidueInteractionsAroundAtom(atom);
+  setPickedLabel(atom, `${atom.chain || ""}:${atom.resn || ""}${atom.resi || ""}`, "#36506b");
+  setViewerHint(`已定位 ${atom.chain || ""}:${atom.resn || ""}${atom.resi || ""}；5A 内残基标签 ${nearLabelCount} 个，相互作用线 ${rrCount} 条。`);
+  if (viewer && viewer.zoomTo) viewer.zoomTo(nearSel);
+  if (viewer && viewer.render) viewer.render();
+}
+function focusZnNeighborhood(atom) {
+  applyBaseStyles();
+  drawZnVisibleAtoms(false);
+  clearInteractionOverlays();
+  const targetZn = toZnLikeAtom(atom, 0);
+  const targetSel = znAtomSelection(targetZn);
+  if (structureModelRef && structureModelRef.setStyle) {
+    const near = collectNearResiduesByAtom(targetZn, 5.0);
+    for (const item of near) {
+      const a = item.atom;
+      structureModelRef.setStyle({chain:a.chain, resi:a.resi}, {stick:{colorscheme:"yellowCarbon", radius:0.28}});
+    }
+  }
+  if (znMarkerModelRef && znMarkerModelRef.setStyle) {
+    znMarkerModelRef.setStyle({}, {sphere:{radius:0.58, color:"#c100ff", opacity:0.82}});
+    znMarkerModelRef.setStyle(targetSel, {sphere:{radius:0.72, color:"#c100ff", opacity:1.0}});
+  }
+  const interactionCount = drawZnInteractionsAndLabels({targetZnAtom: targetZn, emphasize: true});
+  setPickedLabel(atom, "Zn", "#7a0088");
+  setViewerHint(`已定位 Zn 位点；5A 内残基 ${residueNeighborLabels.length} 个，相互作用线 ${interactionCount} 条。`);
+  if (viewer && viewer.zoomTo) {
+    try {
+      viewer.zoomTo({within:{distance:5.0, sel:{x:targetZn.x, y:targetZn.y, z:targetZn.z}}});
+    } catch (_) {
+      viewer.zoomTo();
+    }
+  }
+  if (viewer && viewer.render) viewer.render();
+}
+function bindViewerClick() {
+  if (structureModelRef && structureModelRef.setClickable) {
+    structureModelRef.setClickable({}, true, function(atom) {
+      if (!atom) return;
+      if (isZnAtom(atom)) {
+        focusZnNeighborhood(atom);
+        return;
+      }
+      focusResidueNeighborhood(atom);
+    });
+    return;
+  }
+  if (!viewer || !viewer.setClickable) return;
+  viewer.setClickable({}, true, function(atom) {
+    if (!atom) return;
+    if (isZnAtom(atom)) {
+      focusZnNeighborhood(atom);
+      return;
+    }
+    focusResidueNeighborhood(atom);
+  });
+}
 function parsePdbMetals(structureText) {
   const out = [];
   if (!structureText) return out;
@@ -432,6 +831,7 @@ function renderPocketViewer(structureText, pockets) {
   }
   const v = ensureViewer();
   v.clear();
+  resetViewerState();
   if (!structureText || !structureText.trim()) {
     if (v.render) v.render();
     return 0;
@@ -439,50 +839,19 @@ function renderPocketViewer(structureText, pockets) {
   if (!v.addModel) {
     throw new Error("3D可视化初始化失败，无法加载蛋白结构");
   }
-  const m = v.addModel(structureText, "pdb");
-  if (m && m.setStyle) {
-    m.setStyle({}, {cartoon:{color:"#b8c7d8", opacity:0.18}});
-    m.setStyle({within:{distance:3.0, sel:{elem:"ZN"}}}, {stick:{colorscheme:"greenCarbon", radius:0.2}});
-    m.setStyle({within:{distance:5.0, sel:{elem:"ZN"}}, byres:true}, {stick:{colorscheme:"yellowCarbon", radius:0.24}});
-  }
-  const modelZn = collectZnAtoms(m);
-  const modelMetals = collectMetalAtoms(m);
-  const pdbMetals = parsePdbMetals(structureText);
-  const pdbZn = pdbMetals.filter(a => String(a.elem || "").toUpperCase() === "ZN");
-  const znAtoms = pdbZn.length >= modelZn.length ? pdbZn : modelZn;
-  const metalAtoms = znAtoms.length ? znAtoms : (pdbMetals.length >= modelMetals.length ? pdbMetals : modelMetals);
-  let idx = 0;
-  for (const a of metalAtoms) {
-    idx += 1;
-    if (m && m.setStyle) {
-      if (a.serial != null) {
-        m.setStyle({serial: a.serial}, {sphere:{radius:2.6, color:"#ffea00", opacity:1.0}});
-      } else {
-        m.setStyle({elem: String(a.elem || "").toUpperCase()}, {sphere:{radius:2.6, color:"#ffea00", opacity:1.0}});
-      }
-    }
-    if (v.addSphere) {
-      v.addSphere({
-        center: {x: a.x, y: a.y, z: a.z},
-        radius: 3.2,
-        color: "#ff6f00",
-        alpha: 0.25
-      });
-    }
-    if (!v.addLabel) continue;
-    v.addLabel(`${String(a.elem || "M").toUpperCase()}${idx}`, {
-      position: {x: a.x, y: a.y, z: a.z},
-      fontColor: "#111",
-      backgroundColor: "#ffea00",
-      borderColor: "#d08c00",
-      borderThickness: 1,
-      fontSize: 13,
-      inFront: true
-    });
-  }
-  if (pdbMetals.length > 0 && metalAtoms.length === 0) {
-    throw new Error("检测到金属离子坐标，但可视化标记失败");
-  }
+  currentStructureText = String(structureText || "");
+  structureModelRef = v.addModel(structureText, "pdb");
+  applyBaseStyles();
+  const parsedMetals = parsePdbMetals(structureText);
+  const parsedZn = parsedMetals.filter((a) => String(a.elem || "").toUpperCase() === "ZN");
+  const modelZn = collectZnAtoms(structureModelRef);
+  currentStructureZnAtoms = parsedZn.length >= modelZn.length
+    ? parsedZn
+    : modelZn.map((a) => ({
+        x: a.x, y: a.y, z: a.z,
+        serial: a.serial, chain: a.chain, resn: a.resn, resi: a.resi, atom: a.atom, elem: a.elem || "ZN"
+      }));
+  const znCount = drawZnVisibleAtoms(false);
   for (const p of pockets || []) {
     const color = pocketColor(Number(p.pocket_id) || 1);
     let cx = 0;
@@ -496,7 +865,7 @@ function renderPocketViewer(structureText, pockets) {
         center: {x: pt.x, y: pt.y, z: pt.z},
         radius: Number.isFinite(rr) ? Math.max(0.6, Math.min(1.3, rr * 0.25)) : 0.8,
         color: color,
-        alpha: 0.45
+        alpha: 0.22
       });
       if (Number.isFinite(pt.x) && Number.isFinite(pt.y) && Number.isFinite(pt.z)) {
         cx += Number(pt.x);
@@ -517,8 +886,9 @@ function renderPocketViewer(structureText, pockets) {
       });
     }
   }
+  bindViewerClick();
   if (v.zoomTo) {
-    if (znAtoms.length) {
+    if (currentStructureZnAtoms.length) {
       v.zoomTo({within:{distance:5.0, sel:{elem:"ZN"}}, byres:true});
     } else {
       v.zoomTo();
@@ -526,7 +896,15 @@ function renderPocketViewer(structureText, pockets) {
   }
   if (v.resize) v.resize();
   if (v.render) v.render();
-  return metalAtoms.length;
+  setViewerHint(
+    currentStructureZnAtoms.length
+      ? `已加载 ${currentStructureZnAtoms.length} 个 Zn 位点。点击 Zn 可查看 5A 邻域残基；点击普通残基可查看该残基周围 5A 邻域。`
+      : "当前结构未识别到 Zn 位点；仍可点击普通残基查看 5A 邻域。"
+  );
+  if (parsedMetals.length > 0 && znCount === 0 && currentStructureZnAtoms.length > 0) {
+    throw new Error("检测到 Zn 坐标，但 Zn marker 绘制失败");
+  }
+  return znCount;
 }
 async function loadPocketData() {
   let apiBase = getApiBase();
@@ -539,10 +917,10 @@ async function loadPocketData() {
     const pockets = data.pockets || [];
     document.getElementById("viewer_panel").style.display = pockets.length ? "block" : "none";
     if (pockets.length) requestAnimationFrame(refreshViewerLayout);
-    const metalCount = renderPocketViewer(data.structure_pdb_text || "", pockets);
+    const znCount = renderPocketViewer(data.structure_pdb_text || "", pockets);
     renderPocketList(pockets);
     renderParamTable(data.columns || [], data.rows || []);
-    setDebugError(`phase=pockets_ok\napi=${apiBase}\njob_id=${id}\npockets=${pockets.length}\nrows=${(data.rows || []).length}\nmetal_ions=${metalCount}`);
+    setDebugError(`phase=pockets_ok\napi=${apiBase}\njob_id=${id}\npockets=${pockets.length}\nrows=${(data.rows || []).length}\nzn_markers=${znCount}`);
   } catch (e) {
     const msg = (e && e.message ? e.message : "unknown");
     document.getElementById("viewer_panel").style.display = "none";

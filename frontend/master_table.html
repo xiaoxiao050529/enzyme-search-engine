@@ -9,6 +9,9 @@ body { font-family: system-ui, sans-serif; margin: 16px; }
 .top_nav { display: flex; gap: 8px; margin-bottom: 10px; }
 .top_nav a { display: inline-block; padding: 6px 10px; border: 1px solid #d9d9d9; background: #f6f8fa; color: #0b5394; text-decoration: none; border-radius: 6px; font-weight: 600; }
 .top_nav a:hover { background: #eaf2ff; }
+.column_legend { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 12px; align-items: center; }
+.legend_chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12px; border: 1px solid transparent; background: #f4f6f8; color: #2f3d4a; }
+.legend_note { font-size: 12px; color: #556; }
 .toolbar { display: grid; gap: 10px; margin-bottom: 10px; }
 .control_block { border: 1px solid #ddd; border-radius: 8px; background: #fafafa; padding: 10px; }
 .block_title { font-weight: 700; margin-bottom: 8px; }
@@ -30,12 +33,37 @@ textarea { min-height: 96px; resize: vertical; }
 .table_wrap { border: 1px solid #ddd; overflow: auto; max-height: 76vh; }
 table { border-collapse: collapse; width: max-content; min-width: 100%; font-size: 13px; }
 th, td { border: 1px solid #e5e5e5; padding: 6px 8px; text-align: left; white-space: nowrap; }
-th { position: sticky; top: 0; background: #f7f9fc; cursor: pointer; z-index: 2; }
+th { position: sticky; top: 0; background: #f7f9fc; cursor: pointer; z-index: 2; vertical-align: bottom; }
 tbody tr:nth-child(even) { background: #fcfcfc; }
 tbody tr:hover { background: #eef6ff; }
 .editable_cell { cursor: cell; }
 .editable_cell:hover { background: rgba(255, 208, 102, 0.18); }
 .edited_cell { background: rgba(255, 236, 184, 0.72); }
+.col_label { font-weight: 700; line-height: 1.2; }
+.col_badge { display: inline-block; margin-top: 4px; padding: 2px 8px; border-radius: 999px; font-size: 11px; line-height: 1.2; border: 1px solid transparent; }
+.group_core .col_badge, .legend_core { background: #edf2f7; border-color: #d5dee8; color: #334155; }
+.group_diffdock .col_badge, .legend_diffdock { background: #e8f1ff; border-color: #bfd5ff; color: #124e96; }
+.group_fpocket .col_badge, .legend_fpocket { background: #ebf8ef; border-color: #b7e2c2; color: #1d6f42; }
+.group_geometry .col_badge, .legend_geometry { background: #fff4e5; border-color: #f1cf9c; color: #9a5a00; }
+.group_workflow .col_badge, .legend_workflow { background: #fcefee; border-color: #efc4bf; color: #9f3d2e; }
+.group_text .col_badge, .legend_text { background: #f3f4f6; border-color: #d6dae0; color: #4b5563; }
+th.group_core { background: #f7f9fc; box-shadow: inset 0 3px 0 #b9c4d0; }
+th.group_diffdock { background: #f2f7ff; box-shadow: inset 0 3px 0 #4c89d9; }
+th.group_fpocket { background: #f1fbf4; box-shadow: inset 0 3px 0 #54a26d; }
+th.group_geometry { background: #fff8ef; box-shadow: inset 0 3px 0 #d29b43; }
+th.group_workflow { background: #fff5f3; box-shadow: inset 0 3px 0 #cc7764; }
+th.group_text { background: #f8f9fb; box-shadow: inset 0 3px 0 #98a2ad; }
+td.group_core { box-shadow: inset 3px 0 0 rgba(185, 196, 208, 0.45); }
+td.group_diffdock { box-shadow: inset 3px 0 0 rgba(76, 137, 217, 0.45); }
+td.group_fpocket { box-shadow: inset 3px 0 0 rgba(84, 162, 109, 0.45); }
+td.group_geometry { box-shadow: inset 3px 0 0 rgba(210, 155, 67, 0.45); }
+td.group_workflow { box-shadow: inset 3px 0 0 rgba(204, 119, 100, 0.45); }
+td.group_text { box-shadow: inset 3px 0 0 rgba(152, 162, 173, 0.45); }
+th.priority_column { background: #fff8dd; box-shadow: inset 0 4px 0 #d4a200; }
+td.priority_column { background: rgba(255, 244, 204, 0.65); box-shadow: inset 4px 0 0 #d4a200; font-weight: 700; }
+td.text_heavy { max-width: 360px; }
+.cell_text { display: block; }
+td.text_heavy .cell_text { max-width: 340px; overflow: hidden; text-overflow: ellipsis; }
 </style>
 <link rel="stylesheet" href="./theme.css">
 </head>
@@ -49,6 +77,15 @@ tbody tr:hover { background: #eef6ff; }
   <a href="./pdbzn_workflow.html">PDB-ZN工作流</a>
 </div>
 <h2>Master Table</h2>
+<div class="column_legend">
+  <span class="legend_chip legend_core">基础列</span>
+  <span class="legend_chip legend_diffdock">DiffDock</span>
+  <span class="legend_chip legend_fpocket">fpocket</span>
+  <span class="legend_chip legend_geometry">Zn/几何</span>
+  <span class="legend_chip legend_workflow">流程/TM-align</span>
+  <span class="legend_chip legend_text">文本信息</span>
+  <span class="legend_note">默认把名称、序列、路径等长文本列放到后面；悬停单元格可看完整内容。</span>
+</div>
 <div class="toolbar">
   <div class="control_block">
     <div class="block_title">数据表</div>
@@ -163,6 +200,78 @@ let keptRowSet = null;
 let baseHeader = [];
 let draftState = {addedColumns: [], editedCells: {}};
 const DRAFT_PREFIX = "master_table_draft::";
+const FRONT_PRIORITY_COLUMNS = [
+  "Representative",
+  "_id",
+  "Best_Confidence",
+  "Step5_FinalScore",
+  "Similarity_Score",
+  "Best_Rank",
+  "Protein_Category",
+  "Cluster_ID",
+  "Length;Oligomer;Monomer",
+  "NearestDistanceTo3HisZn",
+  "ZN_Depth",
+  "ZN_Depth_Rounded",
+  "ZN_SASA",
+  "TriHisSatisfied",
+  "TriHisCountMax",
+  "BestPocket_Score",
+  "BestPocket_Druggability",
+  "BestPocket_Volume",
+  "BestPocket_ID",
+  "BestPocket_ZnMatch",
+  "BestPocket_MinDistToZn",
+  "BestPocket_HisCount",
+  "BestPocket_ZnCount",
+  "BestPocket_SelectRule",
+  "Zn_CoordResidueCount",
+  "Zn_CoordHisCount",
+  "Zn_CoordNonHisCount",
+  "Zn_CoordSite",
+  "Step5_Source",
+  "Step5_FPocket_Status",
+  "Step5_FPocket_BestScore",
+  "Step5_FPocket_BestVolume",
+  "Step5_TriHis_Recheck_Pass",
+  "Step5_Symmetry_Spatial_Filter_Pass",
+  "Step5_TriHis_Count"
+];
+const TEXT_HEAVY_COLUMNS = new Set([
+  "Protein_Name",
+  "Species",
+  "MonomerSeq",
+  "Details",
+  "Neighbor_List",
+  "AllZnDistancesSorted",
+  "Receptor_PDB",
+  "Best_SDF",
+  "Zn_CoordResidues",
+  "Zn_CoordNote",
+  "Step5_Cluster_Members",
+  "Step5_TriHis_Residues",
+  "Step5_ZN_Site",
+  "Step5_His_ZN_Bond_Lengths_A",
+  "Step5_His_ZN_Bond_Angles_Deg",
+  "Step5_Residues_Within_5A",
+  "Step5_Validation_Reasons"
+]);
+const DISPLAY_LABELS = {
+  "Representative": "PDB / Representative",
+  "Best_Confidence": "活性 / Best_Confidence",
+  "Step5_FinalScore": "综合分 / Step5_FinalScore",
+  "Similarity_Score": "相似度 / Similarity_Score",
+  "Protein_Name": "名称 / Protein_Name",
+  "Species": "物种 / Species",
+  "MonomerSeq": "序列 / MonomerSeq",
+  "BestPocket_Score": "口袋分 / BestPocket_Score",
+  "Receptor_PDB": "受体路径 / Receptor_PDB",
+  "Best_SDF": "对接结果 / Best_SDF"
+};
+
+function uniqueColumns(columns) {
+  return [...new Set(columns)];
+}
 
 function asText(v) {
   if (v == null) return "";
@@ -237,6 +346,45 @@ function cmp(a, b) {
   return asText(a).localeCompare(asText(b), "zh-Hans-CN", {numeric: true, sensitivity: "base"});
 }
 
+function orderColumns(columns) {
+  const unique = uniqueColumns(columns);
+  const front = FRONT_PRIORITY_COLUMNS.filter((col) => unique.includes(col));
+  const middle = unique.filter((col) => !front.includes(col) && !TEXT_HEAVY_COLUMNS.has(col));
+  const tail = unique.filter((col) => !front.includes(col) && TEXT_HEAVY_COLUMNS.has(col));
+  return [...front, ...middle, ...tail];
+}
+
+function getColumnLabel(col) {
+  return DISPLAY_LABELS[col] || col;
+}
+
+function isTextHeavyColumn(col) {
+  return TEXT_HEAVY_COLUMNS.has(col);
+}
+
+function isPriorityColumn(col) {
+  return col === "Best_Confidence" || col === "Step5_FinalScore";
+}
+
+function getColumnGroup(col) {
+  if (col.startsWith("BestPocket_") || col.startsWith("Step5_FPocket_")) return "fpocket";
+  if (col === "Best_Confidence" || col === "Best_Rank" || col === "Best_SDF") return "diffdock";
+  if (col === "Similarity_Score" || col === "Cluster_ID" || col.startsWith("Step5_Cluster_") || col === "Step5_TMAlign_Threshold" || col === "Step5_Source" || col === "Step5_FinalScore") return "workflow";
+  if (col.startsWith("Zn_Coord") || col.startsWith("ZN_") || col.startsWith("TriHis") || col === "NearestDistanceTo3HisZn" || col === "Neighbor_Count" || col === "Neighbor_Profile_Similarity" || col === "Neighbor_List" || col === "AllZnDistancesSorted" || col === "Details" || col === "Step5_TriHis_Recheck_Pass" || col === "Step5_Symmetry_Spatial_Filter_Pass" || col === "Step5_TriHis_Count" || col === "Step5_TriHis_Residues" || col === "Step5_ZN_Site" || col === "Step5_His_ZN_Bond_Lengths_A" || col === "Step5_His_ZN_Bond_Angles_Deg" || col === "Step5_Residues_Within_5A_Count" || col === "Step5_Residues_Within_5A" || col === "Step5_Validation_Reasons") return "geometry";
+  if (isTextHeavyColumn(col)) return "text";
+  return "core";
+}
+
+function getColumnGroupLabel(col) {
+  const group = getColumnGroup(col);
+  if (group === "diffdock") return "DiffDock";
+  if (group === "fpocket") return "fpocket";
+  if (group === "geometry") return "Zn/几何";
+  if (group === "workflow") return "流程/TM-align";
+  if (group === "text") return "文本";
+  return "基础";
+}
+
 function getRowJumpId(r) {
   const idVal = asText(r["_id"]).trim();
   const repVal = asText(r["Representative"]).trim();
@@ -285,8 +433,18 @@ function renderHeader() {
   const tr = document.createElement("tr");
   for (const h of visibleHeader) {
     const th = document.createElement("th");
+    const group = getColumnGroup(h);
     const mark = sortState.key === h ? (sortState.asc ? " ▲" : " ▼") : "";
-    th.textContent = h + mark;
+    th.classList.add(`group_${group}`);
+    if (isPriorityColumn(h)) th.classList.add("priority_column");
+    const title = document.createElement("div");
+    title.className = "col_label";
+    title.textContent = getColumnLabel(h) + mark;
+    const badge = document.createElement("span");
+    badge.className = "col_badge";
+    badge.textContent = getColumnGroupLabel(h);
+    th.appendChild(title);
+    th.appendChild(badge);
     th.addEventListener("click", () => {
       if (sortState.key === h) sortState.asc = !sortState.asc;
       else {
@@ -311,8 +469,15 @@ function renderTable() {
     for (const h of visibleHeader) {
       const td = document.createElement("td");
       const val = asText(r[h]);
+      const group = getColumnGroup(h);
       const isLinkCell = (h === "_id" || h === "Representative" || h === "Receptor_PDB") && jumpId;
       const rowKey = getRowKey(r);
+      td.classList.add(`group_${group}`);
+      if (isPriorityColumn(h)) td.classList.add("priority_column");
+      if (isTextHeavyColumn(h)) {
+        td.classList.add("text_heavy");
+        td.title = val;
+      }
       if ((draftState.editedCells[rowKey] || {})[h] !== undefined) td.classList.add("edited_cell");
       if ((h === "_id" || h === "Representative" || h === "Receptor_PDB") && jumpId) {
         const a = document.createElement("a");
@@ -320,13 +485,20 @@ function renderTable() {
         a.href = `./index.html?pdb=${encodeURIComponent(jumpId)}${ds}`;
         a.textContent = val;
         a.style.color = "#0b5394";
+        if (isTextHeavyColumn(h)) {
+          a.className = "cell_text";
+          a.title = val;
+        }
         td.appendChild(a);
       } else {
-        td.textContent = val;
+        const span = document.createElement("span");
+        span.className = "cell_text";
+        span.textContent = val;
+        td.appendChild(span);
       }
       if (!isLinkCell) {
         td.classList.add("editable_cell");
-        td.title = "双击编辑";
+        td.title = isTextHeavyColumn(h) ? val : "双击编辑";
         td.addEventListener("dblclick", (ev) => {
           ev.preventDefault();
           ev.stopPropagation();
@@ -375,11 +547,11 @@ function initColumnSelectors() {
   for (const h of visibleHeader) {
     const opSearch = document.createElement("option");
     opSearch.value = h;
-    opSearch.textContent = h;
+    opSearch.textContent = getColumnLabel(h);
     searchSel.appendChild(opSearch);
     const opSort = document.createElement("option");
     opSort.value = h;
-    opSort.textContent = h;
+    opSort.textContent = getColumnLabel(h);
     sortSel.appendChild(opSort);
   }
   if (visibleHeader.includes(prevSearch)) searchSel.value = prevSearch;
@@ -394,7 +566,7 @@ function renderVisibleColumnOptions() {
   for (const h of fullHeader) {
     const op = document.createElement("option");
     op.value = h;
-    op.textContent = h;
+    op.textContent = getColumnLabel(h);
     op.selected = selected.has(h);
     sel.appendChild(op);
   }
@@ -407,7 +579,7 @@ function renderEditColumnOptions() {
   for (const h of fullHeader) {
     const op = document.createElement("option");
     op.value = h;
-    op.textContent = h;
+    op.textContent = getColumnLabel(h);
     sel.appendChild(op);
   }
   if (fullHeader.includes(prev)) sel.value = prev;
@@ -465,10 +637,11 @@ async function loadCurrentTable() {
   localDataViaApi = Boolean(localApiBase) && String(ret.url || "").startsWith(`${localApiBase}/api/data/file`);
   masterSourceLabel = localDataViaApi ? `${localApiBase}/api/data/file` : `静态 backend/data/${currentTable.full || "master_full.json"}`;
   baseHeader = Array.isArray(j.header) ? j.header.slice() : [];
-  fullHeader = baseHeader.slice();
+  fullHeader = orderColumns(baseHeader.slice());
   fullRows = Array.isArray(j.rows) ? j.rows.map((row, idx) => ({...row, __rowKey: getRowKey(row, idx)})) : [];
   draftState = loadDraftState();
   applyDraftState();
+  fullHeader = orderColumns(fullHeader);
   visibleHeader = fullHeader.slice();
   keptRowSet = null;
   document.getElementById("row_keep_input").value = "";
@@ -625,6 +798,7 @@ function ensureColumnExists(colName, defaultValue = "") {
   const col = asText(colName).trim();
   if (!col) throw new Error("列名不能为空");
   if (!fullHeader.includes(col)) fullHeader.push(col);
+  fullHeader = orderColumns(fullHeader);
   if (!baseHeader.includes(col) && !draftState.addedColumns.includes(col)) draftState.addedColumns.push(col);
   for (const row of fullRows) {
     if (!(col in row)) row[col] = defaultValue;

@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>fpocket 页面</title>
+<script src="https://unpkg.com/3dmol/build/3Dmol-min.js"></script>
+<style>
+body { font-family: system-ui, sans-serif; margin: 16px; }
+.top_nav { display: flex; gap: 8px; margin-bottom: 10px; }
+.top_nav a { display: inline-block; padding: 6px 10px; border: 1px solid #d9d9d9; background: #f6f8fa; color: #0b5394; text-decoration: none; border-radius: 6px; font-weight: 600; }
+.top_nav a:hover { background: #eaf2ff; }
+.layout { display: grid; grid-template-columns: 420px 1fr; gap: 14px; align-items: start; }
+#controls { border: 1px solid #ddd; background: #fafafa; padding: 10px; }
+label { display: block; margin-bottom: 8px; }
+input, button, textarea { width: 100%; box-sizing: border-box; padding: 6px; }
+button { margin-top: 4px; }
+#status { margin-top: 10px; color: #333; }
+.muted { margin: -4px 0 8px 0; color: #666; font-size: 12px; }
+.progress_box { margin-top: 8px; padding: 8px; border: 1px solid #e1e8f0; background: #f8fbff; border-radius: 8px; }
+.progress_head { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 6px; font-size: 12px; color: #325b88; }
+.progress_track { height: 10px; background: #e4edf7; border-radius: 999px; overflow: hidden; }
+.progress_fill { width: 0%; height: 100%; background: linear-gradient(90deg, #4f8cc9, #67b99a); transition: width 220ms ease, background 220ms ease; }
+#result { border: 1px solid #ddd; background: #fff; min-height: 420px; padding: 10px; display: flex; flex-direction: column; gap: 10px; position: relative; overflow: hidden; }
+#viewer_panel { border: 1px solid #e5e7eb; background: #fcfdff; padding: 8px; display: none; overflow: hidden; }
+#data_panel { border: 1px solid #e5e7eb; background: #fff; padding: 8px; }
+#outputs a { display: block; margin-bottom: 4px; color: #0b5394; }
+pre { white-space: pre-wrap; word-break: break-word; background: #f8f8f8; border: 1px solid #eee; padding: 8px; max-height: 360px; overflow: auto; }
+#debug_error { color: #8a1f11; background: #fff3f0; border: 1px solid #f0c2ba; min-height: 92px; }
+#viewer { height: 560px; border: 1px solid #ddd; background: #fff; position: relative; overflow: hidden; width: 100%; }
+#viewer canvas { position: static !important; display: block; width: 100% !important; height: 100% !important; }
+#viewer_hint { margin-top: 8px; color: #445; font-size: 12px; line-height: 1.5; }
+#pocket_list { margin-top: 8px; max-height: 180px; overflow: auto; border: 1px solid #eee; padding: 6px; }
+.pocket_item { font-size: 12px; border-bottom: 1px dashed #eee; padding: 4px 0; display: flex; align-items: center; gap: 8px; }
+.swatch { width: 12px; height: 12px; border-radius: 2px; border: 1px solid #999; flex: 0 0 12px; }
+#params_wrap { max-height: 320px; overflow: auto; border: 1px solid #eee; }
+#params_table { width: 100%; border-collapse: collapse; font-size: 12px; }
+#params_table th, #params_table td { border: 1px solid #ddd; padding: 4px 6px; text-align: right; white-space: nowrap; }
+#params_table th:first-child, #params_table td:first-child { text-align: left; position: sticky; left: 0; background: #fff; }
+</style>
+<link rel="stylesheet" href="./theme.css">
+</head>
+<body class="page-fpocket">
+<div class="top_nav">
+  <a href="./index.html">主页面</a>
+  <a href="./diffdock_compare.html">DiffDock对比</a>
+  <a href="./master_table.html">Master表</a>
+  <a href="./fpocket.html">fpocket</a>
+  <a href="./tmalign.html">TM-align</a>
+  <a href="./pdbzn_workflow.html">PDB-ZN工作流</a>
+</div>
+<h2>fpocket 页面</h2>
+<div class="layout">
+  <div id="controls">
+    <label>API地址
+      <input id="api_base" type="text" value="http://127.0.0.1:8015" placeholder="例如 http://127.0.0.1:8015">
+    </label>
+    <div class="muted">支持自动探测 8015/8021/8019/8018/8017/8016；不要填写前端页面端口（如 8020）</div>
+    <label>PDB文件（可上传本地结构）
+      <input id="pdb_file" type="file" accept=".pdb,.ent">
+    </label>
+    <label>或选择库内蛋白
+      <input id="protein_pick" type="text" list="protein_options" placeholder="例如 3MWM | Graded expression ...">
+    </label>
+    <div class="muted">如果未上传文件，提交时会自动使用这里选中的蛋白结构。</div>
+    <datalist id="protein_options"></datalist>
+    <button id="submit_btn" type="button">提交 fpocket 任务</button>
+    <label>任务ID
+      <input id="job_id" type="text" placeholder="提交后自动填入，或手工输入">
+    </label>
+    <button id="poll_btn" type="button">查询任务状态</button>
+    <button id="log_btn" type="button">查看任务日志</button>
+    <div id="status">待提交</div>
+    <div class="progress_box">
+      <div class="progress_head"><span id="progress_label">任务进度</span><span id="progress_pct">0%</span></div>
+      <div class="progress_track"><div id="progress_fill" class="progress_fill"></div></div>
+    </div>
+    <pre id="debug_error">phase=idle</pre>
+  </div>
+  <div id="result">
+    <div id="viewer_panel">
+      <h3>口袋可视化（右侧）</h3>
+      <div id="viewer"></div>
+      <div id="viewer_hint">点击 Zn 可查看 5A 邻域残基；点击普通残基可查看该残基周围 5A 邻域。</div>
+      <div id="pocket_list">暂无</div>
+    </div>
+    <div id="data_panel">
+      <h3>任务结果</h3>
+      <div id="job_meta">-</div>
+      <h4>fpocket 参数表</h4>
+      <div id="params_wrap"><table id="params_table"></table></div>
+      <h4>输出文件</h4>
+      <div id="outputs">暂无</div>
+      <h4>日志</h4>
+      <pre id="log_view">暂无</pre>
+    </div>
+  </div>
+</div>
+<script>
+let pollTimer = null;
+let pollCount = 0;
+let viewer = null;
+let structureModelRef = null;
+let znMarkerModelRef = null;
+let currentStructureText = "";
+let currentStructureZnAtoms = [];
+let znInteractionShapes = [];
+let residueInteractionShapes = [];
+let residueNeighborLabels = [];
+let pickedLabel = null;
+let proteinCatalog = [];
+let proteinLookup = new Map();
+let currentProgressValue = 0;
+function getApiBase() {
+  return (document.getElementById("api_base").value || "").trim().replace(/\/+$/, "");
+}
+function viewerUnavailableMessage() {
+  return "3Dmol 未加载，通常是浏览器无法访问 https://unpkg.com/3dmol/build/3Dmol-min.js；fpocket 任务和参数表仍可查看，但图像无法渲染。";
+}
+function appendNoCache(url) {
+  return url + (url.includes("?") ? "&" : "?") + "t=" + Date.now();
+}
+function setProgress(value, label, tone = "normal") {
+  const pct = Math.max(0, Math.min(100, Math.round(Number(value) || 0)));
+  currentProgressValue = pct;
+  document.getElementById("progress_fill").style.width = pct + "%";
+  document.getElementById("progress_fill").style.background = tone === "error" ? "linear-gradient(90deg, #d62828, #f77f00)" : "linear-gradient(90deg, #4f8cc9, #67b99a)";
+  document.getElementById("progress_label").textContent = label || "任务进度";
+  document.getElementById("progress_pct").textContent = pct + "%";
+}
+function resetProgress(label = "任务进度") {
+  setProgress(0, label, "normal");
+}
+function jobProgressValue(job) {
+  const phase = String(job?.phase || job?.status || "queued");
+  const table = {
+    queued: 6,
+    starting: 12,
+    prepare_dirs: 20,
+    discover_bin: 32,
+    open_log: 40,
+    spawn: 55,
+    waiting: 78,
+    done: 100,
+    done_recovered: 100,
+    recovered: 92,
+    failed: Math.max(currentProgressValue, 100),
+    failed_no_bin: Math.max(currentProgressValue, 100),
+    failed_exit: Math.max(currentProgressValue, 100),
+    failed_exception: Math.max(currentProgressValue, 100),
+    failed_bootstrap: Math.max(currentProgressValue, 100),
+    failed_watchdog: Math.max(currentProgressValue, 100)
+  };
+  return table[phase] != null ? table[phase] : (String(job?.status || "") === "done" ? 100 : Math.max(8, currentProgressValue));
+}
+function updateProgressFromJob(job) {
+  const st = String(job?.status || "queued");
+  const phase = String(job?.phase || st || "queued");
+  const pct = jobProgressValue(job);
+  const tone = st === "failed" ? "error" : "normal";
+  const label = st === "done"
+    ? `任务完成 (${phase})`
+    : (st === "failed" ? `任务失败 (${phase})` : `任务进行中 (${phase})`);
+  setProgress(pct, label, tone);
+}
+function normalizeDataRelPath(ref) {
+  const s = String(ref || "").trim();
+  if (!s) return "";
+  const directPrefixes = ["../backend/data/", "./backend/data/", "/backend/data/", "backend/data/"];
+  for (const p of directPrefixes) {
+    if (s.startsWith(p)) return s.slice(p.length);
+  }
+  if (s.startsWith("structures/") || s === "data.json") return s;
+  if (s.startsWith("/root/PDB_ZN/diffdock_inputs/receptors/")) {
+    return "structures/" + s.split("/").pop();
+  }
+  return "";
+}
+function dataUrlCandidates(apiBase, ref) {
+  const rel = normalizeDataRelPath(ref);
+  if (!rel) return [];
+  const out = [];
+  if (apiBase) out.push(`${apiBase}/api/data/file?path=${encodeURIComponent(rel)}`);
+  out.push(`../backend/data/${rel}`);
+  return [...new Set(out)];
+}
+async function fetchPlainJson(url) {
+  const r = await fetch(appendNoCache(url));
+  if (!r.ok) throw new Error(`${url} 不可用`);
+  return await r.json();
+}
+async function fetchPlainText(url) {
+  const r = await fetch(appendNoCache(url));
+  if (!r.ok) throw new Error(`${url} 不可用`);
+  return await r.text();
+}
+async function fetchFirstSuccessful(urls, loader) {
+  let lastErr = null;
+  for (const u of urls) {
+    try {
+      return await loader(u);
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr || new Error("资源不可用");
+}
+function proteinOptionValue(it) {
+  const id = String(it?.id || "").toUpperCase();
+  const name = String(it?.name || "").trim();
+  return name ? `${id} | ${name}` : id;
+}
+function populateProteinOptions() {
+  const list = document.getElementById("protein_options");
+  list.innerHTML = "";
+  for (const it of proteinCatalog) {
+    const op = document.createElement("option");
+    op.value = proteinOptionValue(it);
+    list.appendChild(op);
+  }
+}
+async function loadProteinCatalog(apiBase) {
+  try {
+    const payload = await fetchFirstSuccessful(dataUrlCandidates(apiBase, "data.json"), fetchPlainJson);
+    const items = Array.isArray(payload?.items) ? payload.items : [];
+    proteinCatalog = items.map((it) => ({
+      id: String(it.id || "").toUpperCase(),
+      name: String(it.name || ""),
+      receptor_rel: String(it.receptor_rel || ""),
+      receptor_pdb: String(it.receptor_pdb || "")
+    })).filter((it) => it.id);
+    proteinLookup = new Map(proteinCatalog.map((it) => [it.id, it]));
+    populateProteinOptions();
+  } catch (e) {
+    setDebugError((document.getElementById("debug_error").textContent || "phase=idle") + `\nwarn=protein_catalog_unavailable ${e && e.message ? e.message : "unknown"}`);
+  }
+}
+function findProteinEntry(text) {
+  const raw = String(text || "").trim();
+  if (!raw) return null;
+  const id = raw.split("|")[0].trim().toUpperCase();
+  if (proteinLookup.has(id)) return proteinLookup.get(id);
+  return proteinCatalog.find((it) => proteinOptionValue(it).toUpperCase() === raw.toUpperCase()) || null;
+}
+async function loadSelectedProteinStructure(apiBase) {
+  const entry = findProteinEntry(document.getElementById("protein_pick").value);
+  if (!entry) throw new Error("请选择库内蛋白，或上传本地PDB文件");
+  const refs = [entry.receptor_rel, entry.receptor_pdb, `structures/${entry.id}.pdb`];
+  const text = await fetchFirstSuccessful(
+    refs.flatMap((ref) => dataUrlCandidates(apiBase, ref)),
+    fetchPlainText
+  );
+  if (!text || text.trim().length < 50) throw new Error(`库内蛋白 ${entry.id} 结构为空或过短`);
+  return {entry, text};
+}
+function setStatus(t) {
+  document.getElementById("status").textContent = t;
+}
+function setDebugError(t) {
+  document.getElementById("debug_error").textContent = t || "";
+}
+function setJobMeta(t) {
+  document.getElementById("job_meta").textContent = t;
+}
+function setViewerHint(t) {
+  document.getElementById("viewer_hint").textContent = t || "";
+}
+function resetViewerState() {
+  structureModelRef = null;
+  znMarkerModelRef = null;
+  currentStructureText = "";
+  currentStructureZnAtoms = [];
+  znInteractionShapes = [];
+  residueInteractionShapes = [];
+  residueNeighborLabels = [];
+  pickedLabel = null;
+}
+function ensureViewer() {
+  if (viewer) return viewer;
+  if (window.$3Dmol) {
+    viewer = $3Dmol.createViewer("viewer", {backgroundColor: "white"});
+  } else {
+    viewer = {
+      clear(){},
+      addModel(){ return { setStyle(){}, setClickable(){}, selectedAtoms(){ return []; } }; },
+      addSphere(){ return null; },
+      addLabel(){ return null; },
+      addLine(){ return null; },
+      removeModel(){},
+      removeLabel(){},
+      removeShape(){},
+      setStyle(){},
+      setClickable(){},
+      zoomTo(){},
+      render(){},
+      resize(){},
+      getModel(){ return null; }
+    };
+  }
+  return viewer;
+}
+function refreshViewerLayout() {
+  const v = ensureViewer();
+  if (v && v.resize) v.resize();
+  if (v && v.render) v.render();
+}
+function fmtSec(ts) {
+  const n = Number(ts || 0);
+  if (!Number.isFinite(n) || n <= 0) return "-";
+  return String(Math.max(0, Math.floor(Date.now() / 1000 - n)));
+}
+function tryParseJson(text) {
+  try { return JSON.parse(text); } catch (_) { return null; }
+}
+async function fetchJsonWithDetail(url, init, phase) {
+  const r = await fetch(url, init);
+  const raw = await r.text();
+  const lower = (raw || "").toLowerCase();
+  const htmlLike = lower.includes("<!doctype html") || lower.includes("<html");
+  const j = tryParseJson(raw);
+  if (!r.ok) {
+    throw new Error(`${phase} http_${r.status} ${htmlLike ? "返回HTML页面（API地址可能填成前端端口）" : raw.slice(0, 260)}`);
+  }
+  if (!j || !j.ok) {
+    throw new Error(`${phase} ${htmlLike ? "返回HTML页面（API地址可能填成前端端口）" : "invalid_json_or_not_ok " + raw.slice(0, 260)}`);
+  }
+  return {json: j, raw};
+}
+async function detectApiBase() {
+  const userBase = getApiBase();
+  const cands = [];
+  if (userBase) cands.push(userBase);
+  const h = window.location.hostname || "127.0.0.1";
+  cands.push(`http://${h}:8015`, `http://${h}:8021`, `http://${h}:8019`, `http://${h}:8018`, `http://${h}:8017`, `http://${h}:8016`, "http://127.0.0.1:8015", "http://127.0.0.1:8021", "http://127.0.0.1:8019", "http://127.0.0.1:8018", "http://127.0.0.1:8017", "http://127.0.0.1:8016");
+  const uniq = [];
+  for (const c of cands) if (!uniq.includes(c)) uniq.push(c);
+  let lastErr = "";
+  for (const b of uniq) {
+    try {
+      const {json} = await fetchJsonWithDetail(b + "/api/fpocket/ping?t=" + Date.now(), {method:"GET"}, "ping");
+      const v2 = !!(json && json.features && json.features.fpocket_watchdog);
+      if (json && json.ok && v2) {
+        document.getElementById("api_base").value = b;
+        return {base: b, ping: json};
+      }
+      lastErr = `API ${b} 可达但版本过旧（缺少watchdog）`;
+    } catch (e) {
+      lastErr = e && e.message ? e.message : String(e || "");
+    }
+  }
+  throw new Error("无法连接fpocket API。请确认后端已启动并监听 8015/8021/8019/8018/8017/8016。最后错误：" + lastErr);
+}
+function readFileText(file) {
+  return new Promise((resolve, reject)=>{
+    const fr = new FileReader();
+    fr.onload = () => resolve(String(fr.result || ""));
+    fr.onerror = () => reject(new Error("文件读取失败"));
+    fr.readAsText(file);
+  });
+}
+function renderOutputs(apiBase, outputs) {
+  const box = document.getElementById("outputs");
+  box.innerHTML = "";
+  if (!Array.isArray(outputs) || !outputs.length) {
+    box.textContent = "暂无";
+    return;
+  }
+  for (const it of outputs) {
+    const a = document.createElement("a");
+    a.href = apiBase + (it.url || "");
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.textContent = `${it.path || it.name} (${it.size || 0} bytes)`;
+    box.appendChild(a);
+  }
+}
+function clearPocketPanels() {
+  document.getElementById("viewer_panel").style.display = "none";
+  document.getElementById("pocket_list").textContent = "暂无";
+  document.getElementById("params_table").innerHTML = "";
+  setViewerHint("点击 Zn 可查看 5A 邻域残基；点击普通残基可查看该残基周围 5A 邻域。");
+  resetViewerState();
+  const v = ensureViewer();
+  if (v && v.clear) {
+    v.clear();
+    if (v.render) v.render();
+  }
+}
+function pocketColor(i) {
+  const colors = ["#d62828","#f77f00","#fcbf49","#2a9d8f","#457b9d","#6a4c93","#9d4edd","#00b4d8","#ff006e","#8338ec","#3a86ff","#06d6a0"];
+  return colors[(i - 1) % colors.length];
+}
+function toNumText(v) {
+  const n = Number(v);
+  if (Number.isFinite(n)) return Number.isInteger(n) ? String(n) : n.toFixed(3);
+  return String(v == null ? "-" : v);
+}
+function renderPocketList(pockets) {
+  const box = document.getElementById("pocket_list");
+  if (!Array.isArray(pockets) || !pockets.length) {
+    box.textContent = "暂无口袋";
+    return;
+  }
+  box.innerHTML = "";
+  for (const p of pockets) {
+    const row = document.createElement("div");
+    row.className = "pocket_item";
+    const sw = document.createElement("span");
+    sw.className = "swatch";
+    sw.style.background = pocketColor(Number(p.pocket_id) || 1);
+    const score = p.params && p.params["Score"] != null ? p.params["Score"] : "-";
+    row.innerHTML = `<span>口袋 ${p.pocket_id}</span><span>点数 ${p.point_count || 0}</span><span>Score ${toNumText(score)}</span>`;
+    row.prepend(sw);
+    box.appendChild(row);
+  }
+}
+function renderParamTable(columns, rows) {
+  const table = document.getElementById("params_table");
+  if (!Array.isArray(rows) || !rows.length) {
+    table.innerHTML = "<tr><td>暂无参数</td></tr>";
+    return;
+  }
+  const cols = Array.isArray(columns) && columns.length ? columns : Object.keys(rows[0].params || {});
+  let html = "<thead><tr><th>Pocket</th>";
+  for (const c of cols) html += `<th>${c}</th>`;
+  html += "</tr></thead><tbody>";
+  for (const r of rows) {
+    html += `<tr><td>${r.pocket_id}</td>`;
+    for (const c of cols) {
+      const v = (r.params || {})[c];
+      html += `<td>${toNumText(v)}</td>`;
+    }
+    html += "</tr>";
+  }
+  html += "</tbody>";
+  table.innerHTML = html;
+}
+const METAL_ELEMENTS = new Set(["ZN","FE","MG","MN","CA","CU","CO","NI","NA","K","CD","HG","AL","CR","V","MO","W"]);
+function collectMetalAtoms(model) {
+  if (!model || !model.selectedAtoms) return [];
+  const atoms = model.selectedAtoms({}) || [];
+  return atoms.filter(a => METAL_ELEMENTS.has(String(a.elem || "").toUpperCase()));
+}
+function collectZnAtoms(model) {
+  if (!model || !model.selectedAtoms) return [];
+  const atoms = model.selectedAtoms({elem:"ZN"}) || [];
+  return atoms.filter(a => Number.isFinite(a.x) && Number.isFinite(a.y) && Number.isFinite(a.z));
+}
+function dist(a, b) {
+  const dx = Number(a.x) - Number(b.x);
+  const dy = Number(a.y) - Number(b.y);
+  const dz = Number(a.z) - Number(b.z);
+  return Math.sqrt(dx * dx + dy * dy + dz * dz);
+}
+function getStructureZnAtoms() {
+  if (Array.isArray(currentStructureZnAtoms) && currentStructureZnAtoms.length) return currentStructureZnAtoms;
+  if (structureModelRef) {
+    const atoms = collectZnAtoms(structureModelRef);
+    if (atoms.length) {
+      currentStructureZnAtoms = atoms.map((a) => ({
+        x: a.x, y: a.y, z: a.z,
+        serial: a.serial, chain: a.chain, resn: a.resn, resi: a.resi, atom: a.atom, elem: a.elem || "ZN"
+      }));
+      return currentStructureZnAtoms;
+    }
+  }
+  return [];
+}
+function offsetLabelPos(a, ref) {
+  const r = ref || {x:a.x, y:a.y - 1, z:a.z};
+  let vx = a.x - r.x;
+  let vy = a.y - r.y;
+  let vz = a.z - r.z;
+  const n = Math.sqrt(vx * vx + vy * vy + vz * vz);
+  if (n < 1e-6) {
+    vx = 0;
+    vy = 1;
+    vz = 0;
+  } else {
+    vx /= n;
+    vy /= n;
+    vz /= n;
+  }
+  return {x:a.x + vx * 1.0, y:a.y + vy * 1.0, z:a.z + vz * 1.0};
+}
+function clearPickedLabel() {
+  if (pickedLabel && viewer && viewer.removeLabel) {
+    try { viewer.removeLabel(pickedLabel); } catch (_) {}
+  }
+  pickedLabel = null;
+}
+function setPickedLabel(atom, text, color) {
+  clearPickedLabel();
+  if (!viewer || !viewer.addLabel || !atom) return;
+  pickedLabel = viewer.addLabel(text, {
+    position: {x: atom.x, y: atom.y, z: atom.z},
+    backgroundColor: color || "#36506b",
+    fontColor: "white",
+    inFront: true
+  });
+}
+function clearInteractionOverlays() {
+  if (viewer && viewer.removeShape) {
+    for (const s of znInteractionShapes) {
+      try { viewer.removeShape(s); } catch (_) {}
+    }
+    for (const s of residueInteractionShapes) {
+      try { viewer.removeShape(s); } catch (_) {}
+    }
+  }
+  znInteractionShapes = [];
+  residueInteractionShapes = [];
+  if (viewer && viewer.removeLabel) {
+    for (const l of residueNeighborLabels) {
+      try { viewer.removeLabel(l); } catch (_) {}
+    }
+  }
+  residueNeighborLabels = [];
+  clearPickedLabel();
+}
+function getStructureAtomsForNeighborhood() {
+  if (!structureModelRef || !structureModelRef.selectedAtoms) return [];
+  return structureModelRef.selectedAtoms({}) || [];
+}
+function isZnAtom(atom) {
+  const elem = String(atom?.elem || "").toUpperCase();
+  const resn = String(atom?.resn || "").toUpperCase();
+  const atomName = String(atom?.atom || "").toUpperCase();
+  return elem === "ZN" || resn === "ZN" || atomName === "ZN";
+}
+function interactionStyleForResidue(atom, distanceValue) {
+  const resn = String(atom?.resn || "").toUpperCase();
+  if (["HIS","HID","HIE","HIP","HSD","HSE","HSP"].includes(resn)) {
+    return {line: distanceValue <= 3.2 ? "#ff8a00" : "#ffb347", labelBg: "rgba(255, 204, 122, 0.96)", labelFg: "#422100"};
+  }
+  if (resn === "ASP" || resn === "GLU") {
+    return {line: distanceValue <= 3.2 ? "#d94f4f" : "#ef7d7d", labelBg: "rgba(239, 125, 125, 0.96)", labelFg: "#3a0f0f"};
+  }
+  if (["CYS","CYX","CYM"].includes(resn)) {
+    return {line: distanceValue <= 3.2 ? "#20a36a" : "#5dcf98", labelBg: "rgba(93, 207, 152, 0.96)", labelFg: "#093120"};
+  }
+  return {line: distanceValue <= 3.2 ? "#2a7fd6" : "#78aee8", labelBg: "rgba(120, 174, 232, 0.96)", labelFg: "#102235"};
+}
+function addInteractionLabel(targetList, atom, anchorAtom, distanceValue) {
+  if (!viewer || !viewer.addLabel || !atom) return;
+  const style = interactionStyleForResidue(atom, distanceValue);
+  const lb = viewer.addLabel(`${atom.chain || ""}:${atom.resn || ""}${atom.resi || ""} ${distanceValue.toFixed(1)}A`, {
+    position: offsetLabelPos(atom, anchorAtom),
+    backgroundColor: style.labelBg,
+    fontColor: style.labelFg,
+    fontSize: 14,
+    inFront: true
+  });
+  targetList.push(lb);
+}
+function toZnLikeAtom(z, i = 0) {
+  return {
+    x: z.x,
+    y: z.y,
+    z: z.z,
+    serial: z.serial != null ? z.serial : -(i + 1),
+    chain: z.chain || "ZN",
+    resn: z.resn || "ZN",
+    resi: z.resi != null ? z.resi : (i + 1),
+    atom: z.atom || "ZN",
+    elem: z.elem || "ZN"
+  };
+}
+function znAtomSelection(atom) {
+  if (atom && Number.isFinite(Number(atom.serial)) && Number(atom.serial) > 0) return {serial: Number(atom.serial)};
+  return {x: atom.x, y: atom.y, z: atom.z};
+}
+function collectNearResiduesByAtom(anchorAtom, cutoff) {
+  if (!anchorAtom) return [];
+  const atoms = getStructureAtomsForNeighborhood();
+  const centerKey = `${anchorAtom.chain || ""}:${anchorAtom.resn || ""}${anchorAtom.resi || ""}`;
+  const resMap = new Map();
+  for (const a of atoms) {
+    if (!a || String(a.elem || "").toUpperCase() === "H") continue;
+    if (String(a.elem || "").toUpperCase() === "ZN" || String(a.resn || "").toUpperCase() === "ZN") continue;
+    const key = `${a.chain || ""}:${a.resn || ""}${a.resi || ""}`;
+    if (key === centerKey) continue;
+    const d = dist(anchorAtom, a);
+    if (d > cutoff) continue;
+    const prev = resMap.get(key);
+    if (!prev || d < prev.d || (a.atom === "CA" && prev.atom.atom !== "CA")) {
+      resMap.set(key, {atom:a, d});
+    }
+  }
+  return Array.from(resMap.values());
+}
+function getZnNeighborhood(targetZnAtom = null) {
+  const znRaw = targetZnAtom ? [targetZnAtom] : getStructureZnAtoms();
+  const znAtoms = znRaw.map((z, i) => toZnLikeAtom(z, i));
+  const atoms = getStructureAtomsForNeighborhood();
+  const residueMap = new Map();
+  for (const a of atoms) {
+    if (!a || !Number.isFinite(a.x) || !Number.isFinite(a.y) || !Number.isFinite(a.z)) continue;
+    if (String(a.elem || "").toUpperCase() === "H") continue;
+    if (String(a.elem || "").toUpperCase() === "ZN" || String(a.resn || "").toUpperCase() === "ZN") continue;
+    let mind = Infinity;
+    let closestZn = null;
+    for (const z of znAtoms) {
+      const d = dist(a, z);
+      if (d < mind) {
+        mind = d;
+        closestZn = z;
+      }
+    }
+    if (mind > 5.0) continue;
+    const key = `${a.chain || ""}:${a.resn || ""}${a.resi || ""}`;
+    const prev = residueMap.get(key);
+    if (!prev) {
+      residueMap.set(key, {
+        chain: a.chain,
+        resn: a.resn,
+        resi: a.resi,
+        labelAtom: a,
+        interactionAtom: a,
+        closestZn,
+        minDist: mind
+      });
+      continue;
+    }
+    if (a.atom === "CA" && (!prev.labelAtom || prev.labelAtom.atom !== "CA")) prev.labelAtom = a;
+    if (mind < prev.minDist) {
+      prev.interactionAtom = a;
+      prev.closestZn = closestZn;
+      prev.minDist = mind;
+      if (!prev.labelAtom) prev.labelAtom = a;
+    }
+  }
+  return {znAtoms, residueHits: Array.from(residueMap.values())};
+}
+function applyBaseStyles() {
+  if (structureModelRef && structureModelRef.setStyle) {
+    structureModelRef.setStyle({}, {cartoon:{color:"#7f97af", opacity:0.78}});
+    structureModelRef.setStyle({within:{distance:3.0, sel:{elem:"ZN"}}}, {stick:{colorscheme:"greenCarbon", radius:0.18}});
+    structureModelRef.setStyle({within:{distance:5.0, sel:{elem:"ZN"}}, byres:true}, {stick:{colorscheme:"yellowCarbon", radius:0.22}});
+  }
+}
+function buildZnMarkerPdbText() {
+  const znAtoms = getStructureZnAtoms();
+  const lines = [];
+  for (let i = 0; i < znAtoms.length; i += 1) {
+    const z = znAtoms[i];
+    if (!Number.isFinite(z.x) || !Number.isFinite(z.y) || !Number.isFinite(z.z)) continue;
+    const serial = String(i + 1).padStart(5, " ");
+    const resi = String(i + 1).padStart(4, " ");
+    const x = Number(z.x).toFixed(3).padStart(8, " ");
+    const y = Number(z.y).toFixed(3).padStart(8, " ");
+    const zz = Number(z.z).toFixed(3).padStart(8, " ");
+    lines.push(`HETATM${serial} ZN   ZN Z${resi}    ${x}${y}${zz}  1.00 20.00          ZN`);
+  }
+  return lines.join("\n") + (lines.length ? "\nEND\n" : "");
+}
+function rebuildZnMarkerModel() {
+  if (znMarkerModelRef && viewer && viewer.removeModel) {
+    try { viewer.removeModel(znMarkerModelRef); } catch (_) {}
+  }
+  znMarkerModelRef = null;
+  const pdbText = buildZnMarkerPdbText();
+  if (!pdbText.trim() || !viewer || !viewer.addModel) return 0;
+  try {
+    const model = viewer.addModel(pdbText, "pdb");
+    if (!model) return 0;
+    znMarkerModelRef = model;
+    if (model.setStyle) model.setStyle({}, {sphere:{radius:0.58, color:"#c100ff", opacity:0.98}});
+    if (model.setClickable) {
+      model.setClickable({}, true, function(atom) {
+        if (!atom) return;
+        focusZnNeighborhood(atom);
+      });
+    }
+    return getStructureZnAtoms().length;
+  } catch (_) {
+    znMarkerModelRef = null;
+    return 0;
+  }
+}
+function drawZnVisibleAtoms(forceFocus) {
+  const drawOk = rebuildZnMarkerModel();
+  if (!drawOk) return 0;
+  if (forceFocus && viewer && viewer.zoomTo) {
+    try {
+      viewer.zoomTo({within:{distance:5.0, sel:{elem:"ZN"}}, byres:true});
+    } catch (_) {}
+  }
+  return drawOk;
+}
+function drawZnInteractionsAndLabels(options = {}) {
+  clearInteractionOverlays();
+  const targetZnAtom = options.targetZnAtom || null;
+  const emphasize = !!options.emphasize;
+  const {znAtoms, residueHits} = getZnNeighborhood(targetZnAtom);
+  if (!znAtoms.length) {
+    setViewerHint("当前结构未解析到 Zn 原子，无法显示 5A 邻域。");
+    return 0;
+  }
+  let interactionCount = 0;
+  for (const hit of residueHits) {
+    const a = hit.interactionAtom;
+    const zn = hit.closestZn;
+    if (!a || !zn || !viewer || !viewer.addLine) continue;
+    const style = interactionStyleForResidue(a, hit.minDist);
+    const line = viewer.addLine({
+      start: {x: zn.x, y: zn.y, z: zn.z},
+      end: {x: a.x, y: a.y, z: a.z},
+      color: style.line,
+      dashed: emphasize,
+      linewidth: emphasize ? (hit.minDist <= 3.2 ? 6 : 5) : (hit.minDist <= 3.2 ? 4 : 3)
+    });
+    znInteractionShapes.push(line);
+    addInteractionLabel(residueNeighborLabels, hit.labelAtom || hit.interactionAtom, hit.closestZn || znAtoms[0], hit.minDist);
+    interactionCount += 1;
+  }
+  return interactionCount;
+}
+function drawResidueInteractionsAroundAtom(anchorAtom) {
+  if (!viewer || !viewer.addLine) return 0;
+  const near = collectNearResiduesByAtom(anchorAtom, 5.0);
+  for (const item of near) {
+    const a = item.atom;
+    const line = viewer.addLine({
+      start: {x: anchorAtom.x, y: anchorAtom.y, z: anchorAtom.z},
+      end: {x: a.x, y: a.y, z: a.z},
+      color: "#2a7fd6",
+      dashed: true,
+      linewidth: 2
+    });
+    residueInteractionShapes.push(line);
+  }
+  return near.length;
+}
+function labelResiduesAroundAtom(anchorAtom) {
+  const near = collectNearResiduesByAtom(anchorAtom, 5.0);
+  for (const item of near) addInteractionLabel(residueNeighborLabels, item.atom, anchorAtom, item.d);
+  return near.length;
+}
+function focusResidueNeighborhood(atom) {
+  if (!atom || !Number.isFinite(atom.x) || !Number.isFinite(atom.y) || !Number.isFinite(atom.z)) return;
+  applyBaseStyles();
+  drawZnVisibleAtoms(false);
+  clearInteractionOverlays();
+  const nearSel = {within:{distance:5.0, sel:{chain: atom.chain, resi: atom.resi}}, byres:true};
+  if (structureModelRef && structureModelRef.setStyle) {
+    structureModelRef.setStyle(nearSel, {stick:{colorscheme:"whiteCarbon", radius:0.2}});
+    structureModelRef.setStyle({chain: atom.chain, resi: atom.resi}, {stick:{color:"orange", radius:0.28}});
+  }
+  const nearLabelCount = labelResiduesAroundAtom(atom);
+  const rrCount = drawResidueInteractionsAroundAtom(atom);
+  setPickedLabel(atom, `${atom.chain || ""}:${atom.resn || ""}${atom.resi || ""}`, "#36506b");
+  setViewerHint(`已定位 ${atom.chain || ""}:${atom.resn || ""}${atom.resi || ""}；5A 内残基标签 ${nearLabelCount} 个，相互作用线 ${rrCount} 条。`);
+  if (viewer && viewer.zoomTo) viewer.zoomTo(nearSel);
+  if (viewer && viewer.render) viewer.render();
+}
+function focusZnNeighborhood(atom) {
+  applyBaseStyles();
+  drawZnVisibleAtoms(false);
+  clearInteractionOverlays();
+  const targetZn = toZnLikeAtom(atom, 0);
+  const targetSel = znAtomSelection(targetZn);
+  if (structureModelRef && structureModelRef.setStyle) {
+    const near = collectNearResiduesByAtom(targetZn, 5.0);
+    for (const item of near) {
+      const a = item.atom;
+      structureModelRef.setStyle({chain:a.chain, resi:a.resi}, {stick:{colorscheme:"yellowCarbon", radius:0.28}});
+    }
+  }
+  if (znMarkerModelRef && znMarkerModelRef.setStyle) {
+    znMarkerModelRef.setStyle({}, {sphere:{radius:0.58, color:"#c100ff", opacity:0.82}});
+    znMarkerModelRef.setStyle(targetSel, {sphere:{radius:0.72, color:"#c100ff", opacity:1.0}});
+  }
+  const interactionCount = drawZnInteractionsAndLabels({targetZnAtom: targetZn, emphasize: true});
+  setPickedLabel(atom, "Zn", "#7a0088");
+  setViewerHint(`已定位 Zn 位点；5A 内残基 ${residueNeighborLabels.length} 个，相互作用线 ${interactionCount} 条。`);
+  if (viewer && viewer.zoomTo) {
+    try {
+      viewer.zoomTo({within:{distance:5.0, sel:{x:targetZn.x, y:targetZn.y, z:targetZn.z}}});
+    } catch (_) {
+      viewer.zoomTo();
+    }
+  }
+  if (viewer && viewer.render) viewer.render();
+}
+function bindViewerClick() {
+  if (structureModelRef && structureModelRef.setClickable) {
+    structureModelRef.setClickable({}, true, function(atom) {
+      if (!atom) return;
+      if (isZnAtom(atom)) {
+        focusZnNeighborhood(atom);
+        return;
+      }
+      focusResidueNeighborhood(atom);
+    });
+    return;
+  }
+  if (!viewer || !viewer.setClickable) return;
+  viewer.setClickable({}, true, function(atom) {
+    if (!atom) return;
+    if (isZnAtom(atom)) {
+      focusZnNeighborhood(atom);
+      return;
+    }
+    focusResidueNeighborhood(atom);
+  });
+}
+function parsePdbMetals(structureText) {
+  const out = [];
+  if (!structureText) return out;
+  const lines = String(structureText).split(/\r?\n/);
+  for (const line of lines) {
+    if (!(line.startsWith("HETATM") || line.startsWith("ATOM  "))) continue;
+    const elemCol = (line.slice(76, 78) || "").trim().toUpperCase();
+    const atomName = (line.slice(12, 16) || "").trim().toUpperCase().replace(/[0-9]/g, "");
+    const elem = elemCol || atomName;
+    if (!METAL_ELEMENTS.has(elem)) continue;
+    const xs = (line.slice(30, 38) || "").trim();
+    const ys = (line.slice(38, 46) || "").trim();
+    const zs = (line.slice(46, 54) || "").trim();
+    const x = Number(xs), y = Number(ys), z = Number(zs);
+    if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(z)) continue;
+    out.push({elem, x, y, z});
+  }
+  return out;
+}
+function renderPocketViewer(structureText, pockets) {
+  if (!window.$3Dmol) {
+    throw new Error("3D可视化库未加载，无法标记金属离子");
+  }
+  const v = ensureViewer();
+  v.clear();
+  resetViewerState();
+  if (!structureText || !structureText.trim()) {
+    if (v.render) v.render();
+    return 0;
+  }
+  if (!v.addModel) {
+    throw new Error("3D可视化初始化失败，无法加载蛋白结构");
+  }
+  currentStructureText = String(structureText || "");
+  structureModelRef = v.addModel(structureText, "pdb");
+  applyBaseStyles();
+  const parsedMetals = parsePdbMetals(structureText);
+  const parsedZn = parsedMetals.filter((a) => String(a.elem || "").toUpperCase() === "ZN");
+  const modelZn = collectZnAtoms(structureModelRef);
+  currentStructureZnAtoms = parsedZn.length >= modelZn.length
+    ? parsedZn
+    : modelZn.map((a) => ({
+        x: a.x, y: a.y, z: a.z,
+        serial: a.serial, chain: a.chain, resn: a.resn, resi: a.resi, atom: a.atom, elem: a.elem || "ZN"
+      }));
+  const znCount = drawZnVisibleAtoms(false);
+  for (const p of pockets || []) {
+    const color = pocketColor(Number(p.pocket_id) || 1);
+    let cx = 0;
+    let cy = 0;
+    let cz = 0;
+    let cc = 0;
+    for (const pt of (p.points || [])) {
+      if (!v.addSphere) continue;
+      const rr = Number(pt.r);
+      v.addSphere({
+        center: {x: pt.x, y: pt.y, z: pt.z},
+        radius: Number.isFinite(rr) ? Math.max(0.6, Math.min(1.3, rr * 0.25)) : 0.8,
+        color: color,
+        alpha: 0.22
+      });
+      if (Number.isFinite(pt.x) && Number.isFinite(pt.y) && Number.isFinite(pt.z)) {
+        cx += Number(pt.x);
+        cy += Number(pt.y);
+        cz += Number(pt.z);
+        cc += 1;
+      }
+    }
+    if (cc > 0 && v.addLabel) {
+      v.addLabel(`P${p.pocket_id}`, {
+        position: {x: cx / cc, y: cy / cc, z: cz / cc},
+        fontColor: "#111",
+        backgroundColor: color,
+        borderColor: "#444",
+        borderThickness: 1,
+        fontSize: 14,
+        inFront: true
+      });
+    }
+  }
+  bindViewerClick();
+  if (v.zoomTo) {
+    if (currentStructureZnAtoms.length) {
+      v.zoomTo({within:{distance:5.0, sel:{elem:"ZN"}}, byres:true});
+    } else {
+      v.zoomTo();
+    }
+  }
+  if (v.resize) v.resize();
+  if (v.render) v.render();
+  setViewerHint(
+    currentStructureZnAtoms.length
+      ? `已加载 ${currentStructureZnAtoms.length} 个 Zn 位点。点击 Zn 可查看 5A 邻域残基；点击普通残基可查看该残基周围 5A 邻域。`
+      : "当前结构未识别到 Zn 位点；仍可点击普通残基查看 5A 邻域。"
+  );
+  if (parsedMetals.length > 0 && znCount === 0 && currentStructureZnAtoms.length > 0) {
+    throw new Error("检测到 Zn 坐标，但 Zn marker 绘制失败");
+  }
+  return znCount;
+}
+async function loadPocketData() {
+  let apiBase = getApiBase();
+  const id = (document.getElementById("job_id").value || "").trim();
+  if (!id) return;
+  try {
+    const detect = await detectApiBase();
+    apiBase = detect.base;
+    const {json: data} = await fetchJsonWithDetail(apiBase + "/api/fpocket/pockets/" + encodeURIComponent(id), {method:"GET"}, "pockets");
+    const pockets = data.pockets || [];
+    document.getElementById("viewer_panel").style.display = pockets.length ? "block" : "none";
+    if (pockets.length) requestAnimationFrame(refreshViewerLayout);
+    const znCount = renderPocketViewer(data.structure_pdb_text || "", pockets);
+    renderPocketList(pockets);
+    renderParamTable(data.columns || [], data.rows || []);
+    setDebugError(`phase=pockets_ok\napi=${apiBase}\njob_id=${id}\npockets=${pockets.length}\nrows=${(data.rows || []).length}\nzn_markers=${znCount}`);
+  } catch (e) {
+    const msg = (e && e.message ? e.message : "unknown");
+    document.getElementById("viewer_panel").style.display = "none";
+    setStatus("可视化失败：" + msg);
+    setDebugError(`phase=pockets_error\njob_id=${id}\nerror=${msg}`);
+  }
+}
+async function submitJob() {
+  let apiBase = getApiBase();
+  const file = (document.getElementById("pdb_file").files || [])[0];
+  if (pollTimer) {
+    clearInterval(pollTimer);
+    pollTimer = null;
+  }
+  clearPocketPanels();
+  resetProgress("准备提交 fpocket 任务");
+  try {
+    const detect = await detectApiBase();
+    apiBase = detect.base;
+    setDebugError(`phase=api_ready\napi=${apiBase}\nfpocket_bin=${(detect.ping && detect.ping.fpocket_bin) || "-"}`);
+    let pdbName = "";
+    let text = "";
+    let source = "";
+    if (file) {
+      pdbName = file.name;
+      text = await readFileText(file);
+      source = `upload:${file.name}`;
+      setDebugError(`phase=submit_prepare\nsource=${source}\nsize=${file.size}`);
+    } else {
+      const selected = await loadSelectedProteinStructure(apiBase);
+      pdbName = `${selected.entry.id}.pdb`;
+      text = selected.text;
+      source = `catalog:${selected.entry.id}`;
+      setDebugError(`phase=submit_prepare\nsource=${source}\npdb_name=${pdbName}\npdb_len=${text.length}`);
+    }
+    if (!text || text.trim().length < 50) throw new Error("PDB文件内容为空或过短");
+    const payload = {pdb_name: pdbName, pdb_text: text};
+    setStatus("正在提交任务...");
+    setProgress(10, "已准备结构，正在提交");
+    setDebugError(`phase=submit_request\napi=${apiBase}\nendpoint=/api/fpocket/submit\nsource=${source}\npdb_len=${text.length}`);
+    const {json: j} = await fetchJsonWithDetail(apiBase + "/api/fpocket/submit", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify(payload)
+    }, "submit");
+    document.getElementById("job_id").value = j.job_id || "";
+    setStatus(`提交成功：${j.job_id}`);
+    setProgress(18, `任务已提交 (${j.job_id})`);
+    setDebugError(`phase=submitted\njob_id=${j.job_id}\nstatus_url=${j.status_url || "-"}`);
+    pollCount = 0;
+    await pollStatus();
+    pollTimer = setInterval(async ()=>{
+      pollCount += 1;
+      if (pollCount > 180) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+        setStatus("轮询超时，请手动查询任务状态");
+        setDebugError(`phase=poll_timeout\njob_id=${(document.getElementById("job_id").value || "").trim()}`);
+        return;
+      }
+      await pollStatus();
+    }, 1500);
+  } catch (e) {
+    const msg = (e && e.message ? e.message : "unknown");
+    setStatus("提交失败：" + msg);
+    setProgress(Math.max(12, currentProgressValue), "提交失败", "error");
+    setDebugError(`phase=submit_error\nerror=${msg}`);
+  }
+}
+async function pollStatus() {
+  let apiBase = getApiBase();
+  const id = (document.getElementById("job_id").value || "").trim();
+  if (!id) {
+    setStatus("请填写任务ID");
+    setDebugError("phase=status_validate\nerror=missing_job_id");
+    return;
+  }
+  try {
+    const detect = await detectApiBase();
+    apiBase = detect.base;
+    const {json: j} = await fetchJsonWithDetail(apiBase + "/api/fpocket/status/" + encodeURIComponent(id), {method:"GET"}, "status");
+    const job = j.job || {};
+    const st = job.status || "-";
+    const phase = job.phase || "-";
+    const runningSec = fmtSec(job.started_at);
+    setStatus(`状态：${st}`);
+    updateProgressFromJob(job);
+    setJobMeta(`任务 ${job.id} | pdb=${job.pdb_name || "-"} | pid=${job.pid || "-"} | exit_code=${job.exit_code == null ? "-" : job.exit_code} | phase=${phase} | running=${runningSec}s`);
+    renderOutputs(apiBase, job.outputs || []);
+    setDebugError(`phase=status_ok\napi=${apiBase}\njob_id=${id}\nstatus=${st}\nphase_detail=${phase}\nrunning_sec=${runningSec}\npid=${job.pid || "-"}\nexit_code=${job.exit_code == null ? "-" : job.exit_code}\nerror=${job.error || "-"}`);
+    if (st === "running" && (!job.pid) && Number(runningSec) >= 30) {
+      setStatus(`状态：running（可能卡住，phase=${phase}，已运行${runningSec}s）`);
+    }
+    if (st === "failed") {
+      if (pollTimer) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+      }
+      await loadLog();
+      await loadPocketData();
+    }
+    if (st === "done") {
+      if (pollTimer) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+      }
+      await loadLog();
+      await loadPocketData();
+    }
+  } catch (e) {
+    const msg = (e && e.message ? e.message : "unknown");
+    setStatus("查询失败：" + msg);
+    setProgress(Math.max(currentProgressValue, 20), "任务状态查询失败", "error");
+    setDebugError(`phase=status_error\njob_id=${id}\nerror=${msg}`);
+  }
+}
+async function loadLog() {
+  let apiBase = getApiBase();
+  const id = (document.getElementById("job_id").value || "").trim();
+  if (!id) {
+    setStatus("请填写任务ID");
+    setDebugError("phase=log_validate\nerror=missing_job_id");
+    return;
+  }
+  try {
+    const detect = await detectApiBase();
+    apiBase = detect.base;
+    const {json: j} = await fetchJsonWithDetail(apiBase + "/api/fpocket/log/" + encodeURIComponent(id), {method:"GET"}, "log");
+    document.getElementById("log_view").textContent = j.log || "";
+    setStatus("日志已更新");
+    setDebugError(`phase=log_ok\napi=${apiBase}\njob_id=${id}\nlog_len=${(j.log || "").length}`);
+  } catch (e) {
+    const msg = (e && e.message ? e.message : "unknown");
+    setStatus("日志读取失败：" + msg);
+    setDebugError(`phase=log_error\njob_id=${id}\nerror=${msg}`);
+  }
+}
+window.addEventListener("load", async ()=>{
+  resetProgress("等待提交");
+  try {
+    setStatus("正在探测API...");
+    const d = await detectApiBase();
+    setStatus("API可用：" + d.base);
+    setDebugError(`phase=ready\napi=${d.base}\nfpocket_bin=${(d.ping && d.ping.fpocket_bin) || "-"}`);
+    await loadProteinCatalog(d.base);
+  } catch (e) {
+    const msg = e && e.message ? e.message : "unknown";
+    setStatus("API不可用：" + msg);
+    setDebugError(`phase=init_error\nerror=${msg}`);
+    setProgress(100, "API不可用", "error");
+  }
+  if (!window.$3Dmol) {
+    const msg = viewerUnavailableMessage();
+    setStatus((document.getElementById("status").textContent || "状态未知") + " | " + msg);
+    setDebugError((document.getElementById("debug_error").textContent || "phase=idle") + `\nwarn=${msg}`);
+  }
+});
+document.getElementById("protein_pick").addEventListener("change", ()=>{
+  const entry = findProteinEntry(document.getElementById("protein_pick").value);
+  if (entry) {
+    setStatus(`已选择库内蛋白：${entry.id}`);
+  }
+});
+document.getElementById("submit_btn").addEventListener("click", submitJob);
+document.getElementById("poll_btn").addEventListener("click", pollStatus);
+document.getElementById("log_btn").addEventListener("click", loadLog);
+</script>
+</body>
+</html>

@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>TM-align 页面</title>
+<style>
+body { font-family: system-ui, sans-serif; margin: 16px; }
+.top_nav { display: flex; gap: 8px; margin-bottom: 10px; }
+.top_nav a { display: inline-block; padding: 6px 10px; border: 1px solid #d9d9d9; background: #f6f8fa; color: #0b5394; text-decoration: none; border-radius: 6px; font-weight: 600; }
+.top_nav a:hover { background: #eaf2ff; }
+.layout { display: grid; grid-template-columns: 420px 1fr; gap: 14px; align-items: start; }
+#controls { border: 1px solid #ddd; background: #fafafa; padding: 10px; }
+label { display: block; margin-bottom: 8px; }
+input, button, select { width: 100%; box-sizing: border-box; padding: 6px; }
+button { margin-top: 4px; }
+#status { margin-top: 10px; color: #333; }
+#debug_error { margin-top: 8px; color: #8a1f11; background: #fff3f0; border: 1px solid #f0c2ba; padding: 6px; white-space: pre-wrap; word-break: break-word; max-height: 220px; overflow: auto; }
+#result { border: 1px solid #ddd; background: #fff; min-height: 420px; padding: 10px; }
+pre { white-space: pre-wrap; word-break: break-word; background: #f8f8f8; border: 1px solid #eee; padding: 8px; max-height: 360px; overflow: auto; }
+.line { border-top: 1px dashed #ddd; margin: 10px 0; }
+.table_wrap { border: 1px solid #e5e5e5; max-height: 360px; overflow: auto; }
+table { border-collapse: collapse; width: max-content; min-width: 100%; font-size: 12px; }
+th, td { border: 1px solid #e5e5e5; padding: 4px 6px; text-align: left; white-space: nowrap; }
+th { position: sticky; top: 0; background: #f7f9fc; z-index: 1; }
+.multi_pick { min-height: 180px; }
+.pick_row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+.pick_btn { width: auto; min-width: 84px; }
+.pick_grid { display: grid; gap: 8px; }
+.pick_actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.pick_actions button { width: auto; }
+.selected_box { min-height: 44px; padding: 8px; border: 1px dashed #d7dbe2; border-radius: 12px; background: rgba(255,255,255,0.7); }
+.selected_list { display: flex; flex-wrap: wrap; gap: 6px; }
+.selected_item { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 999px; background: #eef4f7; border: 1px solid #d0d9e2; font-size: 12px; }
+.selected_item button { width: auto; min-width: 0; margin: 0; padding: 2px 6px; border-radius: 999px; box-shadow: none; font-size: 11px; }
+.selected_empty { color: #666; font-size: 12px; }
+.matrix_table th.row_head,
+.matrix_table td.row_head { position: sticky; left: 0; background: #f7f9fc; z-index: 2; }
+.matrix_table td.cell_pending { color: #666; }
+.matrix_table td.cell_failed { color: #a12622; background: #fff1f0; }
+.matrix_table td.cell_done { color: #0b5394; }
+</style>
+<link rel="stylesheet" href="./theme.css">
+</head>
+<body class="page-tmalign">
+<div class="top_nav">
+  <a href="./index.html">主页面</a>
+  <a href="./diffdock_compare.html">DiffDock对比</a>
+  <a href="./master_table.html">Master表</a>
+  <a href="./fpocket.html">fpocket</a>
+  <a href="./tmalign.html">TM-align</a>
+  <a href="./pdbzn_workflow.html">PDB-ZN工作流</a>
+</div>
+<h2>TM-align 页面</h2>
+<div class="layout">
+  <div id="controls">
+    <label>API地址
+      <input id="api_base" type="text" value="http://127.0.0.1:8015" placeholder="例如 http://127.0.0.1:8015">
+    </label>
+    <div style="margin:-4px 0 8px 0;color:#666;font-size:12px;">请填写后端API端口（默认 8015，也支持 8017/8016），不要填写前端页面端口 8020</div>
+    <label>结构1（PDB/ENT）
+      <input id="pdb1_file" type="file" accept=".pdb,.ent">
+    </label>
+    <label>或从首批72蛋白中选择结构1
+      <select id="pdb1_pick"></select>
+    </label>
+    <label>结构2（PDB/ENT）
+      <input id="pdb2_file" type="file" accept=".pdb,.ent">
+    </label>
+    <label>或从首批72蛋白中选择结构2
+      <select id="pdb2_pick"></select>
+    </label>
+    <button id="submit_btn" type="button">提交 TM-align 任务</button>
+    <label>任务ID
+      <input id="job_id" type="text" placeholder="提交后自动填入，或手工输入">
+    </label>
+    <button id="poll_btn" type="button">查询任务状态</button>
+    <button id="log_btn" type="button">查看任务日志</button>
+    <div class="line"></div>
+    <h4 style="margin:4px 0 8px 0;">1 对多 TM-align</h4>
+    <label>参考结构（单个）
+      <input id="batch_query_file" type="file" accept=".pdb,.ent">
+    </label>
+    <label>或从首批72蛋白中选择参考结构
+      <select id="batch_query_pick"></select>
+    </label>
+    <label>目标结构（多个）
+      <input id="batch_target_files" type="file" accept=".pdb,.ent" multiple>
+    </label>
+    <label>或从首批72蛋白中添加目标结构
+      <div class="pick_row">
+        <select id="batch_target_pick"></select>
+        <button id="batch_target_add_btn" class="pick_btn" type="button">添加</button>
+      </div>
+    </label>
+    <div class="selected_box">
+      <div id="batch_target_selected" class="selected_list"></div>
+    </div>
+    <button id="batch_target_clear_btn" type="button">清空目标集合</button>
+    <div style="margin:-4px 0 8px 0;color:#666;font-size:12px;">如果同时上传文件和选择库内蛋白，优先使用上传文件。</div>
+    <label>相似性评分方式
+      <select id="batch_score_mode">
+        <option value="short_chain">短链归一（取 TM-score 较高值）</option>
+        <option value="tm1">结构1归一（TM-score_1）</option>
+        <option value="tm2">结构2归一（TM-score_2）</option>
+        <option value="tm_max">TM-score 最大值（tm_score_max）</option>
+      </select>
+    </label>
+    <button id="batch_run_btn" type="button">运行 1 对多并排序</button>
+    <button id="batch_stop_btn" type="button">停止 1 对多任务</button>
+    <div class="line"></div>
+    <h4 style="margin:4px 0 8px 0;">多对多 TM-align 矩阵</h4>
+    <div class="pick_grid">
+      <label>行集合筛选
+        <input id="matrix_rows_filter" type="text" placeholder="按 PDB 或名称筛选">
+      </label>
+      <label>行集合（可多选）
+        <select id="matrix_rows_pick" multiple size="10" class="multi_pick"></select>
+      </label>
+      <div class="pick_actions">
+        <button id="matrix_rows_add_btn" type="button">添加选中行</button>
+        <button id="matrix_rows_add_all_btn" type="button">添加筛选结果</button>
+      </div>
+    </div>
+    <div class="selected_box">
+      <div id="matrix_rows_selected" class="selected_list"></div>
+    </div>
+    <button id="matrix_rows_clear_btn" type="button">清空行集合</button>
+    <div class="pick_grid">
+      <label>列集合筛选
+        <input id="matrix_cols_filter" type="text" placeholder="按 PDB 或名称筛选">
+      </label>
+      <label>列集合（可多选）
+        <select id="matrix_cols_pick" multiple size="10" class="multi_pick"></select>
+      </label>
+      <div class="pick_actions">
+        <button id="matrix_cols_add_btn" type="button">添加选中列</button>
+        <button id="matrix_cols_add_all_btn" type="button">添加筛选结果</button>
+      </div>
+    </div>
+    <div class="selected_box">
+      <div id="matrix_cols_selected" class="selected_list"></div>
+    </div>
+    <button id="matrix_cols_clear_btn" type="button">清空列集合</button>
+    <label style="display:flex;align-items:center;gap:8px;">
+      <input id="matrix_same_set" type="checkbox" style="width:auto;box-sizing:border-box;">
+      <span>列集合使用行集合</span>
+    </label>
+    <label>矩阵相似性评分方式
+      <select id="matrix_score_mode">
+        <option value="short_chain">短链归一（取 TM-score 较高值）</option>
+        <option value="tm1">结构1归一（TM-score_1）</option>
+        <option value="tm2">结构2归一（TM-score_2）</option>
+        <option value="tm_max">TM-score 最大值（tm_score_max）</option>
+      </select>
+    </label>
+    <button id="matrix_run_btn" type="button">运行多对多矩阵</button>
+    <button id="matrix_stop_btn" type="button">停止多对多任务</button>
+    <div id="status">待提交</div>
+    <pre id="debug_error"></pre>
+  </div>
+  <div id="result">
+    <h3>任务结果</h3>
+    <div id="job_meta">-</div>
+    <h4>指标</h4>
+    <pre id="metrics_view">暂无</pre>
+    <h4>日志</h4>
+    <pre id="log_view">暂无</pre>
+    <h4>1 对多结果（按相似性从高到低）</h4>
+    <div id="batch_meta">暂无</div>
+    <div class="table_wrap">
+      <table id="batch_table">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Target</th>
+            <th>Similarity</th>
+            <th>TM1</th>
+            <th>TM2</th>
+            <th>TM_max</th>
+            <th>Aligned</th>
+            <th>RMSD</th>
+            <th>Seq_ID</th>
+            <th>Status</th>
+            <th>JobID</th>
+          </tr>
+        </thead>
+        <tbody id="batch_tbody"></tbody>
+      </table>
+    </div>
+    <h4>多对多排序结果</h4>
+    <div id="matrix_meta">暂无</div>
+    <div class="table_wrap">
+      <table id="matrix_rank_table">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Protein</th>
+            <th>Average</th>
+            <th>Compared</th>
+            <th>Best Partner</th>
+          </tr>
+        </thead>
+        <tbody id="matrix_rank_tbody"></tbody>
+      </table>
+    </div>
+    <h4>多对多矩阵（按平均相似性排序）</h4>
+    <div class="table_wrap">
+      <table id="matrix_table" class="matrix_table">
+        <thead id="matrix_thead"></thead>
+        <tbody id="matrix_tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<script>
+function getApiBase() {
+  return (document.getElementById("api_base").value || "").trim().replace(/\/+$/, "");
+}
+function appendNoCache(url) {
+  return url + (url.includes("?") ? "&" : "?") + "t=" + Date.now();
+}
+function setStatus(t) {
+  document.getElementById("status").textContent = t;
+}
+function setDebugError(t) {
+  document.getElementById("debug_error").textContent = t || "";
+}
+function tryParseJson(text) {
+  try { return JSON.parse(text); } catch (_) { return null; }
+}
+async function fetchJsonWithDetail(url, init, phase) {
+  const r = await fetch(url, init);
+  const raw = await r.text();
+  const j = tryParseJson(raw);
+  const rawHead = (raw || "").slice(0, 300);
+  const htmlLike = rawHead.includes("<!DOCTYPE") || rawHead.includes("<html");
+  if (!r.ok) throw new Error(`${phase} http_${r.status} ${htmlLike ? "返回了HTML页面（API地址可能填成了前端端口）" : rawHead}`);
+  if (!j || !j.ok) throw new Error(`${phase} ${htmlLike ? "返回了HTML页面（API地址可能填成了前端端口）" : "invalid_json_or_not_ok " + rawHead}`);
+  return {json:j, raw};
+}
+async function resolveApiBase() {
+  const inputBase = getApiBase();
+  const h = window.location.hostname || "127.0.0.1";
+  const candidates = [inputBase, `http://${h}:8015`, `http://${h}:8017`, `http://${h}:8016`, "http://127.0.0.1:8015", "http://127.0.0.1:8017", "http://127.0.0.1:8016"].filter(Boolean);
+  const uniq = [];
+  for (const c of candidates) if (!uniq.includes(c)) uniq.push(c);
+  const errors = [];
+  for (const b of uniq) {
+    try {
+      const {json} = await fetchJsonWithDetail(b + "/api/tmalign/ping", {}, "ping");
+      if (json && json.ok) {
+        if (b !== inputBase) document.getElementById("api_base").value = b;
+        return b;
+      }
+    } catch (e) {
+      errors.push(`${b} => ${e && e.message ? e.message : "ping_failed"}`);
+    }
+  }
+  throw new Error("所有API地址均不可用\n" + errors.join("\n"));
+}
+function readFileText(file) {
+  return new Promise((resolve, reject)=>{
+    const fr = new FileReader();
+    fr.onload = () => resolve(String(fr.result || ""));
+    fr.onerror = () => reject(new Error("文件读取失败"));
+    fr.readAsText(file);
+  });
+}
+function renderMetrics(metrics) {
+  const m = metrics || {};
+  document.getElementById("metrics_view").textContent =
+`TM-score(结构1归一) : ${m.tm_score_1 == null ? "-" : m.tm_score_1}
+TM-score(结构2归一) : ${m.tm_score_2 == null ? "-" : m.tm_score_2}
+TM-score(最大值)    : ${m.tm_score_max == null ? "-" : m.tm_score_max}
+Aligned length      : ${m.aligned_length == null ? "-" : m.aligned_length}
+RMSD                : ${m.rmsd == null ? "-" : m.rmsd}
+Seq_ID              : ${m.seq_id == null ? "-" : m.seq_id}`;
+}
+function numOrNull(v) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+function calcSimilarity(metrics, mode) {
+  const m = metrics || {};
+  const tm1 = numOrNull(m.tm_score_1);
+  const tm2 = numOrNull(m.tm_score_2);
+  const tmMax = numOrNull(m.tm_score_max);
+  if (mode === "tm1") return tm1;
+  if (mode === "tm2") return tm2;
+  if (mode === "tm_max") return tmMax;
+  if (tm1 == null && tm2 == null) return tmMax;
+  if (tm1 == null) return tm2;
+  if (tm2 == null) return tm1;
+  return Math.max(tm1, tm2);
+}
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+let batchRunning = false;
+let matrixRunning = false;
+let proteinCatalog = [];
+const proteinLookup = new Map();
+const tmalignCache = new Map();
+let batchTargetSelected = [];
+let matrixRowSelected = [];
+let matrixColSelected = [];
+function uniqueKeepOrder(arr) {
+  const out = [];
+  const seen = new Set();
+  for (const v of arr || []) {
+    const key = String(v || "").trim().toUpperCase();
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    out.push(key);
+  }
+  return out;
+}
+function proteinMatchesFilter(item, query) {
+  const q = String(query || "").trim().toUpperCase();
+  if (!q) return true;
+  const id = String(item?.id || "").toUpperCase();
+  const name = String(item?.name || "").toUpperCase();
+  return id.includes(q) || name.includes(q);
+}
+function getSelectValues(selectId) {
+  return Array.from(document.getElementById(selectId).selectedOptions || []).map((op) => String(op.value || "").trim().toUpperCase()).filter(Boolean);
+}
+function getStructureCandidates(entry) {
+  const id = String(entry?.id || "").trim().toUpperCase();
+  if (!id) return [];
+  const refs = [
+    entry?.receptor_rel || "",
+    entry?.receptor_pdb || "",
+    `../backend/data/structures/${id}.pdb`,
+    `../backend/data/structures/${id}.ent`,
+  ];
+  const out = [];
+  for (const raw of refs) {
+    const s = String(raw || "").trim();
+    if (!s) continue;
+    if (s.startsWith("/root/PDB_ZN/diffdock_inputs/receptors/")) {
+      out.push("../backend/data/structures/" + s.split("/").pop());
+      continue;
+    }
+    if (s.startsWith("../backend/data/") || s.startsWith("./backend/data/") || s.startsWith("/backend/data/")) {
+      out.push(s);
+      continue;
+    }
+    if (s.startsWith("backend/data/")) {
+      out.push("../" + s);
+      continue;
+    }
+    out.push(s);
+  }
+  return [...new Set(out)];
+}
+async function fetchCatalogStructure(id) {
+  const entry = proteinLookup.get(String(id || "").trim().toUpperCase());
+  if (!entry) throw new Error("未找到库内蛋白: " + id);
+  const cands = getStructureCandidates(entry);
+  for (const url of cands) {
+    const r = await fetch(appendNoCache(url));
+    if (!r.ok) continue;
+    const text = await r.text();
+    const baseName = (url.split("/").pop() || `${entry.id}.pdb`).split("?")[0];
+    const name = baseName.toLowerCase().endsWith(".ent") ? baseName : `${entry.id}.pdb`;
+    return {id: entry.id, name, text, source: `catalog:${entry.id}`};
+  }
+  throw new Error("库内结构文件不可用: " + id);
+}
+async function loadProteinCatalog() {
+  const r = await fetch(appendNoCache("../backend/data/data.json"));
+  if (!r.ok) throw new Error("backend/data/data.json 不可用");
+  const j = await r.json();
+  proteinCatalog = Array.isArray(j?.items) ? j.items.filter(x => x && x.id) : [];
+  proteinLookup.clear();
+  for (const item of proteinCatalog) proteinLookup.set(String(item.id || "").trim().toUpperCase(), item);
+  const singleTargets = ["pdb1_pick", "pdb2_pick", "batch_query_pick"];
+  for (const id of singleTargets) {
+    const sel = document.getElementById(id);
+    sel.innerHTML = "";
+    const empty = document.createElement("option");
+    empty.value = "";
+    empty.textContent = "使用上传文件";
+    sel.appendChild(empty);
+    for (const item of proteinCatalog) {
+      const op = document.createElement("option");
+      op.value = item.id;
+      op.textContent = `${item.id} | ${item.name || "-"}`;
+      sel.appendChild(op);
+    }
+  }
+  const multiTargets = ["batch_target_pick", "matrix_rows_pick", "matrix_cols_pick"];
+  for (const id of multiTargets) {
+    const sel = document.getElementById(id);
+    sel.innerHTML = "";
+    if (id === "batch_target_pick") {
+      const empty = document.createElement("option");
+      empty.value = "";
+      empty.textContent = "请选择蛋白";
+      sel.appendChild(empty);
+      for (const item of proteinCatalog) {
+        const op = document.createElement("option");
+        op.value = item.id;
+        op.textContent = `${item.id} | ${item.name || "-"}`;
+        sel.appendChild(op);
+      }
+    }
+  }
+  renderSelectedCollection("batch_target_selected", batchTargetSelected, (id) => removeFromCollection("batch", id));
+  syncMatrixSelectors();
+}
+function renderSelectedCollection(containerId, ids, onRemove, emptyText = "当前未选择") {
+  const box = document.getElementById(containerId);
+  box.innerHTML = "";
+  const arr = uniqueKeepOrder(ids);
+  if (!arr.length) {
+    const empty = document.createElement("div");
+    empty.className = "selected_empty";
+    empty.textContent = emptyText;
+    box.appendChild(empty);
+    return;
+  }
+  for (const id of arr) {
+    const item = proteinLookup.get(id) || {id, name:""};
+    const chip = document.createElement("div");
+    chip.className = "selected_item";
+    const label = document.createElement("span");
+    label.textContent = `${item.id} | ${item.name || "-"}`;
+    chip.appendChild(label);
+    if (typeof onRemove === "function") {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = "移除";
+      btn.addEventListener("click", () => onRemove(id));
+      chip.appendChild(btn);
+    }
+    box.appendChild(chip);
+  }
+}
+function renderFilteredCatalogSelect(selectId, selectedIds, filterInputId) {
+  const sel = document.getElementById(selectId);
+  const q = document.getElementById(filterInputId).value || "";
+  const selected = new Set(uniqueKeepOrder(selectedIds));
+  sel.innerHTML = "";
+  for (const item of proteinCatalog) {
+    if (selected.has(String(item.id || "").toUpperCase())) continue;
+    if (!proteinMatchesFilter(item, q)) continue;
+    const op = document.createElement("option");
+    op.value = item.id;
+    op.textContent = `${item.id} | ${item.name || "-"}`;
+    sel.appendChild(op);
+  }
+}
+function syncMatrixColumnState() {
+  const disabled = Boolean(document.getElementById("matrix_same_set").checked);
+  document.getElementById("matrix_cols_filter").disabled = disabled;
+  document.getElementById("matrix_cols_pick").disabled = disabled;
+  document.getElementById("matrix_cols_add_btn").disabled = disabled;
+  document.getElementById("matrix_cols_add_all_btn").disabled = disabled;
+  document.getElementById("matrix_cols_clear_btn").disabled = disabled;
+  if (disabled) {
+    renderSelectedCollection("matrix_cols_selected", matrixRowSelected, null, "列集合跟随行集合");
+  } else {
+    renderSelectedCollection("matrix_cols_selected", matrixColSelected, (id) => removeFromCollection("cols", id));
+  }
+}
+function syncMatrixSelectors() {
+  renderFilteredCatalogSelect("matrix_rows_pick", matrixRowSelected, "matrix_rows_filter");
+  renderFilteredCatalogSelect("matrix_cols_pick", matrixColSelected, "matrix_cols_filter");
+  renderSelectedCollection("matrix_rows_selected", matrixRowSelected, (id) => removeFromCollection("rows", id));
+  syncMatrixColumnState();
+}
+function addToCollection(kind, mode = "single") {
+  const selectId = kind === "batch" ? "batch_target_pick" : (kind === "rows" ? "matrix_rows_pick" : "matrix_cols_pick");
+  const select = document.getElementById(selectId);
+  const ids = kind === "batch"
+    ? [String(select.value || "").trim().toUpperCase()].filter(Boolean)
+    : (mode === "all_visible"
+      ? Array.from(select.options || []).map((op) => String(op.value || "").trim().toUpperCase()).filter(Boolean)
+      : getSelectValues(selectId));
+  if (!ids.length) return setStatus(kind === "batch" ? "请先选择一个蛋白" : "请先选择至少一个蛋白");
+  if (kind === "batch") {
+    batchTargetSelected = uniqueKeepOrder([...batchTargetSelected, ...ids]);
+    renderSelectedCollection("batch_target_selected", batchTargetSelected, (id) => removeFromCollection("batch", id));
+  } else if (kind === "rows") {
+    matrixRowSelected = uniqueKeepOrder([...matrixRowSelected, ...ids]);
+    syncMatrixSelectors();
+  } else {
+    matrixColSelected = uniqueKeepOrder([...matrixColSelected, ...ids]);
+    syncMatrixSelectors();
+  }
+}
+function removeFromCollection(kind, pid) {
+  if (kind === "batch") {
+    batchTargetSelected = batchTargetSelected.filter(x => x !== pid);
+    renderSelectedCollection("batch_target_selected", batchTargetSelected, (id) => removeFromCollection("batch", id));
+  } else if (kind === "rows") {
+    matrixRowSelected = matrixRowSelected.filter(x => x !== pid);
+    syncMatrixSelectors();
+  } else {
+    matrixColSelected = matrixColSelected.filter(x => x !== pid);
+    syncMatrixSelectors();
+  }
+}
+function clearCollection(kind) {
+  if (kind === "batch") {
+    batchTargetSelected = [];
+    renderSelectedCollection("batch_target_selected", batchTargetSelected, (id) => removeFromCollection("batch", id));
+  } else if (kind === "rows") {
+    matrixRowSelected = [];
+    syncMatrixSelectors();
+  } else {
+    matrixColSelected = [];
+    syncMatrixSelectors();
+  }
+}
+async function resolveSingleStructure(fileInputId, pickId, labelText) {
+  const file = (document.getElementById(fileInputId).files || [])[0];
+  if (file) {
+    const text = await readFileText(file);
+    return {id: "", name: file.name, text, source: `upload:${file.name}`};
+  }
+  const pick = (document.getElementById(pickId).value || "").trim().toUpperCase();
+  if (pick) return await fetchCatalogStructure(pick);
+  throw new Error(`请先上传或选择${labelText}`);
+}
+async function resolveManyStructures(fileInputId, pickId, labelText) {
+  const files = Array.from(document.getElementById(fileInputId).files || []);
+  if (files.length) {
+    const out = [];
+    for (const file of files) {
+      out.push({id: "", name: file.name, text: await readFileText(file), source: `upload:${file.name}`});
+    }
+    return out;
+  }
+  const picks = pickId === "batch_target_pick"
+    ? batchTargetSelected.slice()
+    : (pickId === "matrix_rows_pick" ? matrixRowSelected.slice() : matrixColSelected.slice());
+  if (!picks.length) throw new Error(`请至少上传或选择一个${labelText}`);
+  const out = [];
+  for (const pid of picks) out.push(await fetchCatalogStructure(pid));
+  return out;
+}
+function selfJobForStructure(a, b) {
+  const aKey = String(a?.id || a?.name || "").trim().toUpperCase();
+  const bKey = String(b?.id || b?.name || "").trim().toUpperCase();
+  if (!aKey || !bKey || aKey !== bKey) return null;
+  return {
+    status: "done",
+    metrics: {
+      tm_score_1: 1,
+      tm_score_2: 1,
+      tm_score_max: 1,
+      aligned_length: null,
+      rmsd: 0,
+      seq_id: 1,
+    },
+    job_id: "SELF",
+  };
+}
+function cacheKeyForPair(a, b) {
+  return `${String(a?.id || a?.name || "").trim()}|||${String(b?.id || b?.name || "").trim()}`;
+}
+async function runTmalignPair(apiBase, a, b, onTick) {
+  const selfJob = selfJobForStructure(a, b);
+  if (selfJob) return selfJob;
+  const key = cacheKeyForPair(a, b);
+  if (tmalignCache.has(key)) return await tmalignCache.get(key);
+  const promise = (async () => {
+    const jobId = await submitTmalignWithTexts(apiBase, a.name, a.text, b.name, b.text);
+    const finalJob = await waitForDone(apiBase, jobId, onTick);
+    return {...finalJob, job_id: jobId};
+  })();
+  tmalignCache.set(key, promise);
+  return await promise;
+}
+function renderBatchRows(rows) {
+  const tbody = document.getElementById("batch_tbody");
+  tbody.innerHTML = "";
+  const sorted = (rows || []).slice().sort((a, b) => {
+    const sa = numOrNull(a.similarity);
+    const sb = numOrNull(b.similarity);
+    if (sa == null && sb == null) return 0;
+    if (sa == null) return 1;
+    if (sb == null) return -1;
+    return sb - sa;
+  });
+  for (let i = 0; i < sorted.length; i += 1) {
+    const r = sorted[i];
+    const tr = document.createElement("tr");
+    const vals = [
+      String(i + 1),
+      r.target_name || "-",
+      r.similarity == null ? "-" : String(r.similarity),
+      r.tm1 == null ? "-" : String(r.tm1),
+      r.tm2 == null ? "-" : String(r.tm2),
+      r.tmMax == null ? "-" : String(r.tmMax),
+      r.aligned == null ? "-" : String(r.aligned),
+      r.rmsd == null ? "-" : String(r.rmsd),
+      r.seqId == null ? "-" : String(r.seqId),
+      r.status || "-",
+      r.job_id || "-"
+    ];
+    for (const v of vals) {
+      const td = document.createElement("td");
+      td.textContent = v;
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  }
+  const okCount = sorted.filter(x => x.status === "done").length;
+  const top = sorted.find(x => numOrNull(x.similarity) != null);
+  const topText = top ? `${top.target_name} (${top.similarity})` : "-";
+  document.getElementById("batch_meta").textContent = `总数 ${sorted.length} | 成功 ${okCount} | Top1 ${topText}`;
+}
+function renderMatrixRankRows(rows) {
+  const tbody = document.getElementById("matrix_rank_tbody");
+  tbody.innerHTML = "";
+  for (let i = 0; i < rows.length; i += 1) {
+    const r = rows[i];
+    const tr = document.createElement("tr");
+    const vals = [
+      String(i + 1),
+      r.id,
+      r.average == null ? "-" : r.average.toFixed(4),
+      `${r.count}`,
+      r.bestPartner ? `${r.bestPartner} (${r.bestValue == null ? "-" : r.bestValue.toFixed(4)})` : "-",
+    ];
+    for (const v of vals) {
+      const td = document.createElement("td");
+      td.textContent = v;
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  }
+}
+function computeMatrixSummary(rowIds, colIds, cellMap) {
+  const rowStats = new Map();
+  const colStats = new Map();
+  const unionStats = new Map();
+  function ensureStat(map, id) {
+    if (!map.has(id)) map.set(id, {id, sum: 0, count: 0, bestPartner: "", bestValue: null});
+    return map.get(id);
+  }
+  for (const r of rowIds) ensureStat(rowStats, r);
+  for (const c of colIds) ensureStat(colStats, c);
+  for (const id of uniqueKeepOrder([...rowIds, ...colIds])) ensureStat(unionStats, id);
+  for (const [key, cell] of cellMap.entries()) {
+    if (cell.status !== "done" || cell.similarity == null) continue;
+    const [rid, cid] = key.split("|||");
+    const rs = ensureStat(rowStats, rid);
+    rs.sum += cell.similarity;
+    rs.count += 1;
+    if (rs.bestValue == null || cell.similarity > rs.bestValue) {
+      rs.bestValue = cell.similarity;
+      rs.bestPartner = cid;
+    }
+    const cs = ensureStat(colStats, cid);
+    cs.sum += cell.similarity;
+    cs.count += 1;
+    if (cs.bestValue == null || cell.similarity > cs.bestValue) {
+      cs.bestValue = cell.similarity;
+      cs.bestPartner = rid;
+    }
+    const usR = ensureStat(unionStats, rid);
+    usR.sum += cell.similarity;
+    usR.count += 1;
+    if (usR.bestValue == null || cell.similarity > usR.bestValue) {
+      usR.bestValue = cell.similarity;
+      usR.bestPartner = cid;
+    }
+    if (rid !== cid) {
+      const usC = ensureStat(unionStats, cid);
+      usC.sum += cell.similarity;
+      usC.count += 1;
+      if (usC.bestValue == null || cell.similarity > usC.bestValue) {
+        usC.bestValue = cell.similarity;
+        usC.bestPartner = rid;
+      }
+    }
+  }
+  const toArr = (map) => Array.from(map.values()).map(x => ({
+    id: x.id,
+    average: x.count ? x.sum / x.count : null,
+    count: x.count,
+    bestPartner: x.bestPartner,
+    bestValue: x.bestValue,
+  }));
+  return {
+    rowStats: toArr(rowStats),
+    colStats: toArr(colStats),
+    unionStats: toArr(unionStats),
+  };
+}
+function renderMatrix(rowIds, colIds, cellMap, sameSet, scoreMode) {
+  const summary = computeMatrixSummary(rowIds, colIds, cellMap);
+  const sorter = (a, b) => {
+    const av = a.average == null ? -1 : a.average;
+    const bv = b.average == null ? -1 : b.average;
+    if (bv !== av) return bv - av;
+    return String(a.id).localeCompare(String(b.id));
+  };
+  const rowOrder = summary.rowStats.slice().sort(sorter).map(x => x.id);
+  const colOrder = sameSet
+    ? rowOrder.filter(x => colIds.includes(x))
+    : summary.colStats.slice().sort(sorter).map(x => x.id);
+  renderMatrixRankRows(summary.unionStats.slice().sort(sorter));
+  const thead = document.getElementById("matrix_thead");
+  const tbody = document.getElementById("matrix_tbody");
+  thead.innerHTML = "";
+  tbody.innerHTML = "";
+  const headTr = document.createElement("tr");
+  const head0 = document.createElement("th");
+  head0.textContent = "Protein";
+  head0.className = "row_head";
+  headTr.appendChild(head0);
+  for (const cid of colOrder) {
+    const th = document.createElement("th");
+    th.textContent = cid;
+    headTr.appendChild(th);
+  }
+  thead.appendChild(headTr);
+  let doneCount = 0;
+  let failedCount = 0;
+  for (const rid of rowOrder) {
+    const tr = document.createElement("tr");
+    const rowHead = document.createElement("td");
+    rowHead.textContent = rid;
+    rowHead.className = "row_head";
+    tr.appendChild(rowHead);
+    for (const cid of colOrder) {
+      const cell = cellMap.get(`${rid}|||${cid}`) || {status: "pending", similarity: null};
+      const td = document.createElement("td");
+      if (cell.status === "done") {
+        doneCount += 1;
+        td.textContent = cell.similarity == null ? "-" : cell.similarity.toFixed(4);
+        td.className = "cell_done";
+      } else if (cell.status === "failed") {
+        failedCount += 1;
+        td.textContent = "failed";
+        td.className = "cell_failed";
+      } else {
+        td.textContent = "…";
+        td.className = "cell_pending";
+      }
+      td.title = `status=${cell.status || "-"} | tm1=${cell.tm1 == null ? "-" : cell.tm1} | tm2=${cell.tm2 == null ? "-" : cell.tm2} | tmMax=${cell.tmMax == null ? "-" : cell.tmMax} | rmsd=${cell.rmsd == null ? "-" : cell.rmsd} | aligned=${cell.aligned == null ? "-" : cell.aligned}`;
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  }
+  document.getElementById("matrix_meta").textContent =
+    `行 ${rowIds.length} | 列 ${colIds.length} | 已完成 ${doneCount} | 失败 ${failedCount} | 排序依据 平均相似性 | 评分方式 ${scoreMode}`;
+}
+async function submitTmalignWithTexts(apiBase, name1, text1, name2, text2) {
+  const {json:j} = await fetchJsonWithDetail(apiBase + "/api/tmalign/submit", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({pdb1_name:name1, pdb1_text:text1, pdb2_name:name2, pdb2_text:text2})
+  }, "submit");
+  return j.job_id || "";
+}
+async function waitForDone(apiBase, jobId, onTick) {
+  for (let i = 0; i < 300; i += 1) {
+    const {json:j} = await fetchJsonWithDetail(apiBase + "/api/tmalign/status/" + encodeURIComponent(jobId), {}, "status");
+    const job = j.job || {};
+    if (typeof onTick === "function") onTick(job);
+    const st = String(job.status || "");
+    if (st === "done" || st === "failed") return job;
+    await sleep(1200);
+  }
+  throw new Error("任务超时");
+}
+async function submitJob() {
+  let phase = "resolve_api";
+  try {
+    setDebugError("");
+    const apiBase = await resolveApiBase();
+    phase = "resolve_structures";
+    const s1 = await resolveSingleStructure("pdb1_file", "pdb1_pick", "结构1");
+    const s2 = await resolveSingleStructure("pdb2_file", "pdb2_pick", "结构2");
+    setStatus("正在提交任务...");
+    phase = "submit";
+    const {json:j} = await fetchJsonWithDetail(apiBase + "/api/tmalign/submit", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({pdb1_name:s1.name, pdb1_text:s1.text, pdb2_name:s2.name, pdb2_text:s2.text})
+    }, phase);
+    document.getElementById("job_id").value = j.job_id || "";
+    setStatus(`提交成功：${j.job_id}`);
+    setDebugError(`phase=done\napi=${apiBase}\njob_id=${j.job_id}\nstruct1=${s1.name} (${s1.source})\nstruct2=${s2.name} (${s2.source})`);
+    await pollStatus();
+  } catch (e) {
+    const m = e && e.message ? e.message : "unknown";
+    setStatus("提交失败：" + m);
+    setDebugError(`phase=${phase}\nerror=${m}`);
+  }
+}
+async function runBatchOneToMany() {
+  let phase = "resolve_api";
+  if (batchRunning) return setStatus("1对多任务正在运行");
+  const mode = document.getElementById("batch_score_mode").value || "short_chain";
+  const rows = [];
+  try {
+    batchRunning = true;
+    setDebugError("");
+    const apiBase = await resolveApiBase();
+    phase = "resolve_query";
+    const query = await resolveSingleStructure("batch_query_file", "batch_query_pick", "参考结构");
+    phase = "resolve_targets";
+    const targets = await resolveManyStructures("batch_target_files", "batch_target_pick", "目标结构");
+    for (let i = 0; i < targets.length; i += 1) {
+      if (!batchRunning) break;
+      const target = targets[i];
+      setStatus(`[${i + 1}/${targets.length}] 提交 ${target.name}`);
+      phase = "pairwise_compare";
+      const finalJob = await runTmalignPair(apiBase, query, target, (job) => {
+        setStatus(`[${i + 1}/${targets.length}] ${target.name} 状态：${job.status || "-"}`);
+      });
+      const metrics = finalJob.metrics || {};
+      const tm1 = numOrNull(metrics.tm_score_1);
+      const tm2 = numOrNull(metrics.tm_score_2);
+      const tmMax = numOrNull(metrics.tm_score_max);
+      rows.push({
+        target_name: target.id || target.name,
+        similarity: finalJob.status === "done" ? calcSimilarity(metrics, mode) : null,
+        tm1,
+        tm2,
+        tmMax,
+        aligned: numOrNull(metrics.aligned_length),
+        rmsd: numOrNull(metrics.rmsd),
+        seqId: numOrNull(metrics.seq_id),
+        status: finalJob.status || "failed",
+        job_id: finalJob.job_id || "-"
+      });
+      renderBatchRows(rows);
+      setDebugError(`phase=batch_progress\nmode=${mode}\napi=${apiBase}\nquery=${query.id || query.name}\ncurrent=${i + 1}/${targets.length}\njob_id=${finalJob.job_id || "-"}\nstatus=${finalJob.status || "-"}`);
+    }
+    setStatus(batchRunning ? "1对多任务完成" : "1对多任务已停止");
+  } catch (e) {
+    const m = e && e.message ? e.message : "unknown";
+    setStatus("1对多失败：" + m);
+    setDebugError(`phase=${phase}\nerror=${m}`);
+  } finally {
+    batchRunning = false;
+  }
+}
+async function runMatrixManyToMany() {
+  let phase = "resolve_api";
+  if (matrixRunning) return setStatus("多对多矩阵任务正在运行");
+  const sameSet = Boolean(document.getElementById("matrix_same_set").checked);
+  const mode = document.getElementById("matrix_score_mode").value || "short_chain";
+  const symmetricMode = sameSet && (mode === "short_chain" || mode === "tm_max");
+  try {
+    matrixRunning = true;
+    setDebugError("");
+    const apiBase = await resolveApiBase();
+    phase = "resolve_rows";
+    const rowIds = matrixRowSelected.slice();
+    if (!rowIds.length) throw new Error("请至少选择一个行蛋白");
+    phase = "resolve_cols";
+    const colIds = sameSet ? rowIds.slice() : matrixColSelected.slice();
+    if (!colIds.length) throw new Error("请至少选择一个列蛋白");
+    const rowStructs = new Map();
+    const colStructs = new Map();
+    for (const pid of rowIds) rowStructs.set(pid, await fetchCatalogStructure(pid));
+    for (const pid of colIds) {
+      if (rowStructs.has(pid)) colStructs.set(pid, rowStructs.get(pid));
+      else colStructs.set(pid, await fetchCatalogStructure(pid));
+    }
+    const cellMap = new Map();
+    let done = 0;
+    const total = symmetricMode ? (rowIds.length * (rowIds.length + 1)) / 2 : (rowIds.length * colIds.length);
+    renderMatrix(rowIds, colIds, cellMap, sameSet, mode);
+    for (let i = 0; i < rowIds.length; i += 1) {
+      const rid = rowIds[i];
+      for (let j = 0; j < colIds.length; j += 1) {
+        const cid = colIds[j];
+        if (symmetricMode && j < i) continue;
+        if (!matrixRunning) break;
+        const key = `${rid}|||${cid}`;
+        cellMap.set(key, {status: "pending", similarity: null, tm1: null, tm2: null, tmMax: null, aligned: null, rmsd: null});
+        renderMatrix(rowIds, colIds, cellMap, sameSet, mode);
+        setStatus(`[${done + 1}/${total}] 矩阵计算 ${rid} vs ${cid}`);
+        phase = "matrix_pair";
+        try {
+          const finalJob = await runTmalignPair(apiBase, rowStructs.get(rid), colStructs.get(cid), (job) => {
+            setStatus(`[${done + 1}/${total}] ${rid} vs ${cid} 状态：${job.status || "-"}`);
+          });
+          const metrics = finalJob.metrics || {};
+          cellMap.set(key, {
+            status: finalJob.status || "failed",
+            similarity: finalJob.status === "done" ? calcSimilarity(metrics, mode) : null,
+            tm1: numOrNull(metrics.tm_score_1),
+            tm2: numOrNull(metrics.tm_score_2),
+            tmMax: numOrNull(metrics.tm_score_max),
+            aligned: numOrNull(metrics.aligned_length),
+            rmsd: numOrNull(metrics.rmsd),
+          });
+          if (symmetricMode && rid !== cid) {
+            cellMap.set(`${cid}|||${rid}`, {
+              status: finalJob.status || "failed",
+              similarity: finalJob.status === "done" ? calcSimilarity(metrics, mode) : null,
+              tm1: numOrNull(metrics.tm_score_2),
+              tm2: numOrNull(metrics.tm_score_1),
+              tmMax: numOrNull(metrics.tm_score_max),
+              aligned: numOrNull(metrics.aligned_length),
+              rmsd: numOrNull(metrics.rmsd),
+            });
+          }
+        } catch (e) {
+          cellMap.set(key, {status: "failed", similarity: null, tm1: null, tm2: null, tmMax: null, aligned: null, rmsd: null});
+          if (symmetricMode && rid !== cid) {
+            cellMap.set(`${cid}|||${rid}`, {status: "failed", similarity: null, tm1: null, tm2: null, tmMax: null, aligned: null, rmsd: null});
+          }
+        }
+        done += 1;
+        renderMatrix(rowIds, colIds, cellMap, sameSet, mode);
+        setDebugError(`phase=matrix_progress\nmode=${mode}\napi=${apiBase}\ndone=${done}/${total}\nrow=${rid}\ncol=${cid}`);
+      }
+      if (!matrixRunning) break;
+    }
+    setStatus(matrixRunning ? "多对多矩阵计算完成" : "多对多矩阵已停止");
+  } catch (e) {
+    const m = e && e.message ? e.message : "unknown";
+    setStatus("多对多矩阵失败：" + m);
+    setDebugError(`phase=${phase}\nerror=${m}`);
+  } finally {
+    matrixRunning = false;
+  }
+}
+async function pollStatus() {
+  let phase = "resolve_api";
+  const id = (document.getElementById("job_id").value || "").trim();
+  if (!id) return setStatus("请填写任务ID");
+  try {
+    const apiBase = await resolveApiBase();
+    phase = "status";
+    const {json:j} = await fetchJsonWithDetail(apiBase + "/api/tmalign/status/" + encodeURIComponent(id), {}, phase);
+    const job = j.job || {};
+    setStatus(`状态：${job.status}`);
+    document.getElementById("job_meta").textContent = `任务 ${job.id} | pdb1=${job.pdb1_name || "-"} | pdb2=${job.pdb2_name || "-"} | pid=${job.pid || "-"} | exit_code=${job.exit_code == null ? "-" : job.exit_code}`;
+    renderMetrics(job.metrics || {});
+    setDebugError(`phase=done\napi=${apiBase}\njob_id=${id}\nstatus=${job.status}\nexit_code=${job.exit_code == null ? "-" : job.exit_code}`);
+  } catch (e) {
+    const m = e && e.message ? e.message : "unknown";
+    setStatus("查询失败：" + m);
+    setDebugError(`phase=${phase}\njob_id=${id}\nerror=${m}`);
+  }
+}
+async function loadLog() {
+  let phase = "resolve_api";
+  const id = (document.getElementById("job_id").value || "").trim();
+  if (!id) return setStatus("请填写任务ID");
+  try {
+    const apiBase = await resolveApiBase();
+    phase = "log";
+    const {json:j} = await fetchJsonWithDetail(apiBase + "/api/tmalign/log/" + encodeURIComponent(id), {}, phase);
+    document.getElementById("log_view").textContent = j.log || "";
+    setStatus("日志已更新");
+    setDebugError(`phase=done\napi=${apiBase}\njob_id=${id}\nlog_size=${(j.log || "").length}`);
+  } catch (e) {
+    const m = e && e.message ? e.message : "unknown";
+    setStatus("日志读取失败：" + m);
+    setDebugError(`phase=${phase}\njob_id=${id}\nerror=${m}`);
+  }
+}
+document.getElementById("submit_btn").addEventListener("click", submitJob);
+document.getElementById("poll_btn").addEventListener("click", pollStatus);
+document.getElementById("log_btn").addEventListener("click", loadLog);
+document.getElementById("batch_target_add_btn").addEventListener("click", () => addToCollection("batch"));
+document.getElementById("batch_target_clear_btn").addEventListener("click", () => clearCollection("batch"));
+document.getElementById("batch_run_btn").addEventListener("click", runBatchOneToMany);
+document.getElementById("batch_stop_btn").addEventListener("click", () => {
+  batchRunning = false;
+  setStatus("已请求停止1对多任务");
+});
+document.getElementById("matrix_rows_filter").addEventListener("input", () => renderFilteredCatalogSelect("matrix_rows_pick", matrixRowSelected, "matrix_rows_filter"));
+document.getElementById("matrix_cols_filter").addEventListener("input", () => renderFilteredCatalogSelect("matrix_cols_pick", matrixColSelected, "matrix_cols_filter"));
+document.getElementById("matrix_rows_add_btn").addEventListener("click", () => addToCollection("rows", "selected"));
+document.getElementById("matrix_rows_add_all_btn").addEventListener("click", () => addToCollection("rows", "all_visible"));
+document.getElementById("matrix_rows_clear_btn").addEventListener("click", () => clearCollection("rows"));
+document.getElementById("matrix_cols_add_btn").addEventListener("click", () => addToCollection("cols", "selected"));
+document.getElementById("matrix_cols_add_all_btn").addEventListener("click", () => addToCollection("cols", "all_visible"));
+document.getElementById("matrix_cols_clear_btn").addEventListener("click", () => clearCollection("cols"));
+document.getElementById("matrix_run_btn").addEventListener("click", runMatrixManyToMany);
+document.getElementById("matrix_stop_btn").addEventListener("click", () => {
+  matrixRunning = false;
+  setStatus("已请求停止多对多矩阵任务");
+});
+document.getElementById("matrix_same_set").addEventListener("change", (e) => {
+  syncMatrixColumnState();
+});
+window.addEventListener("load", async () => {
+  try {
+    await loadProteinCatalog();
+    syncMatrixSelectors();
+  } catch (e) {
+    setDebugError(`phase=load_catalog\nerror=${e && e.message ? e.message : "unknown"}`);
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{
+  "items": [
+    {
+      "id": "6J4C",
+      "name": "Crystal structure of MarH, an epimerase for biosynthesis of Maremycins in Streptomyces, under 10 mM ZnSO4",
+      "cluster": "1",
+      "receptor_pdb": "/tmp/enzyme-search-engine/backend/data/structures/6J4C.pdb",
+      "receptor_rel": "../backend/data/structures/6J4C.pdb",
+      "best_sdf": "/root/PDB_ZN/diffdock_outputs/6J4C/6J4C/rank8_confidence-1.15.sdf",
+      "species": "Streptomyces sp. B9173",
+      "monomer_seq": "PADPEIVEGLPIPLAVAGHHQPAPFYLTADMFGGLPVQLAGGELSTLVGKPVAAPHTHPVDELYLLVSPNKGGARIEVQLDGRRHELLSPAVMRIPAGSEHCFLTLEAEVGSYCFGILLGDRL",
+      "residue_length": 123,
+      "oligomer": 1,
+      "monomer_length": 123,
+      "zn_coord_residue_count": "",
+      "zn_coord_his_count": "3",
+      "zn_coord_non_his_count": ""
+    }
+  ]
+}

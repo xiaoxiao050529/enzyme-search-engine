@@ -1,0 +1,41 @@
+HEADER
+HEADER This is a pdb format file writen by the programm fpocket.                 
+HEADER It represents the atoms contacted by the voronoi vertices of the pocket.  
+HEADER                                                                           
+HEADER Information about the pocket     1:
+HEADER 0  - Pocket Score                      : 0.2666
+HEADER 1  - Drug Score                        : 0.0026
+HEADER 2  - Number of alpha spheres           :    29
+HEADER 3  - Mean alpha-sphere radius          : 3.7598
+HEADER 4  - Mean alpha-sphere Solvent Acc.    : 0.4351
+HEADER 5  - Mean B-factor of pocket residues  : 0.1434
+HEADER 6  - Hydrophobicity Score              : 18.4545
+HEADER 7  - Polarity Score                    :     6
+HEADER 8  - Amino Acid based volume Score     : 4.5455
+HEADER 9  - Pocket volume (Monte Carlo)       : 158.8941
+HEADER 10 - Pocket volume (convex hull)       : 6.5355
+HEADER 11 - Charge Score                      :     2
+HEADER 12 - Local hydrophobic density Score   : 9.0000
+HEADER 13 - Number of apolar alpha sphere     :    10
+HEADER 14 - Proportion of apolar alpha sphere : 0.3448
+ATOM   2967  OE1 GLU B 214      20.460  10.133 -42.228  0.00  0.00           O 0
+ATOM   2907  NH2 ARG B 207      23.725   6.835 -44.620  0.14  1.09           N 0
+ATOM   3146  CE1 HIS B 237      22.429  11.133 -39.653  0.00  0.00           C 0
+ATOM   3141    O HIS B 237      21.020   7.457 -39.547  0.43  2.14           O 0
+ATOM   2906  NH1 ARG B 207      23.368   8.932 -45.469  0.00  0.00           N 0
+ATOM   2940  CG2 VAL B 211      24.618  11.972 -43.830  0.00  0.00           C 0
+ATOM   2830   CG ARG B 198      29.281   7.217 -40.917  0.00  0.00           C 0
+ATOM   2869   CE MET B 202      27.908   9.957 -44.525  0.00  0.00           C 0
+ATOM   3173  CG2 VAL B 241      25.380   4.407 -39.904  0.00  0.00           C 0
+ATOM   2831   CD ARG B 198      29.230   7.901 -39.564  0.00  0.00           C 0
+ATOM   3155  CD2 LEU B 238      22.974   7.836 -35.085  0.00  0.00           C 0
+ATOM   3149   CA LEU B 238      21.256   6.252 -37.100  0.00  0.00           C 0
+ATOM   2229  NH1 ARG B 121      26.844   7.152 -35.732  0.56  2.19           N 0
+ATOM   3147  NE2 HIS B 237      22.664  11.238 -38.358  0.66  1.09           N 0
+ATOM   2230  NH2 ARG B 121      26.545   9.251 -34.854  0.53  2.19           N 0
+HETATM 3295   ZN ZN  B 301      24.473  12.627 -38.195  0.00  0.00          ZN 0
+ATOM   2582  OD2 ASP B 167      27.273  12.427 -39.936  0.52  1.07           O 0
+ATOM   2832   NE ARG B 198      29.643   9.296 -39.642  0.00  0.00           N 0
+ATOM   2834  NH1 ARG B 198      29.740   9.601 -37.351  0.79  1.09           N 0
+TER
+END

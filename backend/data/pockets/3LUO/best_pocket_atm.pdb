@@ -1,0 +1,35 @@
+HEADER
+HEADER This is a pdb format file writen by the programm fpocket.                 
+HEADER It represents the atoms contacted by the voronoi vertices of the pocket.  
+HEADER                                                                           
+HEADER Information about the pocket     7:
+HEADER 0  - Pocket Score                      : 0.1621
+HEADER 1  - Drug Score                        : 0.0013
+HEADER 2  - Number of alpha spheres           :    20
+HEADER 3  - Mean alpha-sphere radius          : 4.1032
+HEADER 4  - Mean alpha-sphere Solvent Acc.    : 0.5569
+HEADER 5  - Mean B-factor of pocket residues  : 0.1329
+HEADER 6  - Hydrophobicity Score              : 2.7143
+HEADER 7  - Polarity Score                    :     4
+HEADER 8  - Amino Acid based volume Score     : 3.4286
+HEADER 9  - Pocket volume (Monte Carlo)       : 204.1717
+HEADER 10 - Pocket volume (convex hull)       : 1.6177
+HEADER 11 - Charge Score                      :    -1
+HEADER 12 - Local hydrophobic density Score   : 9.0000
+HEADER 13 - Number of apolar alpha sphere     :    10
+HEADER 14 - Proportion of apolar alpha sphere : 0.5000
+ATOM   1012  OE1 GLU A 137       1.915 -15.579  -0.264  0.52  2.14           O 0
+ATOM   1017    O ALA A 138       2.718 -19.862  -3.539  0.66  5.36           O 0
+ATOM   1057  CD1 LEU A 143       6.968 -21.180  -3.050  0.00  0.00           C 0
+HETATM 1119   ZN ZN  A 159       2.832 -16.703   2.102  0.00  0.00          ZN 0
+ATOM     53   CE LYS A   7       4.291 -11.772  -3.847  0.00  0.00           C 0
+ATOM     32    O GLN A   5       8.329 -13.713  -5.010  0.45  4.29           O 0
+ATOM   1013  OE2 GLU A 137       2.559 -13.477  -0.191  0.00  0.00           O 0
+ATOM   1011   CD GLU A 137       2.193 -14.495  -0.818  0.00  0.00           C 0
+ATOM     42   CB ASP A   6       8.153 -16.627  -4.656  0.00  0.00           C 0
+ATOM     44  OD1 ASP A   6       9.989 -17.392  -3.362  0.53  5.36           O 0
+ATOM     41    O ASP A   6       5.511 -16.458  -5.544  0.32  2.14           O 0
+ATOM   1009   CB GLU A 137       1.865 -15.801  -2.938  0.00  0.00           C 0
+ATOM   1010   CG GLU A 137       2.089 -14.427  -2.325  0.00  0.00           C 0
+TER
+END

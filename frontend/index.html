@@ -1,0 +1,1626 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zn 金属酶筛选平台</title>
+<script src="https://unpkg.com/3dmol/build/3Dmol-min.js"></script>
+<style>
+body { font-family: system-ui, sans-serif; margin: 16px; }
+.top_nav { display: flex; gap: 8px; margin-bottom: 10px; }
+.top_nav a { display: inline-block; padding: 6px 10px; border: 1px solid #d9d9d9; background: #f6f8fa; color: #0b5394; text-decoration: none; border-radius: 6px; font-weight: 600; }
+.top_nav a:hover { background: #eaf2ff; }
+.row { display: grid; grid-template-columns: 360px 1fr; gap: 16px; align-items: start; }
+#controls { width: 360px; border: 1px solid #ddd; padding: 8px; background: #fafafa; position: relative; z-index: 2; }
+#viewer_col { display: flex; flex-direction: column; gap: 8px; }
+#seq_panel { min-height: 74px; max-height: 220px; border: 1px solid #ddd; background: #fff; padding: 8px; overflow: auto; }
+#seq_title { font-weight: 700; margin-bottom: 6px; color: #333; }
+#seq_content { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; line-height: 1.6; word-break: break-all; font-size: 13px; color: #555; }
+.seq_chain { margin-bottom: 10px; }
+.seq_chain:last-child { margin-bottom: 0; }
+.seq_chain_head { display: inline-block; min-width: 68px; margin: 0 0 6px; padding: 2px 8px; border-radius: 999px; background: rgba(46, 126, 214, 0.1); color: #21425e; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; }
+.seq_chain_body { display: flex; flex-wrap: wrap; gap: 2px; align-items: flex-start; }
+.seq_aa { display: inline-block; min-width: 10px; text-align: center; border-radius: 3px; padding: 0 1px; cursor: pointer; transition: background 140ms ease, color 140ms ease; }
+.seq_aa:hover { background: rgba(255, 196, 84, 0.28); color: #1d2a34; }
+.seq_aa.active { color: #fff; background: #d62828; }
+#viewer_wrap { height: 720px; border: 1px solid #ddd; position: relative; overflow: hidden; z-index: 1; }
+#viewer { height: 100%; }
+.list { height: 400px; overflow: auto; border: 1px solid #eee; padding: 8px; }
+.item { padding: 6px; border-bottom: 1px dashed #eee; cursor: pointer; }
+.item:hover { background: #f7f7f7; }
+label { display: block; margin-bottom: 8px; }
+select, input, button { width: 100%; padding: 6px; box-sizing: border-box; }
+.tool_hint { margin: 10px 0 8px; font-size: 12px; color: #52636d; }
+.tool_actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0 14px; }
+.tool_actions button { margin: 0; }
+.legend_box { margin: 0 0 14px; padding: 10px 12px; border: 1px solid #d9e0e6; border-radius: 12px; background: rgba(255,255,255,0.82); }
+.legend_title { font-size: 12px; color: #52636d; margin-bottom: 8px; font-weight: 700; }
+.legend_items { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.legend_item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #24323b; }
+.legend_swatch { width: 12px; height: 12px; border-radius: 999px; flex: 0 0 12px; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08); }
+.list { background: #fff; }
+#status { margin-top: 10px; color: #333; }
+#zn_error { margin-top: 6px; color: #8a1f11; background: #fff8f4; border: 1px solid #f3d2c7; padding: 6px; white-space: pre-wrap; word-break: break-word; max-height: 120px; overflow: auto; }
+#debug_error { margin-top: 6px; color: #8a1f11; background: #fff3f0; border: 1px solid #f0c2ba; padding: 6px; white-space: pre-wrap; word-break: break-word; max-height: 180px; overflow: auto; }
+#picked { margin-top: 8px; font-weight: 600; color: #0b5394; }
+#hover_info { position: absolute; right: 8px; bottom: 8px; background: rgba(0,0,0,0.7); color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 12px; z-index: 5; }
+@media (max-width: 760px) {
+  .tool_actions { grid-template-columns: 1fr; }
+  .legend_items { grid-template-columns: 1fr; }
+}
+</style>
+<link rel="stylesheet" href="./theme.css">
+</head>
+<body class="page-index">
+<div class="top_nav">
+  <a href="./index.html">主页面</a>
+  <a href="./diffdock_compare.html">DiffDock对比</a>
+  <a href="./master_table.html">Master表</a>
+  <a href="./fpocket.html">fpocket</a>
+  <a href="./tmalign.html">TM-align</a>
+  <a href="./pdbzn_workflow.html">PDB-ZN工作流</a>
+</div>
+<h2>Zn 金属酶筛选平台</h2>
+<noscript>请启用浏览器的JavaScript以显示内容</noscript>
+<div class="row">
+  <div id="controls">
+    <label>数据源
+      <select id="dataset">
+        <option value="table1">Table 1</option>
+      </select>
+    </label>
+    <label>按PDB查找
+      <input id="find_pdb" type="text" placeholder="例如 1FSJ">
+      <button id="find_btn">查询</button>
+    </label>
+    <label>按聚类筛选
+      <select id="cluster">
+        <option value="">全部</option>
+        <option>0</option>
+        <option>1</option>
+        <option>2</option>
+        <option>3</option>
+        <option>4</option>
+        <option>5</option>
+      </select>
+    </label>
+    <label>搜索名称
+      <input id="search" type="text" placeholder="输入关键字">
+    </label>
+    <div class="tool_hint">可视化工具</div>
+    <div class="tool_actions">
+      <button id="zn_mode_btn" type="button">ZN邻域模式：关</button>
+      <button id="res_label_btn" type="button">残基标签：关</button>
+      <button id="measure_mode_btn" type="button">测量模式：关</button>
+      <button id="measure_clear_btn" type="button">清空测量</button>
+
+    </div>
+    <div class="legend_box">
+      <div class="legend_title">Zn 相互作用配色</div>
+      <div class="legend_items">
+        <div class="legend_item"><span class="legend_swatch" style="background:#ff9a1f;"></span><span>HIS 配位</span></div>
+        <div class="legend_item"><span class="legend_swatch" style="background:#dd5555;"></span><span>ASP / GLU 配位</span></div>
+        <div class="legend_item"><span class="legend_swatch" style="background:#22a06b;"></span><span>CYS 配位</span></div>
+        <div class="legend_item"><span class="legend_swatch" style="background:#2e7ed6;"></span><span>其他 5Å 邻域残基</span></div>
+      </div>
+    </div>
+    <div class="list" id="list"></div>
+  </div>
+  <div id="viewer_col">
+    <div id="seq_panel">
+      <div id="seq_title">序列</div>
+      <div id="seq_content">未加载</div>
+    </div>
+    <div id="viewer_wrap">
+      <div id="viewer"></div>
+      <div id="hover_info">悬停残基：-</div>
+    </div>
+  </div>
+  </div>
+<div id="status"></div>
+<pre id="zn_error">Zn显示：待检测</pre>
+<pre id="debug_error"></pre>
+<div id="picked">当前残基：未选择</div>
+<div id="detail"></div>
+<script>
+let db = null;
+let viewer;
+let pickedLabel = null;
+let selectedId = "";
+let masterFull = null;
+let currentItem = null;
+let znMode = false;
+let residueLabelMode = false;
+let fiveAMode = false;
+let znInteractionShapes = [];
+let residueInteractionShapes = [];
+let znResidueLabels = [];
+let residueNeighborLabels = [];
+let fiveAAtomLabels = [];
+let measureMode = false;
+let measurePoints = [];
+let measureShapes = [];
+let measureLabels = [];
+let pocketMode = true;
+let pocketShapes = [];
+let pocketLabels = [];
+let pocketForceShapes = [];
+let currentStructureText = "";
+let currentStructureFmt = "";
+let currentStructureZnAtoms = [];
+let structureModelRef = null;
+let ligandModelRef = null;
+let znMarkerModelRef = null;
+let znVisibleShapes = [];
+let znVisibleLabels = [];
+let seqState = {text:"", residueMap:new Map(), indexMap:new Map(), residueInfo:new Map(), chainBlocks:[], selectedKey:"", hoverKey:""};
+const routeParams = new URLSearchParams(window.location.search);
+const routePdb = (routeParams.get("pdb") || "").trim();
+const routeDataset = (routeParams.get("dataset") || "").trim().toLowerCase();
+let routeHandled = false;
+let tableRegistry = [];
+let currentDatasetEntry = null;
+let detectedApiBase = "";
+try {
+  if (window.$3Dmol) {
+    viewer = $3Dmol.createViewer("viewer", {backgroundColor:"white"});
+  } else {
+    viewer = { clear(){}, addModel(){ return { setStyle(){}, }; }, setStyle(){}, zoomTo(){}, render(){} };
+  }
+} catch (e) {
+  viewer = { clear(){}, addModel(){ return { setStyle(){}, }; }, setStyle(){}, zoomTo(){}, render(){} };
+}
+function datasetPath(entry, key) {
+  const file = entry && entry[key] ? String(entry[key]) : "";
+  return file ? `../backend/data/${file}` : "";
+}
+function getApiBaseCandidates() {
+  const h = window.location.hostname || "127.0.0.1";
+  return [...new Set([
+    `http://${h}:8015`,
+    `http://${h}:8017`,
+    `http://${h}:8016`,
+    "http://127.0.0.1:8015",
+    "http://127.0.0.1:8017",
+    "http://127.0.0.1:8016"
+  ])];
+}
+async function detectApiBase() {
+  if (detectedApiBase) return detectedApiBase;
+  for (const base of getApiBaseCandidates()) {
+    try {
+      const res = await fetch(base + "/api/pdbzn/workflow/config?t=" + Date.now());
+      if (!res.ok) continue;
+      const obj = await res.json();
+      if (obj && obj.ok) {
+        detectedApiBase = base;
+        return detectedApiBase;
+      }
+    } catch (_) {}
+  }
+  return "";
+}
+function getSelectedDatasetEntry() {
+  const id = String(document.getElementById("dataset").value || "").trim();
+  return tableRegistry.find((t) => String(t.id || "") === id) || tableRegistry[0] || null;
+}
+function populateDatasetOptions() {
+  const sel = document.getElementById("dataset");
+  sel.innerHTML = "";
+  for (const table of tableRegistry) {
+    const op = document.createElement("option");
+    op.value = table.id;
+    op.textContent = table.label || table.id;
+    sel.appendChild(op);
+  }
+  if (routeDataset && tableRegistry.some((t) => String(t.id || "") === routeDataset)) {
+    sel.value = routeDataset;
+  } else if (tableRegistry.some((t) => String(t.id || "") === "table1")) {
+    sel.value = "table1";
+  }
+}
+async function loadDatasetRegistry() {
+  try {
+    const res = await fetch("../backend/data/table_registry.json?t=" + Date.now());
+    if (!res.ok) throw new Error("registry unavailable");
+    const obj = await res.json();
+    const tables = Array.isArray(obj?.tables) ? obj.tables.filter((t) => t && t.id) : [];
+    tableRegistry = tables.length ? tables : [{
+      id: "table1",
+      label: "Table 1",
+      data: "table1_data.json",
+      full: "table1_master_full.json"
+    }];
+  } catch (_) {
+    tableRegistry = [{
+      id: "table1",
+      label: "Table 1",
+      data: "table1_data.json",
+      full: "table1_master_full.json"
+    }];
+  }
+  populateDatasetOptions();
+}
+function loadData() {
+  currentDatasetEntry = getSelectedDatasetEntry();
+  const src = datasetPath(currentDatasetEntry, "data") || datasetPath(currentDatasetEntry, "full") || "../backend/data/data.json";
+  const status = document.getElementById("status");
+  const label = currentDatasetEntry && currentDatasetEntry.label ? currentDatasetEntry.label : src;
+  status.textContent = "正在加载数据源：" + label;
+  const url = src + "?t=" + Date.now();
+  masterFull = null;
+  fetch(url).then(r=>{
+    if(!r.ok) throw new Error("数据源不可用");
+    return r.json();
+  }).then(j=>{ 
+    db=j; 
+    const count = Array.isArray(db.items) ? db.items.length : (Array.isArray(db.rows) ? db.rows.length : 0);
+    status.textContent = "已加载：" + label + "，条目数：" + count;
+    loadList();
+    tryOpenRoutePdb();
+  }).catch((e)=>{
+    const fallback = datasetPath(currentDatasetEntry, "full") || "../backend/data/master_full.json";
+    status.textContent = "当前数据源不可用，尝试备用：" + fallback + "；错误：" + (e && e.message ? e.message : "unknown");
+    fetch(fallback + "?t=" + Date.now()).then(r=>{
+      if(!r.ok) throw new Error("备用数据源不可用");
+      return r.json();
+    }).then(j=>{ 
+      db=j; 
+      const count = Array.isArray(db.items) ? db.items.length : (Array.isArray(db.rows) ? db.rows.length : 0);
+      status.textContent = "已加载备用数据源：" + fallback + "，条目数：" + count; 
+      loadList();
+      tryOpenRoutePdb();
+    }).catch((ee)=>{ status.textContent = "加载失败，请稍后重试或检查数据文件；错误：" + (ee && ee.message ? ee.message : "unknown"); });
+  });
+}
+function setDebugError(text) {
+  const box = document.getElementById("debug_error");
+  box.textContent = text || "";
+}
+function setZnError(text) {
+  const box = document.getElementById("zn_error");
+  box.textContent = text || "";
+}
+function extractZnAtomsFromPdbText(text) {
+  const out = [];
+  const lines = String(text || "").split(/\r?\n/);
+  for (const ln of lines) {
+    if (!(ln.startsWith("ATOM") || ln.startsWith("HETATM"))) continue;
+    const atomName = ln.slice(12, 16).trim().toUpperCase();
+    const elem = ln.length >= 78 ? ln.slice(76, 78).trim().toUpperCase() : "";
+    if (atomName !== "ZN" && elem !== "ZN") continue;
+    const x = Number(ln.slice(30, 38));
+    const y = Number(ln.slice(38, 46));
+    const z = Number(ln.slice(46, 54));
+    if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(z)) continue;
+    out.push({x, y, z});
+  }
+  return out;
+}
+function extractZnAtomsFromCifText(text) {
+  const out = [];
+  const lines = String(text || "").split(/\r?\n/);
+  const candidates = lines.filter(ln => ln.includes(" ZN ") || ln.includes(" ZN2+") || ln.includes("ZN"));
+  for (const ln of candidates) {
+    const nums = ln.match(/-?\d+(?:\.\d+)?/g) || [];
+    if (nums.length < 3) continue;
+    const x = Number(nums[nums.length - 3]);
+    const y = Number(nums[nums.length - 2]);
+    const z = Number(nums[nums.length - 1]);
+    if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(z)) continue;
+    out.push({x, y, z});
+  }
+  return out;
+}
+function getStructureZnAtoms() {
+  if (Array.isArray(currentStructureZnAtoms) && currentStructureZnAtoms.length) return currentStructureZnAtoms;
+  if (!currentStructureText) return [];
+  const parsed = currentStructureFmt === "cif" ? extractZnAtomsFromCifText(currentStructureText) : extractZnAtomsFromPdbText(currentStructureText);
+  if (parsed.length) return parsed;
+  if (structureModelRef && structureModelRef.selectedAtoms) {
+    const z = structureModelRef.selectedAtoms({elem:"ZN"}) || [];
+    return z.map(a=>({x:a.x, y:a.y, z:a.z})).filter(a=>Number.isFinite(a.x)&&Number.isFinite(a.y)&&Number.isFinite(a.z));
+  }
+  return [];
+}
+function guessElemFromAtomName(name4) {
+  const t = String(name4 || "").trim().toUpperCase();
+  if (!t) return "";
+  const m = t.match(/[A-Z]+/);
+  if (!m) return "";
+  const letters = m[0];
+  if (letters.length >= 2) {
+    const two = letters.slice(0, 2);
+    if (two === "ZN" || two === "FE" || two === "MG" || two === "MN" || two === "CA" || two === "NA" || two === "CL") return two;
+  }
+  return letters[0];
+}
+function normalizePdbElementColumns(text) {
+  const out = [];
+  for (const raw of String(text || "").split(/\r?\n/)) {
+    let ln = String(raw || "");
+    if (!(ln.startsWith("ATOM") || ln.startsWith("HETATM"))) {
+      out.push(ln);
+      continue;
+    }
+    if (ln.length < 80) ln = ln.padEnd(80, " ");
+    const elemCol = ln.slice(76, 78).trim();
+    if (elemCol) {
+      out.push(ln);
+      continue;
+    }
+    const elem = guessElemFromAtomName(ln.slice(12, 16));
+    const fixed = ln.slice(0, 76) + elem.padStart(2, " ") + ln.slice(78);
+    out.push(fixed);
+  }
+  return out.join("\n");
+}
+function tryOpenRoutePdb() {
+  if (routeHandled || !routePdb) return;
+  routeHandled = true;
+  document.getElementById("find_pdb").value = routePdb;
+  find();
+}
+function loadList() {
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+  const q = document.getElementById("search").value.trim().toLowerCase();
+  const c = document.getElementById("cluster").value.trim();
+  
+  let sourceItems = [];
+  if (db && db.items) sourceItems = db.items;
+  else if (db && db.rows) sourceItems = db.rows.map(r => ({
+    id: r.Representative,
+    name: r.Protein_Name,
+    cluster: r.Cluster_ID,
+    species: r.Species || "",
+    receptor_pdb: r.Receptor_Path,
+    best_sdf: r.Best_Ligand_Path,
+    receptor_rel: r.Receptor_Path ? r.Receptor_Path.replace("/root/PDB_ZN/diffdock_inputs/receptors/", "../backend/data/structures/") : ""
+  }));
+
+  const items = sourceItems.filter(x => {
+    if (c && String(x.cluster) !== c) return false;
+    if (q && !(x.name || "").toLowerCase().includes(q) && !(x.id || "").toLowerCase().includes(q)) return false;
+    return true;
+  });
+  if(items.length === 0){
+    const empty = document.createElement("div");
+    empty.textContent = "无数据，请更换数据源或稍后重试";
+    list.appendChild(empty);
+  }
+  for (const it of items) {
+    const div = document.createElement("div");
+    div.className = "item";
+    if ((it.id || "").toUpperCase() === (selectedId || "").toUpperCase()) div.style.background = "#e6f4ff";
+    div.textContent = `${it.id} | ${it.name || ""} | cluster=${it.cluster} | ${it.species || ""}`;
+    div.onclick = () => show(it);
+    list.appendChild(div);
+  }
+}
+async function ensureMasterFull() {
+  if (masterFull) return masterFull;
+  const entry = getSelectedDatasetEntry();
+  const src = datasetPath(entry, "full") || "../backend/data/master_full.json";
+  const res = await fetch(src + "?t=" + Date.now());
+  if (!res.ok) throw new Error("master_full.json 不可用");
+  masterFull = await res.json();
+  return masterFull;
+}
+function renderDetailTable(target, header) {
+  const box = document.getElementById("detail");
+  const table = document.createElement("table");
+  table.style.borderCollapse = "collapse";
+  for (const k of (header || Object.keys(target))) {
+    const tr = document.createElement("tr");
+    const td1 = document.createElement("td");
+    const td2 = document.createElement("td");
+    td1.textContent = k;
+    td2.textContent = target[k] || "";
+    td1.style.border = "1px solid #ddd"; td1.style.padding = "4px";
+    td2.style.border = "1px solid #ddd"; td2.style.padding = "4px";
+    tr.appendChild(td1); tr.appendChild(td2);
+    table.appendChild(tr);
+  }
+  box.innerHTML = "";
+  box.appendChild(table);
+}
+function residueKey(chain, resi) {
+  return `${chain || ""}:${String(resi ?? "")}`;
+}
+function setSequenceStatus(text) {
+  document.getElementById("seq_content").textContent = text;
+}
+function residueOneLetter(resn) {
+  const key = String(resn || "").toUpperCase();
+  const table = {
+    ALA: "A", ARG: "R", ASN: "N", ASP: "D", CYS: "C",
+    GLN: "Q", GLU: "E", GLY: "G", HIS: "H", HID: "H",
+    HIE: "H", HIP: "H", HSD: "H", HSE: "H", HSP: "H",
+    ILE: "I", LEU: "L", LYS: "K", MET: "M", PHE: "F",
+    PRO: "P", SER: "S", THR: "T", TRP: "W", TYR: "Y",
+    VAL: "V", SEC: "U", PYL: "O", ASX: "B", GLX: "Z",
+    MSE: "M"
+  };
+  return table[key] || "X";
+}
+function getStructureResidues() {
+  const model = structureModelRef && structureModelRef.selectedAtoms ? structureModelRef : null;
+  if (!model || !model.selectedAtoms) return [];
+  const caAtoms = model.selectedAtoms({atom:"CA"}) || [];
+  const source = caAtoms.length ? caAtoms : (model.selectedAtoms({}) || []);
+  const uniq = new Map();
+  for (const a of source) {
+    if (!a) continue;
+    const resn = String(a.resn || "").toUpperCase();
+    if (resn === "HOH" || resn === "WAT" || resn === "ZN") continue;
+    const key = residueKey(a.chain, a.resi);
+    const prev = uniq.get(key);
+    if (!prev || a.atom === "CA") uniq.set(key, a);
+  }
+  const residues = Array.from(uniq.values());
+  residues.sort((a, b)=>{
+    const ca = String(a.chain || "");
+    const cb = String(b.chain || "");
+    if (ca !== cb) return ca.localeCompare(cb);
+    const ra = parseResiOrder(a.resi);
+    const rb = parseResiOrder(b.resi);
+    if (ra.n !== rb.n) return ra.n - rb.n;
+    return ra.s.localeCompare(rb.s);
+  });
+  return residues;
+}
+function renderSequenceText(seqText) {
+  const content = document.getElementById("seq_content");
+  content.innerHTML = "";
+  if (Array.isArray(seqState.chainBlocks) && seqState.chainBlocks.length) {
+    for (const block of seqState.chainBlocks) {
+      const wrap = document.createElement("div");
+      wrap.className = "seq_chain";
+      const head = document.createElement("div");
+      head.className = "seq_chain_head";
+      head.textContent = `Chain ${block.chain || "?"}`;
+      wrap.appendChild(head);
+      const body = document.createElement("div");
+      body.className = "seq_chain_body";
+      for (const item of block.residues) {
+        const span = document.createElement("span");
+        span.className = "seq_aa";
+        span.dataset.idx = String(item.index);
+        span.dataset.key = item.key;
+        span.title = `${item.chain}:${item.resn}${item.resi}`;
+        span.textContent = item.letter;
+        body.appendChild(span);
+      }
+      wrap.appendChild(body);
+      content.appendChild(wrap);
+    }
+    return;
+  }
+  if (!seqText) {
+    content.textContent = "无序列信息";
+    return;
+  }
+  for (let i = 0; i < seqText.length; i++) {
+    const span = document.createElement("span");
+    span.className = "seq_aa";
+    span.dataset.idx = String(i + 1);
+    span.textContent = seqText[i];
+    content.appendChild(span);
+  }
+}
+function highlightSequenceResidues() {
+  const content = document.getElementById("seq_content");
+  const activeKeys = new Set();
+  if (seqState.selectedKey) activeKeys.add(seqState.selectedKey);
+  if (seqState.hoverKey) activeKeys.add(seqState.hoverKey);
+  const spans = content.querySelectorAll(".seq_aa");
+  for (const s of spans) {
+    const key = String(s.dataset.key || "");
+    if (key) {
+      s.classList.toggle("active", activeKeys.has(key));
+      continue;
+    }
+    const idx = Number(s.dataset.idx || "0");
+    const active = new Set();
+    if (seqState.selectedKey && seqState.residueMap.has(seqState.selectedKey)) active.add(seqState.residueMap.get(seqState.selectedKey));
+    if (seqState.hoverKey && seqState.residueMap.has(seqState.hoverKey)) active.add(seqState.residueMap.get(seqState.hoverKey));
+    s.classList.toggle("active", active.has(idx));
+  }
+}
+function parseResiOrder(v) {
+  const t = String(v ?? "");
+  const m = t.match(/^(-?\d+)(.*)$/);
+  if (!m) return {n: 10**9, s: t};
+  return {n: Number(m[1]), s: m[2] || ""};
+}
+function buildResidueMapFromModel() {
+  seqState.residueMap = new Map();
+  seqState.indexMap = new Map();
+  seqState.residueInfo = new Map();
+  seqState.chainBlocks = [];
+  const residues = getStructureResidues();
+  if (!residues.length) return;
+  const blocks = [];
+  const byChain = new Map();
+  let idx = 0;
+  for (const a of residues) {
+    idx += 1;
+    const key = residueKey(a.chain, a.resi);
+    seqState.residueMap.set(key, idx);
+    seqState.indexMap.set(idx, key);
+    seqState.residueInfo.set(key, {key, index: idx, atom: a});
+    const chain = String(a.chain || "?");
+    let block = byChain.get(chain);
+    if (!block) {
+      block = {chain, residues: []};
+      byChain.set(chain, block);
+      blocks.push(block);
+    }
+    block.residues.push({
+      key,
+      index: idx,
+      chain,
+      resi: a.resi,
+      resn: a.resn,
+      atom: a,
+      letter: residueOneLetter(a.resn)
+    });
+  }
+  seqState.chainBlocks = blocks;
+  renderSequenceText(seqState.text);
+}
+async function resolveSequenceText(it) {
+  if (it && typeof it.monomer_seq === "string" && it.monomer_seq.trim()) return it.monomer_seq.trim();
+  try {
+    const j = await ensureMasterFull();
+    const rows = j.rows || [];
+    const id = (it && it.id ? it.id : "").toUpperCase();
+    const row = rows.find(x => ((x["_id"] || "").toUpperCase() === id)) ||
+      rows.find(x => {
+        const p = (x["Receptor_PDB"] || "").split("/").pop();
+        const b = p ? p.split(".")[0] : "";
+        return b.toUpperCase() === id;
+      });
+    if (!row) return "";
+    return String(row["MonomerSeq"] || row["monomer_seq"] || row["Sequence"] || "").trim();
+  } catch (_) {
+    return "";
+  }
+}
+async function renderSequenceForItem(it) {
+  setSequenceStatus("序列加载中...");
+  const text = await resolveSequenceText(it);
+  seqState.text = text || "";
+  seqState.residueMap = new Map();
+  seqState.indexMap = new Map();
+  seqState.residueInfo = new Map();
+  seqState.chainBlocks = [];
+  seqState.selectedKey = "";
+  seqState.hoverKey = "";
+  renderSequenceText(seqState.text);
+  if (structureModelRef && structureModelRef.selectedAtoms) {
+    buildResidueMapFromModel();
+    highlightSequenceResidues();
+  }
+}
+function setSequenceHoverFromAtom(atom) {
+  if (!atom) return;
+  seqState.hoverKey = residueKey(atom.chain, atom.resi);
+  highlightSequenceResidues();
+}
+function setSequenceSelectedFromAtom(atom) {
+  if (!atom) return;
+  seqState.selectedKey = residueKey(atom.chain, atom.resi);
+  highlightSequenceResidues();
+}
+function clearSequenceHover() {
+  seqState.hoverKey = "";
+  highlightSequenceResidues();
+}
+function clearPickedLabel() {
+  if (pickedLabel && viewer.removeLabel) {
+    try { viewer.removeLabel(pickedLabel); } catch (_) {}
+  }
+  pickedLabel = null;
+}
+function setPickedResidueLabel(atom, text, color = "black") {
+  clearPickedLabel();
+  if (!atom || !viewer.addLabel) return;
+  pickedLabel = viewer.addLabel(text, {
+    position: {x: atom.x, y: atom.y, z: atom.z},
+    backgroundColor: color,
+    fontColor: "white"
+  });
+}
+function isZnAtom(atom) {
+  const elem = String(atom?.elem || "").toUpperCase();
+  const resn = String(atom?.resn || "").toUpperCase();
+  const atomName = String(atom?.atom || "").toUpperCase();
+  return elem === "ZN" || resn === "ZN" || atomName === "ZN";
+}
+function interactionLabelText(atom, distanceValue) {
+  const base = `${atom.chain || ""}:${atom.resn || ""}${atom.resi || ""}`;
+  const ds = Number.isFinite(distanceValue) ? ` · ${distanceValue.toFixed(1)}Å` : "";
+  return `⚡ ${base}${ds}`;
+}
+function addInteractionLabel(targetList, atom, anchorAtom, distanceValue) {
+  if (!viewer.addLabel || !atom) return;
+  const style = interactionStyleForResidue(atom, distanceValue);
+  const lb = viewer.addLabel(interactionLabelText(atom, distanceValue), {
+    position: offsetLabelPos(atom, anchorAtom),
+    backgroundColor: style.labelBg,
+    fontColor: style.labelFg,
+    fontSize: 15,
+    inFront: true
+  });
+  targetList.push(lb);
+}
+function interactionStyleForResidue(atom, distanceValue) {
+  const resn = String(atom?.resn || "").toUpperCase();
+  if (resn === "HIS" || resn === "HID" || resn === "HIE" || resn === "HIP" || resn === "HSD" || resn === "HSE" || resn === "HSP") {
+    return {line: distanceValue <= 3.2 ? "#ff8a00" : "#ffb347", labelBg: "rgba(255, 204, 122, 0.96)", labelFg: "#422100"};
+  }
+  if (resn === "ASP" || resn === "GLU") {
+    return {line: distanceValue <= 3.2 ? "#d94f4f" : "#ef7d7d", labelBg: "rgba(239, 125, 125, 0.96)", labelFg: "#3a0f0f"};
+  }
+  if (resn === "CYS" || resn === "CYX" || resn === "CYM") {
+    return {line: distanceValue <= 3.2 ? "#20a36a" : "#5dcf98", labelBg: "rgba(93, 207, 152, 0.96)", labelFg: "#093120"};
+  }
+  return {line: distanceValue <= 3.2 ? "#2a7fd6" : "#78aee8", labelBg: "rgba(120, 174, 232, 0.96)", labelFg: "#102235"};
+}
+function focusResidueNeighborhood(atom, source = "viewer") {
+  if (!atom || !Number.isFinite(atom.x) || !Number.isFinite(atom.y) || !Number.isFinite(atom.z)) return;
+  applyBaseStyles();
+  drawZnVisibleAtoms(false);
+  applyZnNeighborhood();
+  const nearSel = {within:{distance:5.0, sel:{chain: atom.chain, resi: atom.resi}}, byres:true};
+  viewer.setStyle(nearSel, {stick:{colorscheme:"whiteCarbon", radius:0.2}});
+  viewer.setStyle({chain: atom.chain, resi: atom.resi}, {stick:{color:"orange", radius:0.28}});
+  const nearLabelCount = labelResiduesAroundAtom(atom);
+  const rrCount = drawResidueInteractionsAroundAtom(atom);
+  setPickedResidueLabel(atom, `${atom.chain}:${atom.resn}${atom.resi}`);
+  document.getElementById("picked").textContent = `当前残基：链 ${atom.chain}，${atom.resn}${atom.resi}`;
+  document.getElementById("status").textContent = source === "sequence"
+    ? `已从序列定位到 ${atom.chain}:${atom.resn}${atom.resi}；5Å范围残基标签 ${nearLabelCount} 个，残基相互作用线 ${rrCount} 条`
+    : `5Å范围：残基标签 ${nearLabelCount} 个，残基相互作用线 ${rrCount} 条`;
+  setSequenceSelectedFromAtom(atom);
+  viewer.zoomTo(nearSel);
+  viewer.render();
+}
+function focusZnNeighborhood(atom) {
+  applyBaseStyles();
+  drawZnVisibleAtoms(false);
+  const targetZn = toZnLikeAtom(atom, 0);
+  const targetSel = znAtomSelection(targetZn);
+  if (structureModelRef && structureModelRef.setStyle) {
+    const near = collectNearResiduesByAtom(targetZn, 5.0);
+    for (const item of near) {
+      const a = item.atom;
+      structureModelRef.setStyle({chain:a.chain, resi:a.resi}, {stick:{colorscheme:"yellowCarbon", radius:0.28}});
+    }
+  }
+  if (znMarkerModelRef && znMarkerModelRef.setStyle) {
+    znMarkerModelRef.setStyle({}, {sphere:{radius:0.58, color:"#c100ff", opacity:0.82}});
+    znMarkerModelRef.setStyle(targetSel, {sphere:{radius:0.72, color:"#c100ff", opacity:1.0}});
+  }
+  drawZnInteractionsAndLabels({force:true, emphasize:true, targetZnAtom: targetZn});
+  setPickedResidueLabel(atom, "Zn", "#7a0088");
+  document.getElementById("picked").textContent = "当前残基：Zn 位点";
+  seqState.selectedKey = "";
+  highlightSequenceResidues();
+  try {
+    viewer.zoomTo({within:{distance:5.0, sel:{x:targetZn.x, y:targetZn.y, z:targetZn.z}}});
+  } catch (_) {
+    viewer.zoomTo();
+  }
+  viewer.render();
+}
+function focusResidueBySequenceIndex(idx) {
+  const key = seqState.indexMap.get(idx);
+  if (!key) {
+    document.getElementById("status").textContent = `序列位置 ${idx} 暂无结构映射`;
+    return;
+  }
+  const info = seqState.residueInfo.get(key);
+  if (!info || !info.atom) {
+    document.getElementById("status").textContent = `序列位置 ${idx} 没有可点击的结构坐标`;
+    return;
+  }
+  focusResidueNeighborhood(info.atom, "sequence");
+}
+function focusResidueBySequenceKey(key) {
+  const info = seqState.residueInfo.get(String(key || ""));
+  if (!info || !info.atom) {
+    document.getElementById("status").textContent = "该序列残基暂无结构映射";
+    return;
+  }
+  focusResidueNeighborhood(info.atom, "sequence");
+}
+async function syncDetailById(id) {
+  if (!id) return;
+  const box = document.getElementById("detail");
+  try {
+    const j = await ensureMasterFull();
+    const rows = j.rows || [];
+    const target = rows.find(x => (x["_id"] || "").toUpperCase() === id.toUpperCase()) ||
+      rows.find(x => {
+        const p = (x["Receptor_PDB"] || "").split("/").pop();
+        const b = p ? p.split(".")[0] : "";
+        return b.toUpperCase() === id.toUpperCase();
+      });
+    if (!target) {
+      box.textContent = "未找到该PDB";
+      return;
+    }
+    renderDetailTable(target, j.header);
+  } catch (_) {
+    box.textContent = "详情加载失败";
+  }
+}
+async function loadStructureForItem(it) {
+  const status = document.getElementById("status");
+  setDebugError("");
+  currentStructureText = "";
+  currentStructureFmt = "";
+  currentStructureZnAtoms = [];
+  const rid = (it.id || "").trim();
+  const candidates = [];
+  if (it.receptor_rel) candidates.push(it.receptor_rel);
+  if (it.receptor_pdb) candidates.push(it.receptor_pdb);
+  if (rid) {
+    candidates.push(`../backend/data/structures/${rid}.pdb`);
+    candidates.push(`../backend/data/structures/${rid}.cif`);
+  }
+  const seen = new Set();
+  for (const c of candidates) {
+    if (!c || seen.has(c)) continue;
+    seen.add(c);
+    try {
+      const res = await fetch(c + "?t=" + Date.now());
+      if (!res.ok) continue;
+      const rawTxt = await res.text();
+      const fmt = c.toLowerCase().endsWith(".cif") ? "cif" : "pdb";
+      if (!looksLikePdbOrCif(rawTxt, fmt)) continue;
+      const txt = fmt === "pdb" ? normalizePdbElementColumns(rawTxt) : rawTxt;
+      const m = viewer.addModel(txt, fmt);
+      try {
+        viewer.render();
+      } catch (_) {
+        if (viewer.removeModel && m) {
+          try { viewer.removeModel(m); } catch (_) {}
+        }
+        continue;
+      }
+      currentStructureText = txt;
+      currentStructureFmt = fmt;
+      currentStructureZnAtoms = fmt === "cif" ? extractZnAtomsFromCifText(txt) : extractZnAtomsFromPdbText(txt);
+      structureModelRef = m || null;
+      status.textContent = `已加载：${it.id || ""} (${c})`;
+      setDebugError(`phase=structure_loaded\nrid=${it.id || ""}\nsource=${c}\nfmt=${fmt}\ntext_size=${txt.length}`);
+      return true;
+    } catch (_) {}
+  }
+  if (rid) {
+    try {
+      const apiBase = await detectApiBase();
+      if (apiBase) {
+        const apiUrl = `${apiBase}/api/pdbzn/structure/${encodeURIComponent(rid)}`;
+        const res = await fetch(apiUrl + "?t=" + Date.now());
+        if (res.ok) {
+          const rawTxt = await res.text();
+          const fmt = apiUrl.toLowerCase().includes(".cif") || rawTxt.includes("_atom_site.") ? "cif" : "pdb";
+          const txt = fmt === "pdb" ? normalizePdbElementColumns(rawTxt) : rawTxt;
+          const m = viewer.addModel(txt, fmt);
+          try {
+            viewer.render();
+          } catch (_) {
+            if (viewer.removeModel && m) {
+              try { viewer.removeModel(m); } catch (_) {}
+            }
+            throw new Error("render failed");
+          }
+          currentStructureText = txt;
+          currentStructureFmt = fmt;
+          currentStructureZnAtoms = fmt === "cif" ? extractZnAtomsFromCifText(txt) : extractZnAtomsFromPdbText(txt);
+          structureModelRef = m || null;
+          status.textContent = `已加载：${it.id || ""}（通过后端结构 API）`;
+          setDebugError(`phase=structure_loaded\nrid=${it.id || ""}\nsource=${apiUrl}\nfmt=${fmt}\ntext_size=${txt.length}`);
+          return true;
+        }
+      }
+    } catch (_) {}
+  }
+  status.textContent = `结构加载失败：${it.id || ""}，未找到对应PDB/CIF`;
+  return false;
+}
+async function loadLigandForItem(it) {
+  const status = document.getElementById("status");
+  const rid = (it.id || "").trim();
+  const candidates = [];
+  if (it.best_sdf) candidates.push(it.best_sdf);
+  if (it.ligand_rel) candidates.push(it.ligand_rel);
+  if (rid) candidates.push(`../backend/data/ligands/${rid}.sdf`);
+  const seen = new Set();
+  for (const c of candidates) {
+    if (!c || seen.has(c)) continue;
+    seen.add(c);
+    try {
+      const res = await fetch(c + "?t=" + Date.now());
+      if (!res.ok) continue;
+      const txt = await res.text();
+      if (!looksLikeSdf(txt)) continue;
+      const m = viewer.addModel(txt, "sdf");
+      try {
+        viewer.render();
+      } catch (_) {
+        if (viewer.removeModel && m) {
+          try { viewer.removeModel(m); } catch (_) {}
+        }
+        continue;
+      }
+      ligandModelRef = m || null;
+      status.textContent = `已加载：${it.id || ""}（含配体构象）`;
+      setDebugError(`phase=ligand_loaded\nrid=${it.id || ""}\nsource=${c}\ntext_size=${txt.length}`);
+      return true;
+    } catch (_) {}
+  }
+  status.textContent = `已加载：${it.id || ""}（未找到可用配体SDF）`;
+  return false;
+}
+function applyBaseStyles() {
+  if (structureModelRef && structureModelRef.setStyle) {
+    structureModelRef.setStyle({}, {cartoon:{color:"#7f97af", opacity:0.78}});
+    structureModelRef.setStyle({within:{distance:3.0, sel:{elem:"ZN"}}}, {stick:{colorscheme:"greenCarbon", radius:0.18}});
+    structureModelRef.setStyle({within:{distance:5.0, sel:{elem:"ZN"}}, byres:true}, {stick:{colorscheme:"yellowCarbon", radius:0.22}});
+  }
+  if (ligandModelRef && ligandModelRef.setStyle) {
+    ligandModelRef.setStyle({}, {stick:{colorscheme:"cyanCarbon", radius:0.2}});
+  }
+}
+function buildZnMarkerPdbText() {
+  const znAtoms = getStructureZnAtoms();
+  const lines = [];
+  for (let i = 0; i < znAtoms.length; i++) {
+    const z = znAtoms[i];
+    if (!Number.isFinite(z.x) || !Number.isFinite(z.y) || !Number.isFinite(z.z)) continue;
+    const serial = String(i + 1).padStart(5, " ");
+    const resi = String(i + 1).padStart(4, " ");
+    const x = Number(z.x).toFixed(3).padStart(8, " ");
+    const y = Number(z.y).toFixed(3).padStart(8, " ");
+    const zz = Number(z.z).toFixed(3).padStart(8, " ");
+    lines.push(`HETATM${serial} ZN   ZN Z${resi}    ${x}${y}${zz}  1.00 20.00          ZN`);
+  }
+  return lines.join("\n") + (lines.length ? "\nEND\n" : "");
+}
+function rebuildZnMarkerModel() {
+  if (znMarkerModelRef && viewer.removeModel) {
+    try { viewer.removeModel(znMarkerModelRef); } catch (_) {}
+  }
+  znMarkerModelRef = null;
+  const pdbText = buildZnMarkerPdbText();
+  if (!pdbText.trim() || !viewer.addModel) return 0;
+  try {
+    const model = viewer.addModel(pdbText, "pdb");
+    if (!model) return 0;
+    znMarkerModelRef = model;
+    if (model.setStyle) {
+      model.setStyle({}, {sphere:{radius:0.58, color:"#c100ff", opacity:0.98}});
+    }
+    if (model.setClickable) {
+      model.setClickable({}, true, function(atom) {
+        if (!atom) return;
+        focusZnNeighborhood(atom);
+      });
+    }
+    return getStructureZnAtoms().length;
+  } catch (_) {
+    znMarkerModelRef = null;
+    return 0;
+  }
+}
+function clearZnVisibleAtoms() {
+  if (znMarkerModelRef && viewer.removeModel) {
+    try { viewer.removeModel(znMarkerModelRef); } catch (_) {}
+  }
+  znMarkerModelRef = null;
+  if (viewer.removeShape) {
+    for (const s of znVisibleShapes) {
+      try { viewer.removeShape(s); } catch (_) {}
+    }
+  }
+  znVisibleShapes = [];
+  if (viewer.removeLabel) {
+    for (const l of znVisibleLabels) {
+      try { viewer.removeLabel(l); } catch (_) {}
+    }
+  }
+  znVisibleLabels = [];
+}
+function drawZnVisibleAtoms(forceFocus) {
+  clearZnVisibleAtoms();
+  const znAtoms = getStructureZnAtoms();
+  if (!znAtoms.length) {
+    setZnError("Zn显示异常：未解析到Zn坐标（结构里可能没有Zn，或格式不规范）");
+    setDebugError(`phase=zn_display\nerror=no_zn_coordinates\nfmt=${currentStructureFmt || "-"}\nstructure_size=${(currentStructureText || "").length}`);
+    return 0;
+  }
+  const drawOk = rebuildZnMarkerModel();
+  const drawFail = 0;
+  if (drawOk <= 0) {
+    setZnError(`Zn显示异常：坐标已解析(${znAtoms.length})，但绘制失败`);
+    setDebugError(`phase=zn_display\nerror=draw_failed\nzn_count=${znAtoms.length}\nshape_api=${viewer.addSphere ? "yes" : "no"}`);
+    return 0;
+  }
+  if (forceFocus && viewer.zoomTo && structureModelRef && structureModelRef.selectedAtoms) {
+    try {
+      viewer.zoomTo({within:{distance:5.0, sel:{elem:"ZN"}}, byres:true});
+    } catch (_) {}
+  }
+  setZnError(`Zn显示正常：${drawOk} 个（绘制失败 ${drawFail} 个）`);
+  return drawOk;
+}
+function clearZnOverlays() {
+  if (viewer.removeShape) {
+    for (const s of znInteractionShapes) viewer.removeShape(s);
+    for (const s of residueInteractionShapes) viewer.removeShape(s);
+  }
+  znInteractionShapes = [];
+  residueInteractionShapes = [];
+  if (viewer.removeLabel) {
+    for (const l of znResidueLabels) viewer.removeLabel(l);
+  }
+  znResidueLabels = [];
+  if (viewer.removeLabel) {
+    for (const l of residueNeighborLabels) viewer.removeLabel(l);
+  }
+  residueNeighborLabels = [];
+  if (viewer.removeLabel) {
+    for (const l of fiveAAtomLabels) viewer.removeLabel(l);
+  }
+  fiveAAtomLabels = [];
+}
+function clearPocketOverlays() {
+  if (viewer.removeShape) {
+    for (const s of pocketShapes) {
+      if (!s) continue;
+      try { viewer.removeShape(s); } catch (_) {}
+    }
+    for (const s of pocketForceShapes) {
+      if (!s) continue;
+      try { viewer.removeShape(s); } catch (_) {}
+    }
+  }
+  pocketShapes = [];
+  pocketForceShapes = [];
+  if (viewer.removeLabel) {
+    for (const l of pocketLabels) {
+      if (!l) continue;
+      try { viewer.removeLabel(l); } catch (_) {}
+    }
+  }
+  pocketLabels = [];
+}
+function parsePocketPoints(text) {
+  const pts = [];
+  for (const ln of String(text || "").split(/\r?\n/)) {
+    if (!(ln.startsWith("ATOM") || ln.startsWith("HETATM"))) continue;
+    const x = Number(ln.slice(30, 38));
+    const y = Number(ln.slice(38, 46));
+    const z = Number(ln.slice(46, 54));
+    if (Number.isFinite(x) && Number.isFinite(y) && Number.isFinite(z)) pts.push({x, y, z});
+  }
+  return pts;
+}
+function isHtmlText(text) {
+  const t = String(text || "").slice(0, 300).toLowerCase();
+  return t.includes("<!doctype html") || t.includes("<html");
+}
+function looksLikePdbOrCif(text, fmt) {
+  const s = String(text || "");
+  if (!s.trim()) return false;
+  if (isHtmlText(s)) return false;
+  if (fmt === "cif") {
+    return /(^|\n)\s*data_/i.test(s) || s.includes("_atom_site");
+  }
+  return /(^|\n)(ATOM  |HETATM|HEADER|TITLE |REMARK)/.test(s);
+}
+function looksLikeSdf(text) {
+  const s = String(text || "");
+  if (!s.trim()) return false;
+  if (isHtmlText(s)) return false;
+  return s.includes("$$$$") || s.includes("V2000") || s.includes("V3000");
+}
+function samplePocketPoints(points, maxN) {
+  if (points.length <= maxN) return points;
+  const out = [];
+  const step = points.length / maxN;
+  for (let i = 0; i < maxN; i++) {
+    out.push(points[Math.floor(i * step)]);
+  }
+  return out;
+}
+function isHisResidueName(resn) {
+  const t = String(resn || "").trim().toUpperCase();
+  return t === "HIS" || t === "HID" || t === "HIE" || t === "HIP" || t === "HSD" || t === "HSE" || t === "HSP";
+}
+function collectHisResiduesAroundZn(znAtoms, cutoff) {
+  const atoms = getStructureAtomsForNeighborhood();
+  const resMap = new Map();
+  for (const a of atoms) {
+    if (!a || !isHisResidueName(a.resn)) continue;
+    if (!Number.isFinite(a.x) || !Number.isFinite(a.y) || !Number.isFinite(a.z)) continue;
+    for (let i = 0; i < znAtoms.length; i++) {
+      const z = znAtoms[i];
+      const d = dist(a, z);
+      if (d > cutoff) continue;
+      const key = `${a.chain || ""}:${a.resn || ""}${a.resi || ""}`;
+      const prev = resMap.get(key);
+      if (!prev || d < prev.minDist) {
+        resMap.set(key, {chain: a.chain, resi: a.resi, resn: a.resn, atom: a.atom, minDist: d, znIndex: i});
+      }
+    }
+  }
+  return Array.from(resMap.values()).sort((x, y) => x.minDist - y.minDist);
+}
+function assessPocketZnHis(points, znAtoms) {
+  let minPocketZn = null;
+  for (const z of znAtoms) {
+    for (const p of points) {
+      const d = dist(p, z);
+      if (minPocketZn == null || d < minPocketZn) minPocketZn = d;
+    }
+  }
+  const hisHits = collectHisResiduesAroundZn(znAtoms, 3.5);
+  const hasZn = znAtoms.length > 0;
+  const has3His = hisHits.length >= 3;
+  const pocketNearZn = minPocketZn != null && minPocketZn <= 5.0;
+  const active = hasZn && has3His && pocketNearZn;
+  return {active, hasZn, has3His, pocketNearZn, minPocketZn, hisHits};
+}
+async function loadBestPocketOverlay(it) {
+  clearPocketOverlays();
+  if (!pocketMode) return;
+  const rid = ((it && it.id) || "").trim();
+  if (!rid) return;
+  const vertUrl = `../backend/data/pockets/${rid}/best_pocket_vert.pqr?t=${Date.now()}`;
+  let phase = "fetch";
+  try {
+    const res = await fetch(vertUrl);
+    if (!res.ok) {
+      document.getElementById("status").textContent = `已加载：${rid}（未找到口袋可视化文件）`;
+      setDebugError(`phase=${phase}\nurl=${vertUrl}\nhttp_status=${res.status}`);
+      return;
+    }
+    phase = "read_text";
+    const txt = await res.text();
+    phase = "parse_points";
+    const points = parsePocketPoints(txt);
+    if (!points.length) {
+      document.getElementById("status").textContent = `已加载：${rid}（口袋点为空）`;
+      setDebugError(`phase=${phase}\nurl=${vertUrl}\npoint_count=0`);
+      return;
+    }
+    phase = "pick_points";
+    const drawPts = samplePocketPoints(points, 260);
+    phase = "get_zn";
+    const znAtoms = getStructureZnAtoms();
+    phase = "distance_calc";
+    const site = assessPocketZnHis(points, znAtoms);
+    phase = "draw_pocket_spheres";
+    if (viewer.addSphere) {
+      for (const p of drawPts) {
+        try {
+          const s = viewer.addSphere({
+            center: {x: p.x, y: p.y, z: p.z},
+            radius: 0.72,
+            color: "#ff2d2d",
+            alpha: 0.50
+          });
+          if (s) pocketShapes.push(s);
+        } catch (_) {}
+      }
+    }
+    if (structureModelRef && structureModelRef.setStyle) {
+      for (const h of site.hisHits) {
+        structureModelRef.setStyle({chain:h.chain, resi:h.resi}, {stick:{color:"#ffd400", radius:0.28}});
+      }
+    }
+    const hisTxt = site.hisHits.slice(0, 6).map(h => `${h.chain || ""}:${h.resn || ""}${h.resi || ""}(${h.minDist.toFixed(2)}Å)`).join(", ");
+    const activeTxt = site.active ? "是" : "否";
+    const reasonTxt = site.active ? "满足 Zn+3HIS 活性位点" : `不满足条件（Zn=${site.hasZn ? "有" : "无"}，3HIS=${site.has3His ? "有" : "无"}，口袋近Zn=${site.pocketNearZn ? "是" : "否"}）`;
+    document.getElementById("status").textContent = `已加载：${rid} | 红色口袋点 ${points.length}（显示${drawPts.length}） | 活性位点(Zn+3HIS)：${activeTxt} | 最短Zn-口袋距离 ${site.minPocketZn == null ? "N/A" : site.minPocketZn.toFixed(2)} Å | HIS数 ${site.hisHits.length}`;
+    setZnError(`活性位点判定：${activeTxt}\n规则：至少1个Zn + 至少3个HIS + 口袋距Zn≤5Å\n结果：${reasonTxt}\nHIS明细：${hisTxt || "无"}`);
+    setDebugError(`phase=done\nrid=${rid}\nurl=${vertUrl}\npoint_count=${points.length}\nshown_points=${drawPts.length}\nzn_count=${znAtoms.length}\nhis_count=${site.hisHits.length}\npocket_near_zn=${site.pocketNearZn}\nactive_site=${site.active}\nmin_pocket_zn=${site.minPocketZn == null ? "N/A" : site.minPocketZn.toFixed(3)}\nline_count=${pocketForceShapes.length}`);
+    phase = "render_overlay";
+    try {
+      viewer.render();
+    } catch (e2) {
+      const m2 = e2 && e2.message ? e2.message : "render_error";
+      const s2 = e2 && e2.stack ? String(e2.stack) : "";
+      clearPocketOverlays();
+      document.getElementById("status").textContent = `已加载：${rid}（口袋覆盖层渲染失败，已自动回退）`;
+      setDebugError(`phase=${phase}\nrid=${rid}\nurl=${vertUrl}\nerror=${m2}\nstack=${s2}\naction=clearPocketOverlays`);
+      try { viewer.render(); } catch (_) {}
+    }
+  } catch (e) {
+    const msg = e && e.message ? e.message : "unknown_error";
+    const stack = e && e.stack ? String(e.stack) : "";
+    document.getElementById("status").textContent = `已加载：${rid}（口袋可视化加载失败：${msg}）`;
+    setDebugError(`phase=${phase}\nrid=${rid}\nurl=${vertUrl}\nerror=${msg}\nstack=${stack}`);
+  }
+}
+function dist(a, b) {
+  const dx = a.x - b.x;
+  const dy = a.y - b.y;
+  const dz = a.z - b.z;
+  return Math.sqrt(dx*dx + dy*dy + dz*dz);
+}
+function listViewerModels() {
+  const out = [];
+  if (!viewer || !viewer.getModel) return out;
+  for (let i = 0; i < 12; i++) {
+    let m = null;
+    try {
+      m = viewer.getModel(i);
+    } catch (_) {
+      m = null;
+    }
+    if (!m) break;
+    out.push(m);
+  }
+  if (!out.length && viewer.getModel) {
+    try {
+      const m0 = viewer.getModel(0);
+      if (m0) out.push(m0);
+    } catch (_) {}
+  }
+  return out;
+}
+function collectZnAtomsFromViewer() {
+  const out = [];
+  for (const m of listViewerModels()) {
+    if (!m || !m.selectedAtoms) continue;
+    const z1 = m.selectedAtoms({elem:"ZN"}) || [];
+    for (const z of z1) out.push(z);
+  }
+  return out;
+}
+function offsetLabelPos(a, ref) {
+  const r = ref || {x:a.x, y:a.y - 1, z:a.z};
+  let vx = a.x - r.x;
+  let vy = a.y - r.y;
+  let vz = a.z - r.z;
+  const n = Math.sqrt(vx*vx + vy*vy + vz*vz);
+  if (n < 1e-6) {
+    vx = 0;
+    vy = 1;
+    vz = 0;
+  } else {
+    vx /= n;
+    vy /= n;
+    vz /= n;
+  }
+  return {x:a.x + vx * 1.0, y:a.y + vy * 1.0, z:a.z + vz * 1.0};
+}
+function getStructureAtomsForNeighborhood() {
+  const m = structureModelRef && structureModelRef.selectedAtoms ? structureModelRef : (viewer.getModel ? viewer.getModel(0) : null);
+  if (!m || !m.selectedAtoms) return [];
+  return m.selectedAtoms({}) || [];
+}
+function toZnLikeAtom(z, i = 0) {
+  return {
+    x: z.x,
+    y: z.y,
+    z: z.z,
+    serial: z.serial != null ? z.serial : -(i + 1),
+    chain: z.chain || "ZN",
+    resn: z.resn || "ZN",
+    resi: z.resi != null ? z.resi : (i + 1),
+    atom: z.atom || "ZN",
+    elem: z.elem || "ZN"
+  };
+}
+function znAtomSelection(atom) {
+  if (atom && Number.isFinite(Number(atom.serial)) && Number(atom.serial) > 0) {
+    return {serial: Number(atom.serial)};
+  }
+  return {x: atom.x, y: atom.y, z: atom.z};
+}
+function getZnNeighborhood(targetZnAtom = null) {
+  const znRaw = targetZnAtom ? [targetZnAtom] : getStructureZnAtoms();
+  const znAtoms = znRaw.map((z, i)=>toZnLikeAtom(z, i));
+  const atoms = getStructureAtomsForNeighborhood();
+  const residueMap = new Map();
+  for (const a of atoms) {
+    if (!a || !Number.isFinite(a.x) || !Number.isFinite(a.y) || !Number.isFinite(a.z)) continue;
+    if (String(a.elem || "").toUpperCase() === "H") continue;
+    if (String(a.elem || "").toUpperCase() === "ZN" || String(a.resn || "").toUpperCase() === "ZN") continue;
+    let mind = Infinity;
+    let closestZn = null;
+    for (const z of znAtoms) {
+      const d = dist(a, z);
+      if (d < mind) {
+        mind = d;
+        closestZn = z;
+      }
+    }
+    if (mind > 5.0) continue;
+    const key = `${a.chain || ""}:${a.resn || ""}${a.resi || ""}`;
+    const prev = residueMap.get(key);
+    if (!prev) {
+      residueMap.set(key, {
+        chain: a.chain,
+        resn: a.resn,
+        resi: a.resi,
+        labelAtom: a,
+        interactionAtom: a,
+        closestZn,
+        minDist: mind
+      });
+      continue;
+    }
+    if (a.atom === "CA" && (!prev.labelAtom || prev.labelAtom.atom !== "CA")) {
+      prev.labelAtom = a;
+    }
+    if (mind < prev.minDist) {
+      prev.interactionAtom = a;
+      prev.closestZn = closestZn;
+      prev.minDist = mind;
+      if (!prev.labelAtom) prev.labelAtom = a;
+    }
+  }
+  return {znAtoms, residueHits: Array.from(residueMap.values())};
+}
+function drawZnInteractionsAndLabels(options = {}) {
+  clearZnOverlays();
+  const force = !!options.force;
+  const emphasize = !!options.emphasize;
+  const targetZnAtom = options.targetZnAtom || null;
+  if (!force && !znMode) return;
+  const {znAtoms, residueHits} = getZnNeighborhood(targetZnAtom);
+  if (!znAtoms.length) {
+    document.getElementById("status").textContent = "未在结构文本中解析到 Zn 原子";
+    setZnError("Zn显示异常：未解析到Zn坐标，无法绘制Zn邻域");
+    return;
+  }
+  let interactionCount = 0;
+  for (const hit of residueHits) {
+    const a = hit.interactionAtom;
+    const zn = hit.closestZn;
+    if (!a || !zn || !viewer.addLine) continue;
+    const style = interactionStyleForResidue(a, hit.minDist);
+    const line = viewer.addLine({
+      start: {x: zn.x, y: zn.y, z: zn.z},
+      end: {x: a.x, y: a.y, z: a.z},
+      color: style.line,
+      dashed: emphasize,
+      linewidth: emphasize ? (hit.minDist <= 3.2 ? 6 : 5) : (hit.minDist <= 3.2 ? 4 : 3)
+    });
+    znInteractionShapes.push(line);
+    interactionCount += 1;
+  }
+  if (residueLabelMode && viewer.addLabel) {
+    for (const hit of residueHits) {
+      const a = hit.labelAtom || hit.interactionAtom;
+      if (!a) continue;
+      addInteractionLabel(znResidueLabels, a, hit.closestZn || znAtoms[0], hit.minDist);
+    }
+  }
+  document.getElementById("status").textContent = emphasize
+    ? `已选中 Zn：5Å 范围残基相互作用线 ${interactionCount} 条，残基标签 ${residueLabelMode ? znResidueLabels.length : 0} 个；颜色：HIS=橙，ASP/GLU=红，CYS=绿，其他=蓝`
+    : `已显示5Å邻域：残基相互作用线 ${interactionCount} 条，残基标签 ${residueLabelMode ? znResidueLabels.length : 0} 个`;
+}
+function labelResiduesInSelection(sel) {
+  if (!residueLabelMode || !viewer.addLabel) return;
+  for (const l of residueNeighborLabels) viewer.removeLabel(l);
+  residueNeighborLabels = [];
+  const model = structureModelRef && structureModelRef.selectedAtoms ? structureModelRef : null;
+  if (!model || !model.selectedAtoms) return;
+  const coreSel = sel && sel.within ? {within: sel.within} : sel;
+  const atoms = model.selectedAtoms(coreSel) || [];
+  const resMap = new Map();
+  for (const a of atoms) {
+    if (!a) continue;
+    const key = `${a.chain || ""}:${a.resn || ""}${a.resi || ""}`;
+    const prev = resMap.get(key);
+    if (!prev || a.atom === "CA") resMap.set(key, a);
+  }
+  for (const a of resMap.values()) {
+    const txt = `${a.chain || ""}:${a.resn || ""}${a.resi || ""}`;
+    const lb = viewer.addLabel(txt, {
+      position: offsetLabelPos(a),
+      backgroundColor: "rgba(255,255,255,0.92)",
+      fontColor: "black",
+      fontSize: 16,
+      inFront: true
+    });
+    residueNeighborLabels.push(lb);
+  }
+  document.getElementById("status").textContent = `已显示邻域残基标签：${residueNeighborLabels.length}`;
+}
+function collectNearResiduesByAtom(anchorAtom, cutoff) {
+  if (!anchorAtom) return [];
+  const model = structureModelRef && structureModelRef.selectedAtoms ? structureModelRef : null;
+  if (!model || !model.selectedAtoms) return [];
+  const atoms = model.selectedAtoms({}) || [];
+  const centerKey = `${anchorAtom.chain || ""}:${anchorAtom.resn || ""}${anchorAtom.resi || ""}`;
+  const resMap = new Map();
+  for (const a of atoms) {
+    if (!a || a.elem === "H") continue;
+    const key = `${a.chain || ""}:${a.resn || ""}${a.resi || ""}`;
+    if (key === centerKey) continue;
+    const d = dist(anchorAtom, a);
+    if (d > cutoff) continue;
+    const prev = resMap.get(key);
+    if (!prev || d < prev.d || (a.atom === "CA" && prev.atom.atom !== "CA")) {
+      resMap.set(key, {atom:a, d});
+    }
+  }
+  return Array.from(resMap.values());
+}
+function drawResidueInteractionsAroundAtom(anchorAtom) {
+  if (!viewer.addLine) return 0;
+  const near = collectNearResiduesByAtom(anchorAtom, 5.0);
+  for (const item of near) {
+    const a = item.atom;
+    const line = viewer.addLine({
+      start: {x: anchorAtom.x, y: anchorAtom.y, z: anchorAtom.z},
+      end: {x: a.x, y: a.y, z: a.z},
+      color: "deepskyblue",
+      dashed: true,
+      linewidth: 2
+    });
+    residueInteractionShapes.push(line);
+  }
+  return near.length;
+}
+function labelResiduesAroundAtom(anchorAtom) {
+  if (!residueLabelMode || !viewer.addLabel) return 0;
+  if (viewer.removeLabel) {
+    for (const l of residueNeighborLabels) viewer.removeLabel(l);
+  }
+  residueNeighborLabels = [];
+  const near = collectNearResiduesByAtom(anchorAtom, 5.0);
+  for (const item of near) {
+    const a = item.atom;
+    addInteractionLabel(residueNeighborLabels, a, anchorAtom, item.d);
+  }
+  return near.length;
+}
+function applyZnNeighborhood() {
+  if (!znMode) {
+    clearZnOverlays();
+    return;
+  }
+  const {residueHits} = getZnNeighborhood();
+  if (structureModelRef && structureModelRef.setStyle) {
+    for (const hit of residueHits) {
+      structureModelRef.setStyle({chain:hit.chain, resi:hit.resi}, {stick:{colorscheme:"yellowCarbon", radius:0.22}});
+    }
+  }
+  drawZnInteractionsAndLabels();
+}
+function atomName(a) {
+  return `${a.chain || ""}:${a.resn || ""}${a.resi || ""}:${a.atom || a.elem || ""}`;
+}
+function clearMeasurement() {
+  if (viewer.removeShape) {
+    for (const s of measureShapes) viewer.removeShape(s);
+  }
+  measureShapes = [];
+  if (viewer.removeLabel) {
+    for (const l of measureLabels) viewer.removeLabel(l);
+  }
+  measureLabels = [];
+  measurePoints = [];
+}
+function handleMeasureClick(atom) {
+  if (!atom) return;
+  measurePoints.push(atom);
+  if (measurePoints.length === 2) {
+    const a = measurePoints[0];
+    const b = measurePoints[1];
+    const d = dist(a, b);
+    if (viewer.addLine) {
+      measureShapes.push(viewer.addLine({
+        start: {x:a.x, y:a.y, z:a.z},
+        end: {x:b.x, y:b.y, z:b.z},
+        color: "red",
+        linewidth: 3
+      }));
+    }
+    if (viewer.addLabel) {
+      measureLabels.push(viewer.addLabel(`d=${d.toFixed(2)} Å`, {
+        position: {x:(a.x+b.x)/2, y:(a.y+b.y)/2, z:(a.z+b.z)/2},
+        backgroundColor: "red",
+        fontColor: "white",
+        inFront: true
+      }));
+    }
+    document.getElementById("status").textContent = `键长：${atomName(a)} ↔ ${atomName(b)} = ${d.toFixed(2)} Å`;
+  } else if (measurePoints.length === 3) {
+    const a = measurePoints[0];
+    const b = measurePoints[1];
+    const c = measurePoints[2];
+    const v1 = {x:a.x-b.x, y:a.y-b.y, z:a.z-b.z};
+    const v2 = {x:c.x-b.x, y:c.y-b.y, z:c.z-b.z};
+    const n1 = Math.sqrt(v1.x*v1.x+v1.y*v1.y+v1.z*v1.z);
+    const n2 = Math.sqrt(v2.x*v2.x+v2.y*v2.y+v2.z*v2.z);
+    const cosv = (v1.x*v2.x+v1.y*v2.y+v1.z*v2.z) / Math.max(1e-8, n1*n2);
+    const ang = Math.acos(Math.max(-1, Math.min(1, cosv))) * 180 / Math.PI;
+    if (viewer.addLine) {
+      measureShapes.push(viewer.addLine({start:{x:b.x,y:b.y,z:b.z}, end:{x:a.x,y:a.y,z:a.z}, color:"purple", linewidth:3}));
+      measureShapes.push(viewer.addLine({start:{x:b.x,y:b.y,z:b.z}, end:{x:c.x,y:c.y,z:c.z}, color:"purple", linewidth:3}));
+    }
+    if (viewer.addLabel) {
+      measureLabels.push(viewer.addLabel(`∠=${ang.toFixed(1)}°`, {
+        position: {x:b.x, y:b.y, z:b.z},
+        backgroundColor: "purple",
+        fontColor: "white",
+        inFront: true
+      }));
+    }
+    document.getElementById("status").textContent = `键角：${atomName(a)} - ${atomName(b)} - ${atomName(c)} = ${ang.toFixed(1)}°`;
+    measurePoints = [];
+  } else {
+    document.getElementById("status").textContent = `测量点1：${atomName(atom)}，请继续点击第2个原子`;
+  }
+  viewer.render();
+}
+function show(it) {
+  selectedId = it.id || "";
+  document.getElementById("find_pdb").value = selectedId;
+  currentItem = it;
+  structureModelRef = null;
+  ligandModelRef = null;
+  setZnError("Zn显示：加载中");
+  loadList();
+  syncDetailById(selectedId);
+  const sequencePromise = renderSequenceForItem(it);
+  clearZnVisibleAtoms();
+  viewer.clear();
+  clearPocketOverlays();
+  clearMeasurement();
+  clearPickedLabel();
+  document.getElementById("picked").textContent = "当前残基：未选择";
+  loadStructureForItem(it).then(async (ok)=>{
+    if (!ok) return;
+    applyBaseStyles();
+    await loadLigandForItem(it);
+    applyBaseStyles();
+    drawZnVisibleAtoms(true);
+    applyZnNeighborhood();
+    await loadBestPocketOverlay(it);
+    await sequencePromise;
+    buildResidueMapFromModel();
+    highlightSequenceResidues();
+    if (viewer.setClickable) {
+      viewer.setClickable({}, true, function(atom) {
+        if (!atom) return;
+        if (measureMode) {
+          handleMeasureClick(atom);
+          return;
+        }
+        if (isZnAtom(atom)) {
+          focusZnNeighborhood(atom);
+          return;
+        }
+        focusResidueNeighborhood(atom, "viewer");
+      });
+    }
+    if (viewer.setHoverable) {
+      viewer.setHoverable({}, true, function(atom){
+        if (!atom) return;
+        document.getElementById("hover_info").textContent = `悬停残基：${atom.chain || ""}:${atom.resn || ""}${atom.resi || ""}`;
+        setSequenceHoverFromAtom(atom);
+      }, function(){
+        document.getElementById("hover_info").textContent = "悬停残基：-";
+        clearSequenceHover();
+      });
+    }
+    try {
+      viewer.zoomTo({within:{distance:5.0, sel:{elem:"ZN"}}, byres:true});
+    } catch (_) {
+      viewer.zoomTo();
+    }
+    viewer.render();
+  });
+}
+function find() {
+  const q = document.getElementById("find_pdb").value.trim();
+  if(!q){ return; }
+  const box = document.getElementById("detail");
+  box.textContent = "正在查询：" + q;
+  ensureMasterFull().then(j=>{
+    const rows = j.rows || [];
+    const target = rows.find(x => (x["_id"]||"").toUpperCase() === q.toUpperCase()) ||
+                   rows.find(x => {
+                      const p = (x["Receptor_PDB"]||"").split("/").pop();
+                      const b = p ? p.split(".")[0] : "";
+                      return b.toUpperCase() === q.toUpperCase();
+                   });
+    if(!target){ box.textContent = "未找到该PDB"; return; }
+    const rid = (target["_id"] || "").trim() || (((target["Receptor_PDB"]||"").split("/").pop() || "").split(".")[0]);
+    const showItem = ((db && db.items) ? db.items.find(x => (x.id||"").toUpperCase() === rid.toUpperCase()) : null) || {
+      id: rid,
+      name: target["Protein_Name"] || "",
+      cluster: target["Cluster_ID"] || "",
+      species: target["Species"] || "",
+      receptor_rel: "",
+      receptor_pdb: target["Receptor_PDB"] || "",
+      best_sdf: target["Best_SDF"] || ""
+    };
+    document.getElementById("search").value = rid;
+    document.getElementById("cluster").value = "";
+    selectedId = rid;
+    loadList();
+    show(showItem);
+    renderDetailTable(target, j.header);
+  }).catch(()=>{ box.textContent = "查询失败"; });
+}
+window.addEventListener("load", async () => {
+  await loadDatasetRegistry();
+  loadData();
+});
+document.getElementById("cluster").addEventListener("change", loadList);
+document.getElementById("search").addEventListener("input", loadList);
+document.getElementById("dataset").addEventListener("change", loadData);
+document.getElementById("find_btn").addEventListener("click", find);
+document.getElementById("find_pdb").addEventListener("keydown", (e)=>{ if(e.key==='Enter') find(); });
+document.getElementById("zn_mode_btn").addEventListener("click", ()=>{
+  znMode = !znMode;
+  document.getElementById("zn_mode_btn").textContent = "ZN邻域模式：" + (znMode ? "开" : "关");
+  fiveAMode = znMode && residueLabelMode;
+  document.getElementById("fivea_mode_btn").textContent = "5Å相互作用+标签：" + (fiveAMode ? "开" : "关");
+  if (currentItem) show(currentItem);
+});
+document.getElementById("res_label_btn").addEventListener("click", ()=>{
+  residueLabelMode = !residueLabelMode;
+  document.getElementById("res_label_btn").textContent = "残基标签：" + (residueLabelMode ? "开" : "关");
+  fiveAMode = znMode && residueLabelMode;
+  document.getElementById("fivea_mode_btn").textContent = "5Å相互作用+标签：" + (fiveAMode ? "开" : "关");
+  if (currentItem) show(currentItem);
+  if (!residueLabelMode) document.getElementById("status").textContent = "已关闭残基标签";
+});
+document.getElementById("fivea_mode_btn").addEventListener("click", ()=>{
+  fiveAMode = !fiveAMode;
+  znMode = fiveAMode;
+  residueLabelMode = fiveAMode;
+  document.getElementById("fivea_mode_btn").textContent = "5Å相互作用+标签：" + (fiveAMode ? "开" : "关");
+  document.getElementById("zn_mode_btn").textContent = "ZN邻域模式：" + (znMode ? "开" : "关");
+  document.getElementById("res_label_btn").textContent = "残基标签：" + (residueLabelMode ? "开" : "关");
+  if (currentItem) show(currentItem);
+  if (!fiveAMode) document.getElementById("status").textContent = "已关闭5Å相互作用与标签";
+});
+document.getElementById("measure_mode_btn").addEventListener("click", ()=>{
+  measureMode = !measureMode;
+  document.getElementById("measure_mode_btn").textContent = "测量模式：" + (measureMode ? "开" : "关");
+  measurePoints = [];
+  document.getElementById("status").textContent = measureMode ? "测量模式已开启：点击2个原子测键长，连续点击3个原子测键角" : "测量模式已关闭";
+});
+document.getElementById("measure_clear_btn").addEventListener("click", ()=>{
+  clearMeasurement();
+  viewer.render();
+  document.getElementById("status").textContent = "测量结果已清空";
+});
+document.getElementById("seq_content").addEventListener("click", (e)=>{
+  const span = e.target && e.target.closest ? e.target.closest(".seq_aa") : null;
+  if (!span) return;
+  const key = String(span.dataset.key || "");
+  if (key) {
+    focusResidueBySequenceKey(key);
+    return;
+  }
+  const idx = Number(span.dataset.idx || "0");
+  if (!idx) return;
+  focusResidueBySequenceIndex(idx);
+});
+document.getElementById("pocket_mode_btn").addEventListener("click", ()=>{
+  pocketMode = !pocketMode;
+  document.getElementById("pocket_mode_btn").textContent = "口袋包锌可视化：" + (pocketMode ? "开" : "关");
+  if (currentItem) show(currentItem);
+});
+</script>
+</body>
+</html>

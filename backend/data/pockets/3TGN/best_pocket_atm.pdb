@@ -1,0 +1,37 @@
+HEADER
+HEADER This is a pdb format file writen by the programm fpocket.                 
+HEADER It represents the atoms contacted by the voronoi vertices of the pocket.  
+HEADER                                                                           
+HEADER Information about the pocket     9:
+HEADER 0  - Pocket Score                      : 0.0034
+HEADER 1  - Drug Score                        : 0.0006
+HEADER 2  - Number of alpha spheres           :    18
+HEADER 3  - Mean alpha-sphere radius          : 3.8992
+HEADER 4  - Mean alpha-sphere Solvent Acc.    : 0.4812
+HEADER 5  - Mean B-factor of pocket residues  : 0.1087
+HEADER 6  - Hydrophobicity Score              : 10.6250
+HEADER 7  - Polarity Score                    :     4
+HEADER 8  - Amino Acid based volume Score     : 3.0000
+HEADER 9  - Pocket volume (Monte Carlo)       : 199.1987
+HEADER 10 - Pocket volume (convex hull)       : 1.9471
+HEADER 11 - Charge Score                      :     0
+HEADER 12 - Local hydrophobic density Score   : 6.0000
+HEADER 13 - Number of apolar alpha sphere     :     7
+HEADER 14 - Proportion of apolar alpha sphere : 0.3889
+ATOM    234   SG CYS A  30      30.302  17.746  34.828  0.00  0.00           S 0
+ATOM    314   CD GLU A  41      30.826  20.364  32.081  0.00  0.00           C 0
+ATOM    285   CA ASN A  38      30.097  25.004  34.842  0.00  0.00           C 0
+ATOM    272    O LEU A  36      34.049  22.315  35.219  0.46  9.64           O 0
+ATOM    233   CB CYS A  30      29.156  17.803  36.241  0.00  0.00           C 0
+ATOM    284    N ASN A  38      31.413  25.116  35.446  0.43  4.37           N 0
+ATOM    316  OE2 GLU A  41      31.630  19.510  32.508  0.00  0.00           O 0
+ATOM    288   CB ASN A  38      28.994  25.193  35.878  0.00  0.00           C 0
+ATOM    171  NE2 GLN A  22      28.632  24.996  39.617  0.00  0.00           N 0
+ATOM    229    N CYS A  30      27.633  16.563  37.714  0.00  0.00           N 0
+ATOM    789  CE1 HIS A 111      25.101  18.536  36.355  0.00  0.00           C 0
+ATOM    218    O GLY A  28      24.519  17.543  39.629  0.32  7.50           O 0
+ATOM    315  OE1 GLU A  41      29.587  20.193  32.090  0.66  1.07           O 0
+HETATM 1067   ZN ZN  A 148      28.986  18.589  33.151  0.00  0.00          ZN 0
+ATOM    290  OD1 ASN A  38      27.197  23.782  35.181  0.61  4.29           O 0
+TER
+END

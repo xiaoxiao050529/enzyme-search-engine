@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Master Table</title>
+<style>
+body { font-family: system-ui, sans-serif; margin: 16px; }
+.top_nav { display: flex; gap: 8px; margin-bottom: 10px; }
+.top_nav a { display: inline-block; padding: 6px 10px; border: 1px solid #d9d9d9; background: #f6f8fa; color: #0b5394; text-decoration: none; border-radius: 6px; font-weight: 600; }
+.top_nav a:hover { background: #eaf2ff; }
+.column_legend { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 12px; align-items: center; }
+.legend_chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12px; border: 1px solid transparent; background: #f4f6f8; color: #2f3d4a; }
+.legend_note { font-size: 12px; color: #556; }
+.toolbar { display: grid; gap: 10px; margin-bottom: 10px; }
+.control_block { border: 1px solid #ddd; border-radius: 8px; background: #fafafa; padding: 10px; }
+.block_title { font-weight: 700; margin-bottom: 8px; }
+.block_hint { font-size: 12px; color: #556; line-height: 1.5; white-space: pre-wrap; }
+.control_row { display: grid; gap: 8px; align-items: end; }
+.data_row { grid-template-columns: minmax(220px, 1.5fr) auto auto; }
+.search_row { grid-template-columns: minmax(220px, 1fr) minmax(280px, 1.4fr) auto; }
+.sort_row { grid-template-columns: minmax(220px, 1.2fr) minmax(120px, 0.6fr) auto auto; }
+.display_row { grid-template-columns: minmax(260px, 1fr) auto; }
+.rowkeep_row { grid-template-columns: minmax(320px, 1fr) auto; }
+.edit_row { grid-template-columns: minmax(220px, 1.1fr) minmax(160px, 0.9fr) auto auto; }
+.fill_row { grid-template-columns: minmax(220px, 1fr) minmax(180px, 0.8fr) minmax(220px, 1fr) auto; }
+label { display: block; font-size: 13px; color: #333; }
+input, select, button, textarea { padding: 6px; box-sizing: border-box; width: 100%; margin-top: 4px; }
+button { width: auto; white-space: nowrap; }
+textarea { min-height: 96px; resize: vertical; }
+.btn_stack { display: grid; gap: 8px; align-self: stretch; }
+#status { margin-bottom: 8px; color: #333; }
+.table_wrap { border: 1px solid #ddd; overflow: auto; max-height: 76vh; }
+table { border-collapse: collapse; width: max-content; min-width: 100%; font-size: 13px; }
+th, td { border: 1px solid #e5e5e5; padding: 6px 8px; text-align: left; white-space: nowrap; }
+th { position: sticky; top: 0; background: #f7f9fc; cursor: pointer; z-index: 2; vertical-align: bottom; }
+tbody tr:nth-child(even) { background: #fcfcfc; }
+tbody tr:hover { background: #eef6ff; }
+.editable_cell { cursor: cell; }
+.editable_cell:hover { background: rgba(255, 208, 102, 0.18); }
+.edited_cell { background: rgba(255, 236, 184, 0.72); }
+.col_label { font-weight: 700; line-height: 1.2; }
+.col_badge { display: inline-block; margin-top: 4px; padding: 2px 8px; border-radius: 999px; font-size: 11px; line-height: 1.2; border: 1px solid transparent; }
+.group_core .col_badge, .legend_core { background: #edf2f7; border-color: #d5dee8; color: #334155; }
+.group_diffdock .col_badge, .legend_diffdock { background: #e8f1ff; border-color: #bfd5ff; color: #124e96; }
+.group_fpocket .col_badge, .legend_fpocket { background: #ebf8ef; border-color: #b7e2c2; color: #1d6f42; }
+.group_geometry .col_badge, .legend_geometry { background: #fff4e5; border-color: #f1cf9c; color: #9a5a00; }
+.group_workflow .col_badge, .legend_workflow { background: #fcefee; border-color: #efc4bf; color: #9f3d2e; }
+.group_text .col_badge, .legend_text { background: #f3f4f6; border-color: #d6dae0; color: #4b5563; }
+th.group_core { background: #f7f9fc; box-shadow: inset 0 3px 0 #b9c4d0; }
+th.group_diffdock { background: #f2f7ff; box-shadow: inset 0 3px 0 #4c89d9; }
+th.group_fpocket { background: #f1fbf4; box-shadow: inset 0 3px 0 #54a26d; }
+th.group_geometry { background: #fff8ef; box-shadow: inset 0 3px 0 #d29b43; }
+th.group_workflow { background: #fff5f3; box-shadow: inset 0 3px 0 #cc7764; }
+th.group_text { background: #f8f9fb; box-shadow: inset 0 3px 0 #98a2ad; }
+td.group_core { box-shadow: inset 3px 0 0 rgba(185, 196, 208, 0.45); }
+td.group_diffdock { box-shadow: inset 3px 0 0 rgba(76, 137, 217, 0.45); }
+td.group_fpocket { box-shadow: inset 3px 0 0 rgba(84, 162, 109, 0.45); }
+td.group_geometry { box-shadow: inset 3px 0 0 rgba(210, 155, 67, 0.45); }
+td.group_workflow { box-shadow: inset 3px 0 0 rgba(204, 119, 100, 0.45); }
+td.group_text { box-shadow: inset 3px 0 0 rgba(152, 162, 173, 0.45); }
+th.priority_column { background: #fff8dd; box-shadow: inset 0 4px 0 #d4a200; }
+td.priority_column { background: rgba(255, 244, 204, 0.65); box-shadow: inset 4px 0 0 #d4a200; font-weight: 700; }
+td.text_heavy { max-width: 360px; }
+.cell_text { display: block; }
+td.text_heavy .cell_text { max-width: 340px; overflow: hidden; text-overflow: ellipsis; }
+</style>
+<link rel="stylesheet" href="./theme.css">
+</head>
+<body class="page-master">
+<div class="top_nav">
+  <a href="./index.html">主页面</a>
+  <a href="./diffdock_compare.html">DiffDock对比</a>
+  <a href="./master_table.html">Master表</a>
+  <a href="./fpocket.html">fpocket</a>
+  <a href="./tmalign.html">TM-align</a>
+  <a href="./pdbzn_workflow.html">PDB-ZN工作流</a>
+</div>
+<h2>Master Table</h2>
+<div class="column_legend">
+  <span class="legend_chip legend_core">基础列</span>
+  <span class="legend_chip legend_diffdock">DiffDock</span>
+  <span class="legend_chip legend_fpocket">fpocket</span>
+  <span class="legend_chip legend_geometry">Zn/几何</span>
+  <span class="legend_chip legend_workflow">流程/TM-align</span>
+  <span class="legend_chip legend_text">文本信息</span>
+  <span class="legend_note">默认把名称、序列、路径等长文本列放到后面；悬停单元格可看完整内容。</span>
+</div>
+<div class="toolbar">
+  <div class="control_block">
+    <div class="block_title">数据表</div>
+    <div class="control_row data_row">
+      <label>选择表
+        <select id="table_select"></select>
+      </label>
+      <button id="export_btn" type="button">导出Excel</button>
+      <button id="clear_btn" type="button">清空全部</button>
+    </div>
+    <div id="table_meta" class="block_hint">-</div>
+  </div>
+  <div class="control_block">
+    <div class="block_title">查找</div>
+    <div class="control_row search_row">
+      <label>查找列
+        <select id="search_col"></select>
+      </label>
+      <label>查找值
+        <input id="search_value" type="text" placeholder="输入关键词；不选列时会搜索全部列">
+      </label>
+      <button id="search_clear_btn" type="button">清空查找</button>
+    </div>
+  </div>
+  <div class="control_block">
+    <div class="block_title">排序</div>
+    <div class="control_row sort_row">
+      <label>排序列
+        <select id="sort_col"></select>
+      </label>
+      <label>顺序
+        <select id="sort_order">
+          <option value="desc">降序</option>
+          <option value="asc">升序</option>
+        </select>
+      </label>
+      <button id="sort_apply_btn" type="button">应用排序</button>
+      <button id="sort_clear_btn" type="button">清空排序</button>
+    </div>
+  </div>
+  <div class="control_block">
+    <div class="block_title">显示控制</div>
+    <div class="control_row display_row">
+      <label>保留列
+        <select id="visible_cols" multiple size="10"></select>
+      </label>
+      <div class="btn_stack">
+        <button id="apply_cols_btn" type="button">只显示所选列</button>
+        <button id="show_all_cols_btn" type="button">恢复全部列</button>
+      </div>
+    </div>
+    <div class="control_row rowkeep_row">
+      <label>保留行（输入 PDB 或 Representative，逗号、空格或换行分隔）
+        <textarea id="row_keep_input" placeholder="例如&#10;3MWM&#10;7U5Q&#10;1TXL"></textarea>
+      </label>
+      <div class="btn_stack">
+        <button id="apply_rows_btn" type="button">只保留这些行</button>
+        <button id="clear_rows_btn" type="button">恢复全部行</button>
+      </div>
+    </div>
+  </div>
+  <div class="control_block">
+    <div class="block_title">编辑</div>
+    <div class="block_hint">支持新增自定义列、给当前表批量填写数字，或双击单元格直接修改。编辑结果保存在当前浏览器，可继续导出 Excel。</div>
+    <div class="control_row edit_row">
+      <label>新增列名
+        <input id="new_col_name" type="text" placeholder="例如 ManualScore">
+      </label>
+      <label>默认值
+        <input id="new_col_default" type="text" placeholder="可留空">
+      </label>
+      <button id="add_col_btn" type="button">新增列</button>
+      <button id="clear_draft_btn" type="button">清空本地编辑</button>
+    </div>
+    <div class="control_row fill_row">
+      <label>填写列
+        <select id="edit_col"></select>
+      </label>
+      <label>填写范围
+        <select id="edit_scope">
+          <option value="filtered">当前筛选结果</option>
+          <option value="kept">保留行</option>
+          <option value="all">整张表</option>
+        </select>
+      </label>
+      <label>填写值
+        <input id="edit_value" type="text" placeholder="例如 1.25">
+      </label>
+      <button id="apply_edit_btn" type="button">批量填写</button>
+    </div>
+  </div>
+</div>
+<div id="status">正在加载数据...</div>
+<div class="table_wrap">
+  <table id="tbl">
+    <thead id="thead"></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+<script>
+let fullHeader = [];
+let visibleHeader = [];
+let fullRows = [];
+let filteredRows = [];
+let sortState = {key: "", asc: true};
+let localApiBase = "";
+let localDataViaApi = false;
+let masterSourceLabel = "未知";
+let tableRegistry = [];
+let currentTable = null;
+let keptRowSet = null;
+let baseHeader = [];
+let draftState = {addedColumns: [], editedCells: {}};
+const DRAFT_PREFIX = "master_table_draft::";
+const FRONT_PRIORITY_COLUMNS = [
+  "Representative",
+  "_id",
+  "Best_Confidence",
+  "Step5_FinalScore",
+  "Similarity_Score",
+  "Best_Rank",
+  "Protein_Category",
+  "Cluster_ID",
+  "Length;Oligomer;Monomer",
+  "NearestDistanceTo3HisZn",
+  "ZN_Depth",
+  "ZN_Depth_Rounded",
+  "ZN_SASA",
+  "TriHisSatisfied",
+  "TriHisCountMax",
+  "BestPocket_Score",
+  "BestPocket_Druggability",
+  "BestPocket_Volume",
+  "BestPocket_ID",
+  "BestPocket_ZnMatch",
+  "BestPocket_MinDistToZn",
+  "BestPocket_HisCount",
+  "BestPocket_ZnCount",
+  "BestPocket_SelectRule",
+  "Zn_CoordResidueCount",
+  "Zn_CoordHisCount",
+  "Zn_CoordNonHisCount",
+  "Zn_CoordSite",
+  "Step5_Source",
+  "Step5_FPocket_Status",
+  "Step5_FPocket_BestScore",
+  "Step5_FPocket_BestVolume",
+  "Step5_TriHis_Recheck_Pass",
+  "Step5_Symmetry_Spatial_Filter_Pass",
+  "Step5_TriHis_Count"
+];
+const TEXT_HEAVY_COLUMNS = new Set([
+  "Protein_Name",
+  "Species",
+  "MonomerSeq",
+  "Details",
+  "Neighbor_List",
+  "AllZnDistancesSorted",
+  "Receptor_PDB",
+  "Best_SDF",
+  "Zn_CoordResidues",
+  "Zn_CoordNote",
+  "Step5_Cluster_Members",
+  "Step5_TriHis_Residues",
+  "Step5_ZN_Site",
+  "Step5_His_ZN_Bond_Lengths_A",
+  "Step5_His_ZN_Bond_Angles_Deg",
+  "Step5_Residues_Within_5A",
+  "Step5_Validation_Reasons"
+]);
+const DISPLAY_LABELS = {
+  "Representative": "PDB / Representative",
+  "Best_Confidence": "活性 / Best_Confidence",
+  "Step5_FinalScore": "综合分 / Step5_FinalScore",
+  "Similarity_Score": "相似度 / Similarity_Score",
+  "Protein_Name": "名称 / Protein_Name",
+  "Species": "物种 / Species",
+  "MonomerSeq": "序列 / MonomerSeq",
+  "BestPocket_Score": "口袋分 / BestPocket_Score",
+  "Receptor_PDB": "受体路径 / Receptor_PDB",
+  "Best_SDF": "对接结果 / Best_SDF"
+};
+
+function uniqueColumns(columns) {
+  return [...new Set(columns)];
+}
+
+function asText(v) {
+  if (v == null) return "";
+  return String(v);
+}
+
+function appendNoCache(url) {
+  return url + (url.includes("?") ? "&" : "?") + "t=" + Date.now();
+}
+
+function getApiBaseCandidates() {
+  const h = window.location.hostname || "127.0.0.1";
+  return [...new Set([
+    `http://${h}:8015`,
+    `http://${h}:8021`,
+    `http://${h}:8019`,
+    `http://${h}:8018`,
+    `http://${h}:8017`,
+    `http://${h}:8016`,
+    "http://127.0.0.1:8015",
+    "http://127.0.0.1:8021",
+    "http://127.0.0.1:8019",
+    "http://127.0.0.1:8018",
+    "http://127.0.0.1:8017",
+    "http://127.0.0.1:8016"
+  ])];
+}
+
+async function fetchJson(url) {
+  const res = await fetch(appendNoCache(url));
+  if (!res.ok) throw new Error(`${url} 不可用`);
+  return await res.json();
+}
+
+async function detectApiBase() {
+  if (localApiBase) return localApiBase;
+  for (const b of getApiBaseCandidates()) {
+    try {
+      const j = await fetchJson(b + "/api/diffdock/ping");
+      if (j && j.ok) {
+        localApiBase = b;
+        return b;
+      }
+    } catch (_) {}
+  }
+  return "";
+}
+
+function dataUrlCandidates(relPath) {
+  const out = [];
+  if (localApiBase) out.push(`${localApiBase}/api/data/file?path=${encodeURIComponent(relPath)}`);
+  out.push(`../backend/data/${relPath}`);
+  return [...new Set(out)];
+}
+
+async function fetchFirstJson(urls) {
+  let lastErr = null;
+  for (const u of urls) {
+    try {
+      return {json: await fetchJson(u), url: u};
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr || new Error("数据加载失败");
+}
+
+function cmp(a, b) {
+  const na = Number(a);
+  const nb = Number(b);
+  if (!Number.isNaN(na) && !Number.isNaN(nb)) return na - nb;
+  return asText(a).localeCompare(asText(b), "zh-Hans-CN", {numeric: true, sensitivity: "base"});
+}
+
+function orderColumns(columns) {
+  const unique = uniqueColumns(columns);
+  const front = FRONT_PRIORITY_COLUMNS.filter((col) => unique.includes(col));
+  const middle = unique.filter((col) => !front.includes(col) && !TEXT_HEAVY_COLUMNS.has(col));
+  const tail = unique.filter((col) => !front.includes(col) && TEXT_HEAVY_COLUMNS.has(col));
+  return [...front, ...middle, ...tail];
+}
+
+function getColumnLabel(col) {
+  return DISPLAY_LABELS[col] || col;
+}
+
+function isTextHeavyColumn(col) {
+  return TEXT_HEAVY_COLUMNS.has(col);
+}
+
+function isPriorityColumn(col) {
+  return col === "Best_Confidence" || col === "Step5_FinalScore";
+}
+
+function getColumnGroup(col) {
+  if (col.startsWith("BestPocket_") || col.startsWith("Step5_FPocket_")) return "fpocket";
+  if (col === "Best_Confidence" || col === "Best_Rank" || col === "Best_SDF") return "diffdock";
+  if (col === "Similarity_Score" || col === "Cluster_ID" || col.startsWith("Step5_Cluster_") || col === "Step5_TMAlign_Threshold" || col === "Step5_Source" || col === "Step5_FinalScore") return "workflow";
+  if (col.startsWith("Zn_Coord") || col.startsWith("ZN_") || col.startsWith("TriHis") || col === "NearestDistanceTo3HisZn" || col === "Neighbor_Count" || col === "Neighbor_Profile_Similarity" || col === "Neighbor_List" || col === "AllZnDistancesSorted" || col === "Details" || col === "Step5_TriHis_Recheck_Pass" || col === "Step5_Symmetry_Spatial_Filter_Pass" || col === "Step5_TriHis_Count" || col === "Step5_TriHis_Residues" || col === "Step5_ZN_Site" || col === "Step5_His_ZN_Bond_Lengths_A" || col === "Step5_His_ZN_Bond_Angles_Deg" || col === "Step5_Residues_Within_5A_Count" || col === "Step5_Residues_Within_5A" || col === "Step5_Validation_Reasons") return "geometry";
+  if (isTextHeavyColumn(col)) return "text";
+  return "core";
+}
+
+function getColumnGroupLabel(col) {
+  const group = getColumnGroup(col);
+  if (group === "diffdock") return "DiffDock";
+  if (group === "fpocket") return "fpocket";
+  if (group === "geometry") return "Zn/几何";
+  if (group === "workflow") return "流程/TM-align";
+  if (group === "text") return "文本";
+  return "基础";
+}
+
+function getRowJumpId(r) {
+  const idVal = asText(r["_id"]).trim();
+  const repVal = asText(r["Representative"]).trim();
+  const pdbFromPath = asText(r["Receptor_PDB"]).split("/").pop().split(".")[0];
+  return (idVal || repVal || pdbFromPath).toUpperCase();
+}
+
+function getRowKey(r, idx = 0) {
+  return asText(r && r.__rowKey ? r.__rowKey : (getRowJumpId(r) || `ROW_${idx + 1}`)).trim().toUpperCase();
+}
+
+function parseKeepTokens(text) {
+  return [...new Set(
+    asText(text)
+      .split(/[\s,;]+/)
+      .map((x) => x.trim().toUpperCase())
+      .filter(Boolean)
+  )];
+}
+
+function applyFilters() {
+  const q = document.getElementById("search_value").value.trim().toLowerCase();
+  const col = document.getElementById("search_col").value;
+  filteredRows = fullRows.filter((r) => {
+    if (keptRowSet && !keptRowSet.has(getRowJumpId(r))) return false;
+    if (!q) return true;
+    if (col) return asText(r[col]).toLowerCase().includes(q);
+    return visibleHeader.some((h) => asText(r[h]).toLowerCase().includes(q));
+  });
+  applySort();
+  renderTable();
+}
+
+function applySort() {
+  const key = sortState.key;
+  if (!key) return;
+  filteredRows.sort((ra, rb) => {
+    const c = cmp(ra[key], rb[key]);
+    return sortState.asc ? c : -c;
+  });
+}
+
+function renderHeader() {
+  const thead = document.getElementById("thead");
+  thead.innerHTML = "";
+  const tr = document.createElement("tr");
+  for (const h of visibleHeader) {
+    const th = document.createElement("th");
+    const group = getColumnGroup(h);
+    const mark = sortState.key === h ? (sortState.asc ? " ▲" : " ▼") : "";
+    th.classList.add(`group_${group}`);
+    if (isPriorityColumn(h)) th.classList.add("priority_column");
+    const title = document.createElement("div");
+    title.className = "col_label";
+    title.textContent = getColumnLabel(h) + mark;
+    const badge = document.createElement("span");
+    badge.className = "col_badge";
+    badge.textContent = getColumnGroupLabel(h);
+    th.appendChild(title);
+    th.appendChild(badge);
+    th.addEventListener("click", () => {
+      if (sortState.key === h) sortState.asc = !sortState.asc;
+      else {
+        sortState.key = h;
+        sortState.asc = true;
+      }
+      applySort();
+      renderHeader();
+      renderTable();
+    });
+    tr.appendChild(th);
+  }
+  thead.appendChild(tr);
+}
+
+function renderTable() {
+  const tbody = document.getElementById("tbody");
+  tbody.innerHTML = "";
+  for (const r of filteredRows) {
+    const tr = document.createElement("tr");
+    const jumpId = getRowJumpId(r);
+    for (const h of visibleHeader) {
+      const td = document.createElement("td");
+      const val = asText(r[h]);
+      const group = getColumnGroup(h);
+      const isLinkCell = (h === "_id" || h === "Representative" || h === "Receptor_PDB") && jumpId;
+      const rowKey = getRowKey(r);
+      td.classList.add(`group_${group}`);
+      if (isPriorityColumn(h)) td.classList.add("priority_column");
+      if (isTextHeavyColumn(h)) {
+        td.classList.add("text_heavy");
+        td.title = val;
+      }
+      if ((draftState.editedCells[rowKey] || {})[h] !== undefined) td.classList.add("edited_cell");
+      if ((h === "_id" || h === "Representative" || h === "Receptor_PDB") && jumpId) {
+        const a = document.createElement("a");
+        const ds = currentTable && currentTable.id ? `&dataset=${encodeURIComponent(currentTable.id)}` : "";
+        a.href = `./index.html?pdb=${encodeURIComponent(jumpId)}${ds}`;
+        a.textContent = val;
+        a.style.color = "#0b5394";
+        if (isTextHeavyColumn(h)) {
+          a.className = "cell_text";
+          a.title = val;
+        }
+        td.appendChild(a);
+      } else {
+        const span = document.createElement("span");
+        span.className = "cell_text";
+        span.textContent = val;
+        td.appendChild(span);
+      }
+      if (!isLinkCell) {
+        td.classList.add("editable_cell");
+        td.title = isTextHeavyColumn(h) ? val : "双击编辑";
+        td.addEventListener("dblclick", (ev) => {
+          ev.preventDefault();
+          ev.stopPropagation();
+          editCellValue(r, h);
+        });
+      }
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  }
+  const tableLabel = currentTable ? currentTable.label : "-";
+  const keepInfo = keptRowSet ? ` | 保留行 ${keptRowSet.size}` : "";
+  document.getElementById("status").textContent = `数据表 ${tableLabel} | 数据源 ${masterSourceLabel} | 总行数 ${fullRows.length} | 当前显示 ${filteredRows.length} | 可见列 ${visibleHeader.length}${keepInfo}`;
+}
+
+function renderTableMeta() {
+  const box = document.getElementById("table_meta");
+  if (!currentTable) {
+    box.textContent = "-";
+    return;
+  }
+  const parts = [];
+  parts.push(`ID: ${currentTable.id || "-"}`);
+  if (currentTable.row_count != null) parts.push(`记录数: ${currentTable.row_count}`);
+  if (currentTable.stage) parts.push(`阶段: ${currentTable.stage}`);
+  if (currentTable.updated_at_text) parts.push(`更新时间: ${currentTable.updated_at_text}`);
+  if (currentTable.description) parts.push(`说明: ${currentTable.description}`);
+  box.textContent = parts.join("\n");
+}
+
+function initColumnSelectors() {
+  const searchSel = document.getElementById("search_col");
+  const sortSel = document.getElementById("sort_col");
+  const prevSearch = searchSel.value;
+  const prevSort = sortSel.value;
+  searchSel.innerHTML = "";
+  sortSel.innerHTML = "";
+  const all = document.createElement("option");
+  all.value = "";
+  all.textContent = "全部列（全局搜索）";
+  searchSel.appendChild(all);
+  const sortEmpty = document.createElement("option");
+  sortEmpty.value = "";
+  sortEmpty.textContent = "不排序";
+  sortSel.appendChild(sortEmpty);
+  for (const h of visibleHeader) {
+    const opSearch = document.createElement("option");
+    opSearch.value = h;
+    opSearch.textContent = getColumnLabel(h);
+    searchSel.appendChild(opSearch);
+    const opSort = document.createElement("option");
+    opSort.value = h;
+    opSort.textContent = getColumnLabel(h);
+    sortSel.appendChild(opSort);
+  }
+  if (visibleHeader.includes(prevSearch)) searchSel.value = prevSearch;
+  if (visibleHeader.includes(prevSort)) sortSel.value = prevSort;
+  else if (sortState.key && !visibleHeader.includes(sortState.key)) sortState = {key: "", asc: true};
+}
+
+function renderVisibleColumnOptions() {
+  const sel = document.getElementById("visible_cols");
+  const selected = new Set(visibleHeader);
+  sel.innerHTML = "";
+  for (const h of fullHeader) {
+    const op = document.createElement("option");
+    op.value = h;
+    op.textContent = getColumnLabel(h);
+    op.selected = selected.has(h);
+    sel.appendChild(op);
+  }
+}
+
+function renderEditColumnOptions() {
+  const sel = document.getElementById("edit_col");
+  const prev = sel.value;
+  sel.innerHTML = "";
+  for (const h of fullHeader) {
+    const op = document.createElement("option");
+    op.value = h;
+    op.textContent = getColumnLabel(h);
+    sel.appendChild(op);
+  }
+  if (fullHeader.includes(prev)) sel.value = prev;
+}
+
+function renderTableOptions() {
+  const sel = document.getElementById("table_select");
+  const current = sel.value;
+  sel.innerHTML = "";
+  for (const t of tableRegistry) {
+    const op = document.createElement("option");
+    op.value = t.id;
+    op.textContent = t.label;
+    sel.appendChild(op);
+  }
+  if (tableRegistry.find((t) => t.id === current)) {
+    sel.value = current;
+  } else if (tableRegistry.length) {
+    sel.value = tableRegistry[0].id;
+  }
+}
+
+async function loadTableRegistry() {
+  await detectApiBase();
+  try {
+    const ret = await fetchFirstJson(dataUrlCandidates("table_registry.json"));
+    const tables = Array.isArray(ret.json?.tables) ? ret.json.tables : [];
+    tableRegistry = tables.length ? tables : [{
+      id: "table1",
+      label: "Table 1",
+      full: "master_full.json",
+      row_count: 0
+    }];
+  } catch (_) {
+    tableRegistry = [{
+      id: "table1",
+      label: "Table 1",
+      full: "master_full.json",
+      row_count: 0
+    }];
+  }
+  renderTableOptions();
+}
+
+function getSelectedTable() {
+  const id = document.getElementById("table_select").value;
+  return tableRegistry.find((t) => t.id === id) || tableRegistry[0] || null;
+}
+
+async function loadCurrentTable() {
+  currentTable = getSelectedTable();
+  if (!currentTable) throw new Error("没有可用数据表");
+  const ret = await fetchFirstJson(dataUrlCandidates(currentTable.full || "master_full.json"));
+  const j = ret.json;
+  localDataViaApi = Boolean(localApiBase) && String(ret.url || "").startsWith(`${localApiBase}/api/data/file`);
+  masterSourceLabel = localDataViaApi ? `${localApiBase}/api/data/file` : `静态 backend/data/${currentTable.full || "master_full.json"}`;
+  baseHeader = Array.isArray(j.header) ? j.header.slice() : [];
+  fullHeader = orderColumns(baseHeader.slice());
+  fullRows = Array.isArray(j.rows) ? j.rows.map((row, idx) => ({...row, __rowKey: getRowKey(row, idx)})) : [];
+  draftState = loadDraftState();
+  applyDraftState();
+  fullHeader = orderColumns(fullHeader);
+  visibleHeader = fullHeader.slice();
+  keptRowSet = null;
+  document.getElementById("row_keep_input").value = "";
+  filteredRows = fullRows.slice();
+  initColumnSelectors();
+  renderVisibleColumnOptions();
+  renderEditColumnOptions();
+  renderTableMeta();
+  applyFilters();
+  renderHeader();
+  renderTable();
+}
+
+function clearSearch() {
+  document.getElementById("search_col").value = "";
+  document.getElementById("search_value").value = "";
+  applyFilters();
+}
+
+function clearSort() {
+  document.getElementById("sort_col").value = "";
+  document.getElementById("sort_order").value = "desc";
+  sortState = {key: "", asc: true};
+  applyFilters();
+  renderHeader();
+}
+
+function clearAll() {
+  clearSearch();
+  clearSort();
+  keptRowSet = null;
+  document.getElementById("row_keep_input").value = "";
+  visibleHeader = fullHeader.slice();
+  initColumnSelectors();
+  renderVisibleColumnOptions();
+  renderEditColumnOptions();
+  applyFilters();
+  renderHeader();
+}
+
+function escapeHtml(s) {
+  return asText(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;");
+}
+
+function exportCurrentTable() {
+  if (!filteredRows.length) {
+    document.getElementById("status").textContent = "没有可导出的数据";
+    return;
+  }
+  const cols = visibleHeader;
+  let html = "<table><thead><tr>";
+  for (const c of cols) html += `<th>${escapeHtml(c)}</th>`;
+  html += "</tr></thead><tbody>";
+  for (const row of filteredRows) {
+    html += "<tr>";
+    for (const c of cols) html += `<td>${escapeHtml(row[c])}</td>`;
+    html += "</tr>";
+  }
+  html += "</tbody></table>";
+  const title = escapeHtml(currentTable?.label || "Master Table");
+  const doc = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body><h3>${title}</h3>${html}</body></html>`;
+  const blob = new Blob(["\ufeff", doc], {type: "application/vnd.ms-excel;charset=utf-8;"});
+  const a = document.createElement("a");
+  const ts = new Date().toISOString().slice(0, 10);
+  a.href = URL.createObjectURL(blob);
+  a.download = `${(currentTable?.id || "table").replace(/[^A-Za-z0-9._-]+/g, "_")}_${ts}.xls`;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    URL.revokeObjectURL(a.href);
+    a.remove();
+  }, 0);
+}
+
+function applyVisibleColumns() {
+  const selected = Array.from(document.getElementById("visible_cols").selectedOptions).map((op) => op.value);
+  if (!selected.length) {
+    document.getElementById("status").textContent = "至少保留一列";
+    return;
+  }
+  visibleHeader = fullHeader.filter((h) => selected.includes(h));
+  initColumnSelectors();
+  renderEditColumnOptions();
+  applyFilters();
+  renderHeader();
+}
+
+function showAllColumns() {
+  visibleHeader = fullHeader.slice();
+  initColumnSelectors();
+  renderVisibleColumnOptions();
+  renderEditColumnOptions();
+  applyFilters();
+  renderHeader();
+}
+
+function applyKeptRows() {
+  const tokens = parseKeepTokens(document.getElementById("row_keep_input").value);
+  keptRowSet = tokens.length ? new Set(tokens) : null;
+  applyFilters();
+}
+
+function clearKeptRows() {
+  keptRowSet = null;
+  document.getElementById("row_keep_input").value = "";
+  applyFilters();
+}
+
+function currentDraftStorageKey() {
+  return `${DRAFT_PREFIX}${currentTable && currentTable.id ? currentTable.id : "table1"}`;
+}
+
+function loadDraftState() {
+  try {
+    const raw = localStorage.getItem(currentDraftStorageKey());
+    if (!raw) return {addedColumns: [], editedCells: {}};
+    const j = JSON.parse(raw);
+    return {
+      addedColumns: Array.isArray(j.addedColumns) ? j.addedColumns.map((x) => asText(x).trim()).filter(Boolean) : [],
+      editedCells: j && typeof j.editedCells === "object" && j.editedCells ? j.editedCells : {}
+    };
+  } catch (_) {
+    return {addedColumns: [], editedCells: {}};
+  }
+}
+
+function saveDraftState() {
+  try {
+    localStorage.setItem(currentDraftStorageKey(), JSON.stringify(draftState));
+  } catch (_) {}
+}
+
+function applyDraftState() {
+  for (const c of draftState.addedColumns) {
+    if (!fullHeader.includes(c)) fullHeader.push(c);
+  }
+  for (const row of fullRows) {
+    for (const c of draftState.addedColumns) {
+      if (!(c in row)) row[c] = "";
+    }
+    const rowDraft = draftState.editedCells[getRowKey(row)] || {};
+    for (const [col, value] of Object.entries(rowDraft)) {
+      if (!fullHeader.includes(col)) fullHeader.push(col);
+      row[col] = value;
+    }
+  }
+}
+
+function ensureColumnExists(colName, defaultValue = "") {
+  const col = asText(colName).trim();
+  if (!col) throw new Error("列名不能为空");
+  if (!fullHeader.includes(col)) fullHeader.push(col);
+  fullHeader = orderColumns(fullHeader);
+  if (!baseHeader.includes(col) && !draftState.addedColumns.includes(col)) draftState.addedColumns.push(col);
+  for (const row of fullRows) {
+    if (!(col in row)) row[col] = defaultValue;
+  }
+}
+
+function setDraftCell(rowKey, col, value) {
+  const key = asText(rowKey).trim().toUpperCase();
+  if (!key) return;
+  if (!draftState.editedCells[key]) draftState.editedCells[key] = {};
+  draftState.editedCells[key][col] = value;
+}
+
+function editCellValue(row, col) {
+  const current = asText(row[col]);
+  const rowKey = getRowKey(row);
+  const next = window.prompt(`编辑 ${rowKey} / ${col}`, current);
+  if (next === null) return;
+  row[col] = next;
+  setDraftCell(rowKey, col, next);
+  saveDraftState();
+  applyFilters();
+  renderHeader();
+  renderTable();
+  document.getElementById("status").textContent = `已更新 ${rowKey} / ${col}`;
+}
+
+function addCustomColumn() {
+  try {
+    const col = document.getElementById("new_col_name").value.trim();
+    const defaultValue = document.getElementById("new_col_default").value;
+    ensureColumnExists(col, defaultValue);
+    saveDraftState();
+    document.getElementById("new_col_name").value = "";
+    initColumnSelectors();
+    renderVisibleColumnOptions();
+    renderEditColumnOptions();
+    applyFilters();
+    renderHeader();
+    renderTable();
+    document.getElementById("edit_col").value = col;
+    document.getElementById("status").textContent = `已新增列 ${col}`;
+  } catch (e) {
+    document.getElementById("status").textContent = e && e.message ? e.message : "新增列失败";
+  }
+}
+
+function getEditTargetRows(scope) {
+  if (scope === "all") return fullRows;
+  if (scope === "kept") return keptRowSet ? fullRows.filter((r) => keptRowSet.has(getRowKey(r))) : [];
+  return filteredRows;
+}
+
+function applyBatchEdit() {
+  const col = document.getElementById("edit_col").value;
+  const value = document.getElementById("edit_value").value;
+  const scope = document.getElementById("edit_scope").value;
+  if (!col) {
+    document.getElementById("status").textContent = "请选择要填写的列";
+    return;
+  }
+  ensureColumnExists(col, "");
+  const targets = getEditTargetRows(scope);
+  if (!targets.length) {
+    document.getElementById("status").textContent = "当前范围内没有可填写的行";
+    return;
+  }
+  for (const row of targets) {
+    row[col] = value;
+    setDraftCell(getRowKey(row), col, value);
+  }
+  saveDraftState();
+  applyFilters();
+  renderHeader();
+  renderTable();
+  document.getElementById("status").textContent = `已对 ${targets.length} 行填写 ${col}=${value}`;
+}
+
+async function clearDraftEdits() {
+  draftState = {addedColumns: [], editedCells: {}};
+  try { localStorage.removeItem(currentDraftStorageKey()); } catch (_) {}
+  await loadCurrentTable();
+  document.getElementById("status").textContent = "已清空本地编辑";
+}
+
+document.getElementById("table_select").addEventListener("change", async () => {
+  try {
+    await loadCurrentTable();
+  } catch (e) {
+    document.getElementById("status").textContent = "切换数据表失败：" + (e && e.message ? e.message : "unknown");
+  }
+});
+document.getElementById("search_col").addEventListener("change", applyFilters);
+document.getElementById("search_value").addEventListener("input", applyFilters);
+document.getElementById("sort_apply_btn").addEventListener("click", () => {
+  sortState.key = document.getElementById("sort_col").value;
+  sortState.asc = document.getElementById("sort_order").value === "asc";
+  applySort();
+  renderHeader();
+  renderTable();
+});
+document.getElementById("search_clear_btn").addEventListener("click", clearSearch);
+document.getElementById("sort_clear_btn").addEventListener("click", clearSort);
+document.getElementById("clear_btn").addEventListener("click", clearAll);
+document.getElementById("export_btn").addEventListener("click", exportCurrentTable);
+document.getElementById("apply_cols_btn").addEventListener("click", applyVisibleColumns);
+document.getElementById("show_all_cols_btn").addEventListener("click", showAllColumns);
+document.getElementById("apply_rows_btn").addEventListener("click", applyKeptRows);
+document.getElementById("clear_rows_btn").addEventListener("click", clearKeptRows);
+document.getElementById("add_col_btn").addEventListener("click", addCustomColumn);
+document.getElementById("apply_edit_btn").addEventListener("click", applyBatchEdit);
+document.getElementById("clear_draft_btn").addEventListener("click", async () => {
+  try {
+    await clearDraftEdits();
+  } catch (e) {
+    document.getElementById("status").textContent = "清空本地编辑失败：" + (e && e.message ? e.message : "unknown");
+  }
+});
+
+window.addEventListener("load", async () => {
+  try {
+    await loadTableRegistry();
+    await loadCurrentTable();
+  } catch (e) {
+    document.getElementById("status").textContent = "加载失败：" + (e && e.message ? e.message : "unknown") + "；建议启动后端 8015，并从仓库根目录启动 8020 静态服务后访问 /frontend/master_table.html";
+  }
+});
+</script>
+</body>
+</html>

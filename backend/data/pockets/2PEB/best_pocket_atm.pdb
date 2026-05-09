@@ -1,0 +1,41 @@
+HEADER
+HEADER This is a pdb format file writen by the programm fpocket.                 
+HEADER It represents the atoms contacted by the voronoi vertices of the pocket.  
+HEADER                                                                           
+HEADER Information about the pocket    11:
+HEADER 0  - Pocket Score                      : 0.2404
+HEADER 1  - Drug Score                        : 0.0211
+HEADER 2  - Number of alpha spheres           :    19
+HEADER 3  - Mean alpha-sphere radius          : 3.9923
+HEADER 4  - Mean alpha-sphere Solvent Acc.    : 0.7073
+HEADER 5  - Mean B-factor of pocket residues  : 0.0874
+HEADER 6  - Hydrophobicity Score              : -12.2000
+HEADER 7  - Polarity Score                    :     6
+HEADER 8  - Amino Acid based volume Score     : 2.8000
+HEADER 9  - Pocket volume (Monte Carlo)       : 277.3335
+HEADER 10 - Pocket volume (convex hull)       : 7.6684
+HEADER 11 - Charge Score                      :     0
+HEADER 12 - Local hydrophobic density Score   : 7.0000
+HEADER 13 - Number of apolar alpha sphere     :     8
+HEADER 14 - Proportion of apolar alpha sphere : 0.4211
+ATOM   1652   CBAGLU B  86      19.784  24.851  25.104  0.00  0.00           C 0
+ATOM   1706  OD2 ASP B  93      16.801  23.724  28.682  0.52  3.21           O 0
+ATOM   1654   CGAGLU B  86      21.191  24.955  25.642  0.00  0.00           C 0
+ATOM   1660  OE2AGLU B  86      22.003  27.149  25.596  0.00  0.00           O 0
+ATOM   1638  CE1 HIS B  84      22.327  24.777  30.057  0.00  0.00           C 0
+ATOM   1056  ND1 HIS B  12      24.440  27.354  28.371  0.00  0.00           N 0
+HETATM 1892   ZN ZN  B 200      24.309  26.898  30.740  0.00  0.00          ZN 0
+ATOM   1058  CE1 HIS B  12      24.063  28.298  27.533  0.00  0.00           C 0
+ATOM   1648   CAAGLU B  86      18.980  23.767  25.806  0.00  0.00           C 0
+ATOM   1669    N GLY B  88      14.571  25.021  26.117  0.67  2.19           N 0
+ATOM   1715  CE1 HIS B  94      20.552  26.072  32.915  0.00  0.00           C 0
+ATOM   1681    N ALA B  90      14.691  25.998  31.441  0.00  0.00           N 0
+ATOM   1673    N ASP B  89      13.560  24.971  28.721  0.00  0.00           N 0
+ATOM   1670   CA GLY B  88      13.567  25.986  26.503  0.00  0.00           C 0
+ATOM   1671    C GLY B  88      12.940  25.775  27.854  0.00  0.00           C 0
+ATOM   1685   CB ALA B  90      16.121  27.583  32.667  0.00  0.00           C 0
+ATOM   1682   CA ALA B  90      15.957  26.159  32.185  0.00  0.00           C 0
+ATOM   1672    O GLY B  88      11.949  26.358  28.126  0.00  0.00           O 0
+ATOM   1643    O PRO B  85      19.982  22.493  28.080  0.00  0.00           O 0
+TER
+END

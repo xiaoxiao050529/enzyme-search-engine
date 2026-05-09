@@ -1,0 +1,4691 @@
+{
+  "items": [
+    {
+      "id": "1AF0",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/1AF0/rank1_confidence-0.96.sdf",
+          "filename": "rank1_confidence-0.96.sdf",
+          "rank": 1,
+          "confidence": 0.96
+        },
+        {
+          "file": "../backend/data/diffdock/1AF0/rank2_confidence-1.37.sdf",
+          "filename": "rank2_confidence-1.37.sdf",
+          "rank": 2,
+          "confidence": 1.37
+        },
+        {
+          "file": "../backend/data/diffdock/1AF0/rank3_confidence-1.79.sdf",
+          "filename": "rank3_confidence-1.79.sdf",
+          "rank": 3,
+          "confidence": 1.79
+        },
+        {
+          "file": "../backend/data/diffdock/1AF0/rank4_confidence-2.75.sdf",
+          "filename": "rank4_confidence-2.75.sdf",
+          "rank": 4,
+          "confidence": 2.75
+        },
+        {
+          "file": "../backend/data/diffdock/1AF0/rank5_confidence-3.09.sdf",
+          "filename": "rank5_confidence-3.09.sdf",
+          "rank": 5,
+          "confidence": 3.09
+        },
+        {
+          "file": "../backend/data/diffdock/1AF0/rank6_confidence-4.57.sdf",
+          "filename": "rank6_confidence-4.57.sdf",
+          "rank": 6,
+          "confidence": 4.57
+        },
+        {
+          "file": "../backend/data/diffdock/1AF0/rank7_confidence-4.70.sdf",
+          "filename": "rank7_confidence-4.70.sdf",
+          "rank": 7,
+          "confidence": 4.7
+        },
+        {
+          "file": "../backend/data/diffdock/1AF0/rank8_confidence-6.40.sdf",
+          "filename": "rank8_confidence-6.40.sdf",
+          "rank": 8,
+          "confidence": 6.4
+        },
+        {
+          "file": "../backend/data/diffdock/1AF0/rank9_confidence-6.57.sdf",
+          "filename": "rank9_confidence-6.57.sdf",
+          "rank": 9,
+          "confidence": 6.57
+        },
+        {
+          "file": "../backend/data/diffdock/1AF0/rank10_confidence-7.29.sdf",
+          "filename": "rank10_confidence-7.29.sdf",
+          "rank": 10,
+          "confidence": 7.29
+        }
+      ]
+    },
+    {
+      "id": "1B57",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/1B57/rank1_confidence-1.29.sdf",
+          "filename": "rank1_confidence-1.29.sdf",
+          "rank": 1,
+          "confidence": 1.29
+        },
+        {
+          "file": "../backend/data/diffdock/1B57/rank2_confidence-1.37.sdf",
+          "filename": "rank2_confidence-1.37.sdf",
+          "rank": 2,
+          "confidence": 1.37
+        },
+        {
+          "file": "../backend/data/diffdock/1B57/rank3_confidence-1.73.sdf",
+          "filename": "rank3_confidence-1.73.sdf",
+          "rank": 3,
+          "confidence": 1.73
+        },
+        {
+          "file": "../backend/data/diffdock/1B57/rank4_confidence-2.59.sdf",
+          "filename": "rank4_confidence-2.59.sdf",
+          "rank": 4,
+          "confidence": 2.59
+        },
+        {
+          "file": "../backend/data/diffdock/1B57/rank5_confidence-2.94.sdf",
+          "filename": "rank5_confidence-2.94.sdf",
+          "rank": 5,
+          "confidence": 2.94
+        },
+        {
+          "file": "../backend/data/diffdock/1B57/rank6_confidence-5.56.sdf",
+          "filename": "rank6_confidence-5.56.sdf",
+          "rank": 6,
+          "confidence": 5.56
+        },
+        {
+          "file": "../backend/data/diffdock/1B57/rank7_confidence-6.07.sdf",
+          "filename": "rank7_confidence-6.07.sdf",
+          "rank": 7,
+          "confidence": 6.07
+        },
+        {
+          "file": "../backend/data/diffdock/1B57/rank8_confidence-6.66.sdf",
+          "filename": "rank8_confidence-6.66.sdf",
+          "rank": 8,
+          "confidence": 6.66
+        },
+        {
+          "file": "../backend/data/diffdock/1B57/rank9_confidence-7.10.sdf",
+          "filename": "rank9_confidence-7.10.sdf",
+          "rank": 9,
+          "confidence": 7.1
+        },
+        {
+          "file": "../backend/data/diffdock/1B57/rank10_confidence-7.95.sdf",
+          "filename": "rank10_confidence-7.95.sdf",
+          "rank": 10,
+          "confidence": 7.95
+        }
+      ]
+    },
+    {
+      "id": "1BZO",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/1BZO/rank1_confidence-1.63.sdf",
+          "filename": "rank1_confidence-1.63.sdf",
+          "rank": 1,
+          "confidence": 1.63
+        },
+        {
+          "file": "../backend/data/diffdock/1BZO/rank2_confidence-2.52.sdf",
+          "filename": "rank2_confidence-2.52.sdf",
+          "rank": 2,
+          "confidence": 2.52
+        },
+        {
+          "file": "../backend/data/diffdock/1BZO/rank3_confidence-2.81.sdf",
+          "filename": "rank3_confidence-2.81.sdf",
+          "rank": 3,
+          "confidence": 2.81
+        },
+        {
+          "file": "../backend/data/diffdock/1BZO/rank4_confidence-3.11.sdf",
+          "filename": "rank4_confidence-3.11.sdf",
+          "rank": 4,
+          "confidence": 3.11
+        },
+        {
+          "file": "../backend/data/diffdock/1BZO/rank5_confidence-3.17.sdf",
+          "filename": "rank5_confidence-3.17.sdf",
+          "rank": 5,
+          "confidence": 3.17
+        },
+        {
+          "file": "../backend/data/diffdock/1BZO/rank6_confidence-3.22.sdf",
+          "filename": "rank6_confidence-3.22.sdf",
+          "rank": 6,
+          "confidence": 3.22
+        },
+        {
+          "file": "../backend/data/diffdock/1BZO/rank7_confidence-3.53.sdf",
+          "filename": "rank7_confidence-3.53.sdf",
+          "rank": 7,
+          "confidence": 3.53
+        },
+        {
+          "file": "../backend/data/diffdock/1BZO/rank8_confidence-4.57.sdf",
+          "filename": "rank8_confidence-4.57.sdf",
+          "rank": 8,
+          "confidence": 4.57
+        },
+        {
+          "file": "../backend/data/diffdock/1BZO/rank9_confidence-4.79.sdf",
+          "filename": "rank9_confidence-4.79.sdf",
+          "rank": 9,
+          "confidence": 4.79
+        },
+        {
+          "file": "../backend/data/diffdock/1BZO/rank10_confidence-7.84.sdf",
+          "filename": "rank10_confidence-7.84.sdf",
+          "rank": 10,
+          "confidence": 7.84
+        }
+      ]
+    },
+    {
+      "id": "1DZU",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/1DZU/rank1_confidence-0.67.sdf",
+          "filename": "rank1_confidence-0.67.sdf",
+          "rank": 1,
+          "confidence": 0.67
+        },
+        {
+          "file": "../backend/data/diffdock/1DZU/rank2_confidence-0.95.sdf",
+          "filename": "rank2_confidence-0.95.sdf",
+          "rank": 2,
+          "confidence": 0.95
+        },
+        {
+          "file": "../backend/data/diffdock/1DZU/rank3_confidence-1.34.sdf",
+          "filename": "rank3_confidence-1.34.sdf",
+          "rank": 3,
+          "confidence": 1.34
+        },
+        {
+          "file": "../backend/data/diffdock/1DZU/rank4_confidence-1.34.sdf",
+          "filename": "rank4_confidence-1.34.sdf",
+          "rank": 4,
+          "confidence": 1.34
+        },
+        {
+          "file": "../backend/data/diffdock/1DZU/rank5_confidence-1.80.sdf",
+          "filename": "rank5_confidence-1.80.sdf",
+          "rank": 5,
+          "confidence": 1.8
+        },
+        {
+          "file": "../backend/data/diffdock/1DZU/rank6_confidence-3.53.sdf",
+          "filename": "rank6_confidence-3.53.sdf",
+          "rank": 6,
+          "confidence": 3.53
+        },
+        {
+          "file": "../backend/data/diffdock/1DZU/rank7_confidence-3.54.sdf",
+          "filename": "rank7_confidence-3.54.sdf",
+          "rank": 7,
+          "confidence": 3.54
+        },
+        {
+          "file": "../backend/data/diffdock/1DZU/rank8_confidence-4.60.sdf",
+          "filename": "rank8_confidence-4.60.sdf",
+          "rank": 8,
+          "confidence": 4.6
+        },
+        {
+          "file": "../backend/data/diffdock/1DZU/rank9_confidence-6.63.sdf",
+          "filename": "rank9_confidence-6.63.sdf",
+          "rank": 9,
+          "confidence": 6.63
+        },
+        {
+          "file": "../backend/data/diffdock/1DZU/rank10_confidence-8.39.sdf",
+          "filename": "rank10_confidence-8.39.sdf",
+          "rank": 10,
+          "confidence": 8.39
+        }
+      ]
+    },
+    {
+      "id": "1FR2",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/1FR2/rank1_confidence-1.21.sdf",
+          "filename": "rank1_confidence-1.21.sdf",
+          "rank": 1,
+          "confidence": 1.21
+        },
+        {
+          "file": "../backend/data/diffdock/1FR2/rank2_confidence-2.02.sdf",
+          "filename": "rank2_confidence-2.02.sdf",
+          "rank": 2,
+          "confidence": 2.02
+        },
+        {
+          "file": "../backend/data/diffdock/1FR2/rank3_confidence-2.27.sdf",
+          "filename": "rank3_confidence-2.27.sdf",
+          "rank": 3,
+          "confidence": 2.27
+        },
+        {
+          "file": "../backend/data/diffdock/1FR2/rank4_confidence-4.30.sdf",
+          "filename": "rank4_confidence-4.30.sdf",
+          "rank": 4,
+          "confidence": 4.3
+        },
+        {
+          "file": "../backend/data/diffdock/1FR2/rank5_confidence-4.40.sdf",
+          "filename": "rank5_confidence-4.40.sdf",
+          "rank": 5,
+          "confidence": 4.4
+        },
+        {
+          "file": "../backend/data/diffdock/1FR2/rank6_confidence-5.40.sdf",
+          "filename": "rank6_confidence-5.40.sdf",
+          "rank": 6,
+          "confidence": 5.4
+        },
+        {
+          "file": "../backend/data/diffdock/1FR2/rank7_confidence-6.71.sdf",
+          "filename": "rank7_confidence-6.71.sdf",
+          "rank": 7,
+          "confidence": 6.71
+        },
+        {
+          "file": "../backend/data/diffdock/1FR2/rank8_confidence-7.27.sdf",
+          "filename": "rank8_confidence-7.27.sdf",
+          "rank": 8,
+          "confidence": 7.27
+        },
+        {
+          "file": "../backend/data/diffdock/1FR2/rank9_confidence-7.86.sdf",
+          "filename": "rank9_confidence-7.86.sdf",
+          "rank": 9,
+          "confidence": 7.86
+        },
+        {
+          "file": "../backend/data/diffdock/1FR2/rank10_confidence-8.22.sdf",
+          "filename": "rank10_confidence-8.22.sdf",
+          "rank": 10,
+          "confidence": 8.22
+        }
+      ]
+    },
+    {
+      "id": "1FSJ",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/1FSJ/rank1_confidence-1.15.sdf",
+          "filename": "rank1_confidence-1.15.sdf",
+          "rank": 1,
+          "confidence": 1.15
+        },
+        {
+          "file": "../backend/data/diffdock/1FSJ/rank2_confidence-1.36.sdf",
+          "filename": "rank2_confidence-1.36.sdf",
+          "rank": 2,
+          "confidence": 1.36
+        },
+        {
+          "file": "../backend/data/diffdock/1FSJ/rank3_confidence-2.69.sdf",
+          "filename": "rank3_confidence-2.69.sdf",
+          "rank": 3,
+          "confidence": 2.69
+        },
+        {
+          "file": "../backend/data/diffdock/1FSJ/rank4_confidence-2.79.sdf",
+          "filename": "rank4_confidence-2.79.sdf",
+          "rank": 4,
+          "confidence": 2.79
+        },
+        {
+          "file": "../backend/data/diffdock/1FSJ/rank5_confidence-3.25.sdf",
+          "filename": "rank5_confidence-3.25.sdf",
+          "rank": 5,
+          "confidence": 3.25
+        },
+        {
+          "file": "../backend/data/diffdock/1FSJ/rank6_confidence-3.70.sdf",
+          "filename": "rank6_confidence-3.70.sdf",
+          "rank": 6,
+          "confidence": 3.7
+        },
+        {
+          "file": "../backend/data/diffdock/1FSJ/rank7_confidence-3.82.sdf",
+          "filename": "rank7_confidence-3.82.sdf",
+          "rank": 7,
+          "confidence": 3.82
+        },
+        {
+          "file": "../backend/data/diffdock/1FSJ/rank8_confidence-4.02.sdf",
+          "filename": "rank8_confidence-4.02.sdf",
+          "rank": 8,
+          "confidence": 4.02
+        },
+        {
+          "file": "../backend/data/diffdock/1FSJ/rank9_confidence-4.06.sdf",
+          "filename": "rank9_confidence-4.06.sdf",
+          "rank": 9,
+          "confidence": 4.06
+        },
+        {
+          "file": "../backend/data/diffdock/1FSJ/rank10_confidence-7.04.sdf",
+          "filename": "rank10_confidence-7.04.sdf",
+          "rank": 10,
+          "confidence": 7.04
+        }
+      ]
+    },
+    {
+      "id": "1HQR",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/1HQR/rank1_confidence-1.32.sdf",
+          "filename": "rank1_confidence-1.32.sdf",
+          "rank": 1,
+          "confidence": 1.32
+        },
+        {
+          "file": "../backend/data/diffdock/1HQR/rank2_confidence-1.77.sdf",
+          "filename": "rank2_confidence-1.77.sdf",
+          "rank": 2,
+          "confidence": 1.77
+        },
+        {
+          "file": "../backend/data/diffdock/1HQR/rank3_confidence-1.87.sdf",
+          "filename": "rank3_confidence-1.87.sdf",
+          "rank": 3,
+          "confidence": 1.87
+        },
+        {
+          "file": "../backend/data/diffdock/1HQR/rank4_confidence-2.17.sdf",
+          "filename": "rank4_confidence-2.17.sdf",
+          "rank": 4,
+          "confidence": 2.17
+        },
+        {
+          "file": "../backend/data/diffdock/1HQR/rank5_confidence-2.78.sdf",
+          "filename": "rank5_confidence-2.78.sdf",
+          "rank": 5,
+          "confidence": 2.78
+        },
+        {
+          "file": "../backend/data/diffdock/1HQR/rank6_confidence-3.34.sdf",
+          "filename": "rank6_confidence-3.34.sdf",
+          "rank": 6,
+          "confidence": 3.34
+        },
+        {
+          "file": "../backend/data/diffdock/1HQR/rank7_confidence-3.73.sdf",
+          "filename": "rank7_confidence-3.73.sdf",
+          "rank": 7,
+          "confidence": 3.73
+        },
+        {
+          "file": "../backend/data/diffdock/1HQR/rank8_confidence-3.81.sdf",
+          "filename": "rank8_confidence-3.81.sdf",
+          "rank": 8,
+          "confidence": 3.81
+        },
+        {
+          "file": "../backend/data/diffdock/1HQR/rank9_confidence-3.94.sdf",
+          "filename": "rank9_confidence-3.94.sdf",
+          "rank": 9,
+          "confidence": 3.94
+        },
+        {
+          "file": "../backend/data/diffdock/1HQR/rank10_confidence-5.09.sdf",
+          "filename": "rank10_confidence-5.09.sdf",
+          "rank": 10,
+          "confidence": 5.09
+        }
+      ]
+    },
+    {
+      "id": "1KOP",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/1KOP/rank1_confidence-0.16.sdf",
+          "filename": "rank1_confidence-0.16.sdf",
+          "rank": 1,
+          "confidence": 0.16
+        },
+        {
+          "file": "../backend/data/diffdock/1KOP/rank2_confidence-0.90.sdf",
+          "filename": "rank2_confidence-0.90.sdf",
+          "rank": 2,
+          "confidence": 0.9
+        },
+        {
+          "file": "../backend/data/diffdock/1KOP/rank3_confidence-1.81.sdf",
+          "filename": "rank3_confidence-1.81.sdf",
+          "rank": 3,
+          "confidence": 1.81
+        },
+        {
+          "file": "../backend/data/diffdock/1KOP/rank4_confidence-2.28.sdf",
+          "filename": "rank4_confidence-2.28.sdf",
+          "rank": 4,
+          "confidence": 2.28
+        },
+        {
+          "file": "../backend/data/diffdock/1KOP/rank5_confidence-2.33.sdf",
+          "filename": "rank5_confidence-2.33.sdf",
+          "rank": 5,
+          "confidence": 2.33
+        },
+        {
+          "file": "../backend/data/diffdock/1KOP/rank6_confidence-2.76.sdf",
+          "filename": "rank6_confidence-2.76.sdf",
+          "rank": 6,
+          "confidence": 2.76
+        },
+        {
+          "file": "../backend/data/diffdock/1KOP/rank7_confidence-3.57.sdf",
+          "filename": "rank7_confidence-3.57.sdf",
+          "rank": 7,
+          "confidence": 3.57
+        },
+        {
+          "file": "../backend/data/diffdock/1KOP/rank8_confidence-4.60.sdf",
+          "filename": "rank8_confidence-4.60.sdf",
+          "rank": 8,
+          "confidence": 4.6
+        },
+        {
+          "file": "../backend/data/diffdock/1KOP/rank9_confidence-6.64.sdf",
+          "filename": "rank9_confidence-6.64.sdf",
+          "rank": 9,
+          "confidence": 6.64
+        },
+        {
+          "file": "../backend/data/diffdock/1KOP/rank10_confidence-7.94.sdf",
+          "filename": "rank10_confidence-7.94.sdf",
+          "rank": 10,
+          "confidence": 7.94
+        }
+      ]
+    },
+    {
+      "id": "1M65",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/1M65/rank1_confidence-1.01.sdf",
+          "filename": "rank1_confidence-1.01.sdf",
+          "rank": 1,
+          "confidence": 1.01
+        },
+        {
+          "file": "../backend/data/diffdock/1M65/rank2_confidence-1.37.sdf",
+          "filename": "rank2_confidence-1.37.sdf",
+          "rank": 2,
+          "confidence": 1.37
+        },
+        {
+          "file": "../backend/data/diffdock/1M65/rank3_confidence-1.79.sdf",
+          "filename": "rank3_confidence-1.79.sdf",
+          "rank": 3,
+          "confidence": 1.79
+        },
+        {
+          "file": "../backend/data/diffdock/1M65/rank4_confidence-2.21.sdf",
+          "filename": "rank4_confidence-2.21.sdf",
+          "rank": 4,
+          "confidence": 2.21
+        },
+        {
+          "file": "../backend/data/diffdock/1M65/rank5_confidence-3.88.sdf",
+          "filename": "rank5_confidence-3.88.sdf",
+          "rank": 5,
+          "confidence": 3.88
+        },
+        {
+          "file": "../backend/data/diffdock/1M65/rank6_confidence-4.26.sdf",
+          "filename": "rank6_confidence-4.26.sdf",
+          "rank": 6,
+          "confidence": 4.26
+        },
+        {
+          "file": "../backend/data/diffdock/1M65/rank7_confidence-4.74.sdf",
+          "filename": "rank7_confidence-4.74.sdf",
+          "rank": 7,
+          "confidence": 4.74
+        },
+        {
+          "file": "../backend/data/diffdock/1M65/rank8_confidence-4.74.sdf",
+          "filename": "rank8_confidence-4.74.sdf",
+          "rank": 8,
+          "confidence": 4.74
+        },
+        {
+          "file": "../backend/data/diffdock/1M65/rank9_confidence-5.02.sdf",
+          "filename": "rank9_confidence-5.02.sdf",
+          "rank": 9,
+          "confidence": 5.02
+        },
+        {
+          "file": "../backend/data/diffdock/1M65/rank10_confidence-6.40.sdf",
+          "filename": "rank10_confidence-6.40.sdf",
+          "rank": 10,
+          "confidence": 6.4
+        }
+      ]
+    },
+    {
+      "id": "1PQ4",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/1PQ4/rank1_confidence-0.68.sdf",
+          "filename": "rank1_confidence-0.68.sdf",
+          "rank": 1,
+          "confidence": 0.68
+        },
+        {
+          "file": "../backend/data/diffdock/1PQ4/rank2_confidence-0.82.sdf",
+          "filename": "rank2_confidence-0.82.sdf",
+          "rank": 2,
+          "confidence": 0.82
+        },
+        {
+          "file": "../backend/data/diffdock/1PQ4/rank3_confidence-1.08.sdf",
+          "filename": "rank3_confidence-1.08.sdf",
+          "rank": 3,
+          "confidence": 1.08
+        },
+        {
+          "file": "../backend/data/diffdock/1PQ4/rank4_confidence-1.33.sdf",
+          "filename": "rank4_confidence-1.33.sdf",
+          "rank": 4,
+          "confidence": 1.33
+        },
+        {
+          "file": "../backend/data/diffdock/1PQ4/rank5_confidence-1.56.sdf",
+          "filename": "rank5_confidence-1.56.sdf",
+          "rank": 5,
+          "confidence": 1.56
+        },
+        {
+          "file": "../backend/data/diffdock/1PQ4/rank6_confidence-1.87.sdf",
+          "filename": "rank6_confidence-1.87.sdf",
+          "rank": 6,
+          "confidence": 1.87
+        },
+        {
+          "file": "../backend/data/diffdock/1PQ4/rank7_confidence-2.56.sdf",
+          "filename": "rank7_confidence-2.56.sdf",
+          "rank": 7,
+          "confidence": 2.56
+        },
+        {
+          "file": "../backend/data/diffdock/1PQ4/rank8_confidence-4.26.sdf",
+          "filename": "rank8_confidence-4.26.sdf",
+          "rank": 8,
+          "confidence": 4.26
+        },
+        {
+          "file": "../backend/data/diffdock/1PQ4/rank9_confidence-5.94.sdf",
+          "filename": "rank9_confidence-5.94.sdf",
+          "rank": 9,
+          "confidence": 5.94
+        },
+        {
+          "file": "../backend/data/diffdock/1PQ4/rank10_confidence-7.58.sdf",
+          "filename": "rank10_confidence-7.58.sdf",
+          "rank": 10,
+          "confidence": 7.58
+        }
+      ]
+    },
+    {
+      "id": "1PS6",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/1PS6/rank1_confidence-1.28.sdf",
+          "filename": "rank1_confidence-1.28.sdf",
+          "rank": 1,
+          "confidence": 1.28
+        },
+        {
+          "file": "../backend/data/diffdock/1PS6/rank2_confidence-2.22.sdf",
+          "filename": "rank2_confidence-2.22.sdf",
+          "rank": 2,
+          "confidence": 2.22
+        },
+        {
+          "file": "../backend/data/diffdock/1PS6/rank3_confidence-2.35.sdf",
+          "filename": "rank3_confidence-2.35.sdf",
+          "rank": 3,
+          "confidence": 2.35
+        },
+        {
+          "file": "../backend/data/diffdock/1PS6/rank4_confidence-2.68.sdf",
+          "filename": "rank4_confidence-2.68.sdf",
+          "rank": 4,
+          "confidence": 2.68
+        },
+        {
+          "file": "../backend/data/diffdock/1PS6/rank5_confidence-2.90.sdf",
+          "filename": "rank5_confidence-2.90.sdf",
+          "rank": 5,
+          "confidence": 2.9
+        },
+        {
+          "file": "../backend/data/diffdock/1PS6/rank6_confidence-3.14.sdf",
+          "filename": "rank6_confidence-3.14.sdf",
+          "rank": 6,
+          "confidence": 3.14
+        },
+        {
+          "file": "../backend/data/diffdock/1PS6/rank7_confidence-3.41.sdf",
+          "filename": "rank7_confidence-3.41.sdf",
+          "rank": 7,
+          "confidence": 3.41
+        },
+        {
+          "file": "../backend/data/diffdock/1PS6/rank8_confidence-3.42.sdf",
+          "filename": "rank8_confidence-3.42.sdf",
+          "rank": 8,
+          "confidence": 3.42
+        },
+        {
+          "file": "../backend/data/diffdock/1PS6/rank9_confidence-4.16.sdf",
+          "filename": "rank9_confidence-4.16.sdf",
+          "rank": 9,
+          "confidence": 4.16
+        },
+        {
+          "file": "../backend/data/diffdock/1PS6/rank10_confidence-6.44.sdf",
+          "filename": "rank10_confidence-6.44.sdf",
+          "rank": 10,
+          "confidence": 6.44
+        }
+      ]
+    },
+    {
+      "id": "1QRG",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/1QRG/rank1_confidence-1.09.sdf",
+          "filename": "rank1_confidence-1.09.sdf",
+          "rank": 1,
+          "confidence": 1.09
+        },
+        {
+          "file": "../backend/data/diffdock/1QRG/rank2_confidence-1.43.sdf",
+          "filename": "rank2_confidence-1.43.sdf",
+          "rank": 2,
+          "confidence": 1.43
+        },
+        {
+          "file": "../backend/data/diffdock/1QRG/rank3_confidence-1.50.sdf",
+          "filename": "rank3_confidence-1.50.sdf",
+          "rank": 3,
+          "confidence": 1.5
+        },
+        {
+          "file": "../backend/data/diffdock/1QRG/rank4_confidence-1.62.sdf",
+          "filename": "rank4_confidence-1.62.sdf",
+          "rank": 4,
+          "confidence": 1.62
+        },
+        {
+          "file": "../backend/data/diffdock/1QRG/rank5_confidence-1.95.sdf",
+          "filename": "rank5_confidence-1.95.sdf",
+          "rank": 5,
+          "confidence": 1.95
+        },
+        {
+          "file": "../backend/data/diffdock/1QRG/rank6_confidence-2.47.sdf",
+          "filename": "rank6_confidence-2.47.sdf",
+          "rank": 6,
+          "confidence": 2.47
+        },
+        {
+          "file": "../backend/data/diffdock/1QRG/rank7_confidence-3.36.sdf",
+          "filename": "rank7_confidence-3.36.sdf",
+          "rank": 7,
+          "confidence": 3.36
+        },
+        {
+          "file": "../backend/data/diffdock/1QRG/rank8_confidence-3.60.sdf",
+          "filename": "rank8_confidence-3.60.sdf",
+          "rank": 8,
+          "confidence": 3.6
+        },
+        {
+          "file": "../backend/data/diffdock/1QRG/rank9_confidence-4.42.sdf",
+          "filename": "rank9_confidence-4.42.sdf",
+          "rank": 9,
+          "confidence": 4.42
+        },
+        {
+          "file": "../backend/data/diffdock/1QRG/rank10_confidence-5.67.sdf",
+          "filename": "rank10_confidence-5.67.sdf",
+          "rank": 10,
+          "confidence": 5.67
+        }
+      ]
+    },
+    {
+      "id": "1QX0",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/1QX0/rank1_confidence-1.08.sdf",
+          "filename": "rank1_confidence-1.08.sdf",
+          "rank": 1,
+          "confidence": 1.08
+        },
+        {
+          "file": "../backend/data/diffdock/1QX0/rank2_confidence-1.59.sdf",
+          "filename": "rank2_confidence-1.59.sdf",
+          "rank": 2,
+          "confidence": 1.59
+        },
+        {
+          "file": "../backend/data/diffdock/1QX0/rank3_confidence-2.06.sdf",
+          "filename": "rank3_confidence-2.06.sdf",
+          "rank": 3,
+          "confidence": 2.06
+        },
+        {
+          "file": "../backend/data/diffdock/1QX0/rank4_confidence-2.77.sdf",
+          "filename": "rank4_confidence-2.77.sdf",
+          "rank": 4,
+          "confidence": 2.77
+        },
+        {
+          "file": "../backend/data/diffdock/1QX0/rank5_confidence-2.85.sdf",
+          "filename": "rank5_confidence-2.85.sdf",
+          "rank": 5,
+          "confidence": 2.85
+        },
+        {
+          "file": "../backend/data/diffdock/1QX0/rank6_confidence-3.77.sdf",
+          "filename": "rank6_confidence-3.77.sdf",
+          "rank": 6,
+          "confidence": 3.77
+        },
+        {
+          "file": "../backend/data/diffdock/1QX0/rank7_confidence-4.50.sdf",
+          "filename": "rank7_confidence-4.50.sdf",
+          "rank": 7,
+          "confidence": 4.5
+        },
+        {
+          "file": "../backend/data/diffdock/1QX0/rank8_confidence-6.19.sdf",
+          "filename": "rank8_confidence-6.19.sdf",
+          "rank": 8,
+          "confidence": 6.19
+        },
+        {
+          "file": "../backend/data/diffdock/1QX0/rank9_confidence-6.70.sdf",
+          "filename": "rank9_confidence-6.70.sdf",
+          "rank": 9,
+          "confidence": 6.7
+        },
+        {
+          "file": "../backend/data/diffdock/1QX0/rank10_confidence-8.11.sdf",
+          "filename": "rank10_confidence-8.11.sdf",
+          "rank": 10,
+          "confidence": 8.11
+        }
+      ]
+    },
+    {
+      "id": "1SLX",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/1SLX/rank1_confidence-0.90.sdf",
+          "filename": "rank1_confidence-0.90.sdf",
+          "rank": 1,
+          "confidence": 0.9
+        },
+        {
+          "file": "../backend/data/diffdock/1SLX/rank2_confidence-2.35.sdf",
+          "filename": "rank2_confidence-2.35.sdf",
+          "rank": 2,
+          "confidence": 2.35
+        },
+        {
+          "file": "../backend/data/diffdock/1SLX/rank3_confidence-2.35.sdf",
+          "filename": "rank3_confidence-2.35.sdf",
+          "rank": 3,
+          "confidence": 2.35
+        },
+        {
+          "file": "../backend/data/diffdock/1SLX/rank4_confidence-2.43.sdf",
+          "filename": "rank4_confidence-2.43.sdf",
+          "rank": 4,
+          "confidence": 2.43
+        },
+        {
+          "file": "../backend/data/diffdock/1SLX/rank5_confidence-2.72.sdf",
+          "filename": "rank5_confidence-2.72.sdf",
+          "rank": 5,
+          "confidence": 2.72
+        },
+        {
+          "file": "../backend/data/diffdock/1SLX/rank6_confidence-3.40.sdf",
+          "filename": "rank6_confidence-3.40.sdf",
+          "rank": 6,
+          "confidence": 3.4
+        },
+        {
+          "file": "../backend/data/diffdock/1SLX/rank7_confidence-3.51.sdf",
+          "filename": "rank7_confidence-3.51.sdf",
+          "rank": 7,
+          "confidence": 3.51
+        },
+        {
+          "file": "../backend/data/diffdock/1SLX/rank8_confidence-4.05.sdf",
+          "filename": "rank8_confidence-4.05.sdf",
+          "rank": 8,
+          "confidence": 4.05
+        },
+        {
+          "file": "../backend/data/diffdock/1SLX/rank9_confidence-4.50.sdf",
+          "filename": "rank9_confidence-4.50.sdf",
+          "rank": 9,
+          "confidence": 4.5
+        },
+        {
+          "file": "../backend/data/diffdock/1SLX/rank10_confidence-5.00.sdf",
+          "filename": "rank10_confidence-5.00.sdf",
+          "rank": 10,
+          "confidence": 5.0
+        }
+      ]
+    },
+    {
+      "id": "1TXL",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/1TXL/rank1_confidence-0.22.sdf",
+          "filename": "rank1_confidence-0.22.sdf",
+          "rank": 1,
+          "confidence": 0.22
+        },
+        {
+          "file": "../backend/data/diffdock/1TXL/rank2_confidence-1.16.sdf",
+          "filename": "rank2_confidence-1.16.sdf",
+          "rank": 2,
+          "confidence": 1.16
+        },
+        {
+          "file": "../backend/data/diffdock/1TXL/rank3_confidence-1.36.sdf",
+          "filename": "rank3_confidence-1.36.sdf",
+          "rank": 3,
+          "confidence": 1.36
+        },
+        {
+          "file": "../backend/data/diffdock/1TXL/rank4_confidence-2.86.sdf",
+          "filename": "rank4_confidence-2.86.sdf",
+          "rank": 4,
+          "confidence": 2.86
+        },
+        {
+          "file": "../backend/data/diffdock/1TXL/rank5_confidence-2.93.sdf",
+          "filename": "rank5_confidence-2.93.sdf",
+          "rank": 5,
+          "confidence": 2.93
+        },
+        {
+          "file": "../backend/data/diffdock/1TXL/rank6_confidence-5.01.sdf",
+          "filename": "rank6_confidence-5.01.sdf",
+          "rank": 6,
+          "confidence": 5.01
+        },
+        {
+          "file": "../backend/data/diffdock/1TXL/rank7_confidence-5.92.sdf",
+          "filename": "rank7_confidence-5.92.sdf",
+          "rank": 7,
+          "confidence": 5.92
+        },
+        {
+          "file": "../backend/data/diffdock/1TXL/rank8_confidence-6.21.sdf",
+          "filename": "rank8_confidence-6.21.sdf",
+          "rank": 8,
+          "confidence": 6.21
+        },
+        {
+          "file": "../backend/data/diffdock/1TXL/rank9_confidence-6.38.sdf",
+          "filename": "rank9_confidence-6.38.sdf",
+          "rank": 9,
+          "confidence": 6.38
+        },
+        {
+          "file": "../backend/data/diffdock/1TXL/rank10_confidence-7.69.sdf",
+          "filename": "rank10_confidence-7.69.sdf",
+          "rank": 10,
+          "confidence": 7.69
+        }
+      ]
+    },
+    {
+      "id": "1XRU",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/1XRU/rank1_confidence-0.92.sdf",
+          "filename": "rank1_confidence-0.92.sdf",
+          "rank": 1,
+          "confidence": 0.92
+        },
+        {
+          "file": "../backend/data/diffdock/1XRU/rank2_confidence-2.06.sdf",
+          "filename": "rank2_confidence-2.06.sdf",
+          "rank": 2,
+          "confidence": 2.06
+        },
+        {
+          "file": "../backend/data/diffdock/1XRU/rank3_confidence-2.97.sdf",
+          "filename": "rank3_confidence-2.97.sdf",
+          "rank": 3,
+          "confidence": 2.97
+        },
+        {
+          "file": "../backend/data/diffdock/1XRU/rank4_confidence-5.18.sdf",
+          "filename": "rank4_confidence-5.18.sdf",
+          "rank": 4,
+          "confidence": 5.18
+        },
+        {
+          "file": "../backend/data/diffdock/1XRU/rank5_confidence-5.23.sdf",
+          "filename": "rank5_confidence-5.23.sdf",
+          "rank": 5,
+          "confidence": 5.23
+        },
+        {
+          "file": "../backend/data/diffdock/1XRU/rank6_confidence-5.55.sdf",
+          "filename": "rank6_confidence-5.55.sdf",
+          "rank": 6,
+          "confidence": 5.55
+        },
+        {
+          "file": "../backend/data/diffdock/1XRU/rank7_confidence-6.45.sdf",
+          "filename": "rank7_confidence-6.45.sdf",
+          "rank": 7,
+          "confidence": 6.45
+        },
+        {
+          "file": "../backend/data/diffdock/1XRU/rank8_confidence-7.05.sdf",
+          "filename": "rank8_confidence-7.05.sdf",
+          "rank": 8,
+          "confidence": 7.05
+        },
+        {
+          "file": "../backend/data/diffdock/1XRU/rank9_confidence-7.30.sdf",
+          "filename": "rank9_confidence-7.30.sdf",
+          "rank": 9,
+          "confidence": 7.3
+        },
+        {
+          "file": "../backend/data/diffdock/1XRU/rank10_confidence-7.73.sdf",
+          "filename": "rank10_confidence-7.73.sdf",
+          "rank": 10,
+          "confidence": 7.73
+        }
+      ]
+    },
+    {
+      "id": "2BB0",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/2BB0/rank1_confidence-1.35.sdf",
+          "filename": "rank1_confidence-1.35.sdf",
+          "rank": 1,
+          "confidence": 1.35
+        },
+        {
+          "file": "../backend/data/diffdock/2BB0/rank2_confidence-1.82.sdf",
+          "filename": "rank2_confidence-1.82.sdf",
+          "rank": 2,
+          "confidence": 1.82
+        },
+        {
+          "file": "../backend/data/diffdock/2BB0/rank3_confidence-3.31.sdf",
+          "filename": "rank3_confidence-3.31.sdf",
+          "rank": 3,
+          "confidence": 3.31
+        },
+        {
+          "file": "../backend/data/diffdock/2BB0/rank4_confidence-3.42.sdf",
+          "filename": "rank4_confidence-3.42.sdf",
+          "rank": 4,
+          "confidence": 3.42
+        },
+        {
+          "file": "../backend/data/diffdock/2BB0/rank5_confidence-3.55.sdf",
+          "filename": "rank5_confidence-3.55.sdf",
+          "rank": 5,
+          "confidence": 3.55
+        },
+        {
+          "file": "../backend/data/diffdock/2BB0/rank6_confidence-3.75.sdf",
+          "filename": "rank6_confidence-3.75.sdf",
+          "rank": 6,
+          "confidence": 3.75
+        },
+        {
+          "file": "../backend/data/diffdock/2BB0/rank7_confidence-3.94.sdf",
+          "filename": "rank7_confidence-3.94.sdf",
+          "rank": 7,
+          "confidence": 3.94
+        },
+        {
+          "file": "../backend/data/diffdock/2BB0/rank8_confidence-4.09.sdf",
+          "filename": "rank8_confidence-4.09.sdf",
+          "rank": 8,
+          "confidence": 4.09
+        },
+        {
+          "file": "../backend/data/diffdock/2BB0/rank9_confidence-5.77.sdf",
+          "filename": "rank9_confidence-5.77.sdf",
+          "rank": 9,
+          "confidence": 5.77
+        },
+        {
+          "file": "../backend/data/diffdock/2BB0/rank10_confidence-6.56.sdf",
+          "filename": "rank10_confidence-6.56.sdf",
+          "rank": 10,
+          "confidence": 6.56
+        }
+      ]
+    },
+    {
+      "id": "2DI3",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/2DI3/rank1_confidence-0.39.sdf",
+          "filename": "rank1_confidence-0.39.sdf",
+          "rank": 1,
+          "confidence": 0.39
+        },
+        {
+          "file": "../backend/data/diffdock/2DI3/rank2_confidence-0.67.sdf",
+          "filename": "rank2_confidence-0.67.sdf",
+          "rank": 2,
+          "confidence": 0.67
+        },
+        {
+          "file": "../backend/data/diffdock/2DI3/rank3_confidence-0.74.sdf",
+          "filename": "rank3_confidence-0.74.sdf",
+          "rank": 3,
+          "confidence": 0.74
+        },
+        {
+          "file": "../backend/data/diffdock/2DI3/rank4_confidence-0.87.sdf",
+          "filename": "rank4_confidence-0.87.sdf",
+          "rank": 4,
+          "confidence": 0.87
+        },
+        {
+          "file": "../backend/data/diffdock/2DI3/rank5_confidence-1.70.sdf",
+          "filename": "rank5_confidence-1.70.sdf",
+          "rank": 5,
+          "confidence": 1.7
+        },
+        {
+          "file": "../backend/data/diffdock/2DI3/rank6_confidence-1.71.sdf",
+          "filename": "rank6_confidence-1.71.sdf",
+          "rank": 6,
+          "confidence": 1.71
+        },
+        {
+          "file": "../backend/data/diffdock/2DI3/rank7_confidence-1.88.sdf",
+          "filename": "rank7_confidence-1.88.sdf",
+          "rank": 7,
+          "confidence": 1.88
+        },
+        {
+          "file": "../backend/data/diffdock/2DI3/rank8_confidence-5.65.sdf",
+          "filename": "rank8_confidence-5.65.sdf",
+          "rank": 8,
+          "confidence": 5.65
+        },
+        {
+          "file": "../backend/data/diffdock/2DI3/rank9_confidence-6.00.sdf",
+          "filename": "rank9_confidence-6.00.sdf",
+          "rank": 9,
+          "confidence": 6.0
+        },
+        {
+          "file": "../backend/data/diffdock/2DI3/rank10_confidence-6.16.sdf",
+          "filename": "rank10_confidence-6.16.sdf",
+          "rank": 10,
+          "confidence": 6.16
+        }
+      ]
+    },
+    {
+      "id": "2F6S",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/2F6S/rank1_confidence-0.79.sdf",
+          "filename": "rank1_confidence-0.79.sdf",
+          "rank": 1,
+          "confidence": 0.79
+        },
+        {
+          "file": "../backend/data/diffdock/2F6S/rank2_confidence-1.62.sdf",
+          "filename": "rank2_confidence-1.62.sdf",
+          "rank": 2,
+          "confidence": 1.62
+        },
+        {
+          "file": "../backend/data/diffdock/2F6S/rank3_confidence-1.85.sdf",
+          "filename": "rank3_confidence-1.85.sdf",
+          "rank": 3,
+          "confidence": 1.85
+        },
+        {
+          "file": "../backend/data/diffdock/2F6S/rank4_confidence-1.95.sdf",
+          "filename": "rank4_confidence-1.95.sdf",
+          "rank": 4,
+          "confidence": 1.95
+        },
+        {
+          "file": "../backend/data/diffdock/2F6S/rank5_confidence-3.16.sdf",
+          "filename": "rank5_confidence-3.16.sdf",
+          "rank": 5,
+          "confidence": 3.16
+        },
+        {
+          "file": "../backend/data/diffdock/2F6S/rank6_confidence-3.18.sdf",
+          "filename": "rank6_confidence-3.18.sdf",
+          "rank": 6,
+          "confidence": 3.18
+        },
+        {
+          "file": "../backend/data/diffdock/2F6S/rank7_confidence-3.74.sdf",
+          "filename": "rank7_confidence-3.74.sdf",
+          "rank": 7,
+          "confidence": 3.74
+        },
+        {
+          "file": "../backend/data/diffdock/2F6S/rank8_confidence-4.13.sdf",
+          "filename": "rank8_confidence-4.13.sdf",
+          "rank": 8,
+          "confidence": 4.13
+        },
+        {
+          "file": "../backend/data/diffdock/2F6S/rank9_confidence-4.68.sdf",
+          "filename": "rank9_confidence-4.68.sdf",
+          "rank": 9,
+          "confidence": 4.68
+        },
+        {
+          "file": "../backend/data/diffdock/2F6S/rank10_confidence-7.30.sdf",
+          "filename": "rank10_confidence-7.30.sdf",
+          "rank": 10,
+          "confidence": 7.3
+        }
+      ]
+    },
+    {
+      "id": "2FQP",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/2FQP/rank1_confidence-0.31.sdf",
+          "filename": "rank1_confidence-0.31.sdf",
+          "rank": 1,
+          "confidence": 0.31
+        },
+        {
+          "file": "../backend/data/diffdock/2FQP/rank2_confidence-1.22.sdf",
+          "filename": "rank2_confidence-1.22.sdf",
+          "rank": 2,
+          "confidence": 1.22
+        },
+        {
+          "file": "../backend/data/diffdock/2FQP/rank3_confidence-1.32.sdf",
+          "filename": "rank3_confidence-1.32.sdf",
+          "rank": 3,
+          "confidence": 1.32
+        },
+        {
+          "file": "../backend/data/diffdock/2FQP/rank4_confidence-1.40.sdf",
+          "filename": "rank4_confidence-1.40.sdf",
+          "rank": 4,
+          "confidence": 1.4
+        },
+        {
+          "file": "../backend/data/diffdock/2FQP/rank5_confidence-2.02.sdf",
+          "filename": "rank5_confidence-2.02.sdf",
+          "rank": 5,
+          "confidence": 2.02
+        },
+        {
+          "file": "../backend/data/diffdock/2FQP/rank6_confidence-2.70.sdf",
+          "filename": "rank6_confidence-2.70.sdf",
+          "rank": 6,
+          "confidence": 2.7
+        },
+        {
+          "file": "../backend/data/diffdock/2FQP/rank7_confidence-2.85.sdf",
+          "filename": "rank7_confidence-2.85.sdf",
+          "rank": 7,
+          "confidence": 2.85
+        },
+        {
+          "file": "../backend/data/diffdock/2FQP/rank8_confidence-4.16.sdf",
+          "filename": "rank8_confidence-4.16.sdf",
+          "rank": 8,
+          "confidence": 4.16
+        },
+        {
+          "file": "../backend/data/diffdock/2FQP/rank9_confidence-4.23.sdf",
+          "filename": "rank9_confidence-4.23.sdf",
+          "rank": 9,
+          "confidence": 4.23
+        },
+        {
+          "file": "../backend/data/diffdock/2FQP/rank10_confidence-7.46.sdf",
+          "filename": "rank10_confidence-7.46.sdf",
+          "rank": 10,
+          "confidence": 7.46
+        }
+      ]
+    },
+    {
+      "id": "2GWG",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/2GWG/rank1_confidence-1.33.sdf",
+          "filename": "rank1_confidence-1.33.sdf",
+          "rank": 1,
+          "confidence": 1.33
+        },
+        {
+          "file": "../backend/data/diffdock/2GWG/rank2_confidence-2.10.sdf",
+          "filename": "rank2_confidence-2.10.sdf",
+          "rank": 2,
+          "confidence": 2.1
+        },
+        {
+          "file": "../backend/data/diffdock/2GWG/rank3_confidence-2.88.sdf",
+          "filename": "rank3_confidence-2.88.sdf",
+          "rank": 3,
+          "confidence": 2.88
+        },
+        {
+          "file": "../backend/data/diffdock/2GWG/rank4_confidence-4.29.sdf",
+          "filename": "rank4_confidence-4.29.sdf",
+          "rank": 4,
+          "confidence": 4.29
+        },
+        {
+          "file": "../backend/data/diffdock/2GWG/rank5_confidence-5.27.sdf",
+          "filename": "rank5_confidence-5.27.sdf",
+          "rank": 5,
+          "confidence": 5.27
+        },
+        {
+          "file": "../backend/data/diffdock/2GWG/rank6_confidence-5.40.sdf",
+          "filename": "rank6_confidence-5.40.sdf",
+          "rank": 6,
+          "confidence": 5.4
+        },
+        {
+          "file": "../backend/data/diffdock/2GWG/rank7_confidence-6.43.sdf",
+          "filename": "rank7_confidence-6.43.sdf",
+          "rank": 7,
+          "confidence": 6.43
+        },
+        {
+          "file": "../backend/data/diffdock/2GWG/rank8_confidence-6.80.sdf",
+          "filename": "rank8_confidence-6.80.sdf",
+          "rank": 8,
+          "confidence": 6.8
+        },
+        {
+          "file": "../backend/data/diffdock/2GWG/rank9_confidence-6.91.sdf",
+          "filename": "rank9_confidence-6.91.sdf",
+          "rank": 9,
+          "confidence": 6.91
+        },
+        {
+          "file": "../backend/data/diffdock/2GWG/rank10_confidence-8.87.sdf",
+          "filename": "rank10_confidence-8.87.sdf",
+          "rank": 10,
+          "confidence": 8.87
+        }
+      ]
+    },
+    {
+      "id": "2HSI",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/2HSI/rank1_confidence-1.11.sdf",
+          "filename": "rank1_confidence-1.11.sdf",
+          "rank": 1,
+          "confidence": 1.11
+        },
+        {
+          "file": "../backend/data/diffdock/2HSI/rank2_confidence-1.41.sdf",
+          "filename": "rank2_confidence-1.41.sdf",
+          "rank": 2,
+          "confidence": 1.41
+        },
+        {
+          "file": "../backend/data/diffdock/2HSI/rank3_confidence-1.84.sdf",
+          "filename": "rank3_confidence-1.84.sdf",
+          "rank": 3,
+          "confidence": 1.84
+        },
+        {
+          "file": "../backend/data/diffdock/2HSI/rank4_confidence-3.01.sdf",
+          "filename": "rank4_confidence-3.01.sdf",
+          "rank": 4,
+          "confidence": 3.01
+        },
+        {
+          "file": "../backend/data/diffdock/2HSI/rank5_confidence-3.31.sdf",
+          "filename": "rank5_confidence-3.31.sdf",
+          "rank": 5,
+          "confidence": 3.31
+        },
+        {
+          "file": "../backend/data/diffdock/2HSI/rank6_confidence-3.61.sdf",
+          "filename": "rank6_confidence-3.61.sdf",
+          "rank": 6,
+          "confidence": 3.61
+        },
+        {
+          "file": "../backend/data/diffdock/2HSI/rank7_confidence-4.30.sdf",
+          "filename": "rank7_confidence-4.30.sdf",
+          "rank": 7,
+          "confidence": 4.3
+        },
+        {
+          "file": "../backend/data/diffdock/2HSI/rank8_confidence-4.92.sdf",
+          "filename": "rank8_confidence-4.92.sdf",
+          "rank": 8,
+          "confidence": 4.92
+        },
+        {
+          "file": "../backend/data/diffdock/2HSI/rank9_confidence-6.71.sdf",
+          "filename": "rank9_confidence-6.71.sdf",
+          "rank": 9,
+          "confidence": 6.71
+        },
+        {
+          "file": "../backend/data/diffdock/2HSI/rank10_confidence-6.73.sdf",
+          "filename": "rank10_confidence-6.73.sdf",
+          "rank": 10,
+          "confidence": 6.73
+        }
+      ]
+    },
+    {
+      "id": "2O03",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/2O03/rank1_confidence-0.08.sdf",
+          "filename": "rank1_confidence-0.08.sdf",
+          "rank": 1,
+          "confidence": 0.08
+        },
+        {
+          "file": "../backend/data/diffdock/2O03/rank2_confidence-1.21.sdf",
+          "filename": "rank2_confidence-1.21.sdf",
+          "rank": 2,
+          "confidence": 1.21
+        },
+        {
+          "file": "../backend/data/diffdock/2O03/rank3_confidence-1.28.sdf",
+          "filename": "rank3_confidence-1.28.sdf",
+          "rank": 3,
+          "confidence": 1.28
+        },
+        {
+          "file": "../backend/data/diffdock/2O03/rank4_confidence-1.40.sdf",
+          "filename": "rank4_confidence-1.40.sdf",
+          "rank": 4,
+          "confidence": 1.4
+        },
+        {
+          "file": "../backend/data/diffdock/2O03/rank5_confidence-1.66.sdf",
+          "filename": "rank5_confidence-1.66.sdf",
+          "rank": 5,
+          "confidence": 1.66
+        },
+        {
+          "file": "../backend/data/diffdock/2O03/rank6_confidence-1.69.sdf",
+          "filename": "rank6_confidence-1.69.sdf",
+          "rank": 6,
+          "confidence": 1.69
+        },
+        {
+          "file": "../backend/data/diffdock/2O03/rank7_confidence-2.17.sdf",
+          "filename": "rank7_confidence-2.17.sdf",
+          "rank": 7,
+          "confidence": 2.17
+        },
+        {
+          "file": "../backend/data/diffdock/2O03/rank8_confidence-3.71.sdf",
+          "filename": "rank8_confidence-3.71.sdf",
+          "rank": 8,
+          "confidence": 3.71
+        },
+        {
+          "file": "../backend/data/diffdock/2O03/rank9_confidence-5.83.sdf",
+          "filename": "rank9_confidence-5.83.sdf",
+          "rank": 9,
+          "confidence": 5.83
+        },
+        {
+          "file": "../backend/data/diffdock/2O03/rank10_confidence-5.83.sdf",
+          "filename": "rank10_confidence-5.83.sdf",
+          "rank": 10,
+          "confidence": 5.83
+        }
+      ]
+    },
+    {
+      "id": "2O1Q",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/2O1Q/rank1_confidence-0.25.sdf",
+          "filename": "rank1_confidence-0.25.sdf",
+          "rank": 1,
+          "confidence": 0.25
+        },
+        {
+          "file": "../backend/data/diffdock/2O1Q/rank2_confidence-0.57.sdf",
+          "filename": "rank2_confidence-0.57.sdf",
+          "rank": 2,
+          "confidence": 0.57
+        },
+        {
+          "file": "../backend/data/diffdock/2O1Q/rank3_confidence-1.88.sdf",
+          "filename": "rank3_confidence-1.88.sdf",
+          "rank": 3,
+          "confidence": 1.88
+        },
+        {
+          "file": "../backend/data/diffdock/2O1Q/rank4_confidence-2.33.sdf",
+          "filename": "rank4_confidence-2.33.sdf",
+          "rank": 4,
+          "confidence": 2.33
+        },
+        {
+          "file": "../backend/data/diffdock/2O1Q/rank5_confidence-2.58.sdf",
+          "filename": "rank5_confidence-2.58.sdf",
+          "rank": 5,
+          "confidence": 2.58
+        },
+        {
+          "file": "../backend/data/diffdock/2O1Q/rank6_confidence-2.97.sdf",
+          "filename": "rank6_confidence-2.97.sdf",
+          "rank": 6,
+          "confidence": 2.97
+        },
+        {
+          "file": "../backend/data/diffdock/2O1Q/rank7_confidence-3.04.sdf",
+          "filename": "rank7_confidence-3.04.sdf",
+          "rank": 7,
+          "confidence": 3.04
+        },
+        {
+          "file": "../backend/data/diffdock/2O1Q/rank8_confidence-3.04.sdf",
+          "filename": "rank8_confidence-3.04.sdf",
+          "rank": 8,
+          "confidence": 3.04
+        },
+        {
+          "file": "../backend/data/diffdock/2O1Q/rank9_confidence-3.19.sdf",
+          "filename": "rank9_confidence-3.19.sdf",
+          "rank": 9,
+          "confidence": 3.19
+        },
+        {
+          "file": "../backend/data/diffdock/2O1Q/rank10_confidence-3.71.sdf",
+          "filename": "rank10_confidence-3.71.sdf",
+          "rank": 10,
+          "confidence": 3.71
+        }
+      ]
+    },
+    {
+      "id": "2OBA",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/2OBA/rank1_confidence-2.22.sdf",
+          "filename": "rank1_confidence-2.22.sdf",
+          "rank": 1,
+          "confidence": 2.22
+        },
+        {
+          "file": "../backend/data/diffdock/2OBA/rank2_confidence-2.64.sdf",
+          "filename": "rank2_confidence-2.64.sdf",
+          "rank": 2,
+          "confidence": 2.64
+        },
+        {
+          "file": "../backend/data/diffdock/2OBA/rank3_confidence-2.88.sdf",
+          "filename": "rank3_confidence-2.88.sdf",
+          "rank": 3,
+          "confidence": 2.88
+        },
+        {
+          "file": "../backend/data/diffdock/2OBA/rank4_confidence-2.89.sdf",
+          "filename": "rank4_confidence-2.89.sdf",
+          "rank": 4,
+          "confidence": 2.89
+        },
+        {
+          "file": "../backend/data/diffdock/2OBA/rank5_confidence-3.40.sdf",
+          "filename": "rank5_confidence-3.40.sdf",
+          "rank": 5,
+          "confidence": 3.4
+        },
+        {
+          "file": "../backend/data/diffdock/2OBA/rank6_confidence-3.69.sdf",
+          "filename": "rank6_confidence-3.69.sdf",
+          "rank": 6,
+          "confidence": 3.69
+        },
+        {
+          "file": "../backend/data/diffdock/2OBA/rank7_confidence-3.95.sdf",
+          "filename": "rank7_confidence-3.95.sdf",
+          "rank": 7,
+          "confidence": 3.95
+        },
+        {
+          "file": "../backend/data/diffdock/2OBA/rank8_confidence-5.00.sdf",
+          "filename": "rank8_confidence-5.00.sdf",
+          "rank": 8,
+          "confidence": 5.0
+        },
+        {
+          "file": "../backend/data/diffdock/2OBA/rank9_confidence-6.06.sdf",
+          "filename": "rank9_confidence-6.06.sdf",
+          "rank": 9,
+          "confidence": 6.06
+        },
+        {
+          "file": "../backend/data/diffdock/2OBA/rank10_confidence-7.08.sdf",
+          "filename": "rank10_confidence-7.08.sdf",
+          "rank": 10,
+          "confidence": 7.08
+        }
+      ]
+    },
+    {
+      "id": "2P6Y",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/2P6Y/rank1_confidence-0.77.sdf",
+          "filename": "rank1_confidence-0.77.sdf",
+          "rank": 1,
+          "confidence": 0.77
+        },
+        {
+          "file": "../backend/data/diffdock/2P6Y/rank2_confidence-0.96.sdf",
+          "filename": "rank2_confidence-0.96.sdf",
+          "rank": 2,
+          "confidence": 0.96
+        },
+        {
+          "file": "../backend/data/diffdock/2P6Y/rank3_confidence-1.25.sdf",
+          "filename": "rank3_confidence-1.25.sdf",
+          "rank": 3,
+          "confidence": 1.25
+        },
+        {
+          "file": "../backend/data/diffdock/2P6Y/rank4_confidence-2.23.sdf",
+          "filename": "rank4_confidence-2.23.sdf",
+          "rank": 4,
+          "confidence": 2.23
+        },
+        {
+          "file": "../backend/data/diffdock/2P6Y/rank5_confidence-2.58.sdf",
+          "filename": "rank5_confidence-2.58.sdf",
+          "rank": 5,
+          "confidence": 2.58
+        },
+        {
+          "file": "../backend/data/diffdock/2P6Y/rank6_confidence-3.11.sdf",
+          "filename": "rank6_confidence-3.11.sdf",
+          "rank": 6,
+          "confidence": 3.11
+        },
+        {
+          "file": "../backend/data/diffdock/2P6Y/rank7_confidence-3.51.sdf",
+          "filename": "rank7_confidence-3.51.sdf",
+          "rank": 7,
+          "confidence": 3.51
+        },
+        {
+          "file": "../backend/data/diffdock/2P6Y/rank8_confidence-6.04.sdf",
+          "filename": "rank8_confidence-6.04.sdf",
+          "rank": 8,
+          "confidence": 6.04
+        },
+        {
+          "file": "../backend/data/diffdock/2P6Y/rank9_confidence-6.25.sdf",
+          "filename": "rank9_confidence-6.25.sdf",
+          "rank": 9,
+          "confidence": 6.25
+        },
+        {
+          "file": "../backend/data/diffdock/2P6Y/rank10_confidence-7.02.sdf",
+          "filename": "rank10_confidence-7.02.sdf",
+          "rank": 10,
+          "confidence": 7.02
+        }
+      ]
+    },
+    {
+      "id": "2PEB",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/2PEB/rank1_confidence-0.70.sdf",
+          "filename": "rank1_confidence-0.70.sdf",
+          "rank": 1,
+          "confidence": 0.7
+        },
+        {
+          "file": "../backend/data/diffdock/2PEB/rank2_confidence-0.73.sdf",
+          "filename": "rank2_confidence-0.73.sdf",
+          "rank": 2,
+          "confidence": 0.73
+        },
+        {
+          "file": "../backend/data/diffdock/2PEB/rank3_confidence-0.78.sdf",
+          "filename": "rank3_confidence-0.78.sdf",
+          "rank": 3,
+          "confidence": 0.78
+        },
+        {
+          "file": "../backend/data/diffdock/2PEB/rank4_confidence-1.79.sdf",
+          "filename": "rank4_confidence-1.79.sdf",
+          "rank": 4,
+          "confidence": 1.79
+        },
+        {
+          "file": "../backend/data/diffdock/2PEB/rank5_confidence-1.84.sdf",
+          "filename": "rank5_confidence-1.84.sdf",
+          "rank": 5,
+          "confidence": 1.84
+        },
+        {
+          "file": "../backend/data/diffdock/2PEB/rank6_confidence-3.14.sdf",
+          "filename": "rank6_confidence-3.14.sdf",
+          "rank": 6,
+          "confidence": 3.14
+        },
+        {
+          "file": "../backend/data/diffdock/2PEB/rank7_confidence-3.69.sdf",
+          "filename": "rank7_confidence-3.69.sdf",
+          "rank": 7,
+          "confidence": 3.69
+        },
+        {
+          "file": "../backend/data/diffdock/2PEB/rank8_confidence-3.74.sdf",
+          "filename": "rank8_confidence-3.74.sdf",
+          "rank": 8,
+          "confidence": 3.74
+        },
+        {
+          "file": "../backend/data/diffdock/2PEB/rank9_confidence-4.71.sdf",
+          "filename": "rank9_confidence-4.71.sdf",
+          "rank": 9,
+          "confidence": 4.71
+        },
+        {
+          "file": "../backend/data/diffdock/2PEB/rank10_confidence-5.88.sdf",
+          "filename": "rank10_confidence-5.88.sdf",
+          "rank": 10,
+          "confidence": 5.88
+        }
+      ]
+    },
+    {
+      "id": "2PW6",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/2PW6/rank1_confidence-0.74.sdf",
+          "filename": "rank1_confidence-0.74.sdf",
+          "rank": 1,
+          "confidence": 0.74
+        },
+        {
+          "file": "../backend/data/diffdock/2PW6/rank2_confidence-0.85.sdf",
+          "filename": "rank2_confidence-0.85.sdf",
+          "rank": 2,
+          "confidence": 0.85
+        },
+        {
+          "file": "../backend/data/diffdock/2PW6/rank3_confidence-1.42.sdf",
+          "filename": "rank3_confidence-1.42.sdf",
+          "rank": 3,
+          "confidence": 1.42
+        },
+        {
+          "file": "../backend/data/diffdock/2PW6/rank4_confidence-1.81.sdf",
+          "filename": "rank4_confidence-1.81.sdf",
+          "rank": 4,
+          "confidence": 1.81
+        },
+        {
+          "file": "../backend/data/diffdock/2PW6/rank5_confidence-2.55.sdf",
+          "filename": "rank5_confidence-2.55.sdf",
+          "rank": 5,
+          "confidence": 2.55
+        },
+        {
+          "file": "../backend/data/diffdock/2PW6/rank6_confidence-3.94.sdf",
+          "filename": "rank6_confidence-3.94.sdf",
+          "rank": 6,
+          "confidence": 3.94
+        },
+        {
+          "file": "../backend/data/diffdock/2PW6/rank7_confidence-4.56.sdf",
+          "filename": "rank7_confidence-4.56.sdf",
+          "rank": 7,
+          "confidence": 4.56
+        },
+        {
+          "file": "../backend/data/diffdock/2PW6/rank8_confidence-5.06.sdf",
+          "filename": "rank8_confidence-5.06.sdf",
+          "rank": 8,
+          "confidence": 5.06
+        },
+        {
+          "file": "../backend/data/diffdock/2PW6/rank9_confidence-5.20.sdf",
+          "filename": "rank9_confidence-5.20.sdf",
+          "rank": 9,
+          "confidence": 5.2
+        },
+        {
+          "file": "../backend/data/diffdock/2PW6/rank10_confidence-8.76.sdf",
+          "filename": "rank10_confidence-8.76.sdf",
+          "rank": 10,
+          "confidence": 8.76
+        }
+      ]
+    },
+    {
+      "id": "2Q1Z",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/2Q1Z/rank1_confidence-1.16.sdf",
+          "filename": "rank1_confidence-1.16.sdf",
+          "rank": 1,
+          "confidence": 1.16
+        },
+        {
+          "file": "../backend/data/diffdock/2Q1Z/rank2_confidence-2.14.sdf",
+          "filename": "rank2_confidence-2.14.sdf",
+          "rank": 2,
+          "confidence": 2.14
+        },
+        {
+          "file": "../backend/data/diffdock/2Q1Z/rank3_confidence-2.35.sdf",
+          "filename": "rank3_confidence-2.35.sdf",
+          "rank": 3,
+          "confidence": 2.35
+        },
+        {
+          "file": "../backend/data/diffdock/2Q1Z/rank4_confidence-3.88.sdf",
+          "filename": "rank4_confidence-3.88.sdf",
+          "rank": 4,
+          "confidence": 3.88
+        },
+        {
+          "file": "../backend/data/diffdock/2Q1Z/rank5_confidence-4.14.sdf",
+          "filename": "rank5_confidence-4.14.sdf",
+          "rank": 5,
+          "confidence": 4.14
+        },
+        {
+          "file": "../backend/data/diffdock/2Q1Z/rank6_confidence-4.77.sdf",
+          "filename": "rank6_confidence-4.77.sdf",
+          "rank": 6,
+          "confidence": 4.77
+        },
+        {
+          "file": "../backend/data/diffdock/2Q1Z/rank7_confidence-6.04.sdf",
+          "filename": "rank7_confidence-6.04.sdf",
+          "rank": 7,
+          "confidence": 6.04
+        },
+        {
+          "file": "../backend/data/diffdock/2Q1Z/rank8_confidence-6.98.sdf",
+          "filename": "rank8_confidence-6.98.sdf",
+          "rank": 8,
+          "confidence": 6.98
+        },
+        {
+          "file": "../backend/data/diffdock/2Q1Z/rank9_confidence-7.39.sdf",
+          "filename": "rank9_confidence-7.39.sdf",
+          "rank": 9,
+          "confidence": 7.39
+        },
+        {
+          "file": "../backend/data/diffdock/2Q1Z/rank10_confidence-7.70.sdf",
+          "filename": "rank10_confidence-7.70.sdf",
+          "rank": 10,
+          "confidence": 7.7
+        }
+      ]
+    },
+    {
+      "id": "2QLA",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/2QLA/rank1_confidence-0.56.sdf",
+          "filename": "rank1_confidence-0.56.sdf",
+          "rank": 1,
+          "confidence": 0.56
+        },
+        {
+          "file": "../backend/data/diffdock/2QLA/rank2_confidence-1.24.sdf",
+          "filename": "rank2_confidence-1.24.sdf",
+          "rank": 2,
+          "confidence": 1.24
+        },
+        {
+          "file": "../backend/data/diffdock/2QLA/rank3_confidence-1.34.sdf",
+          "filename": "rank3_confidence-1.34.sdf",
+          "rank": 3,
+          "confidence": 1.34
+        },
+        {
+          "file": "../backend/data/diffdock/2QLA/rank4_confidence-1.63.sdf",
+          "filename": "rank4_confidence-1.63.sdf",
+          "rank": 4,
+          "confidence": 1.63
+        },
+        {
+          "file": "../backend/data/diffdock/2QLA/rank5_confidence-1.63.sdf",
+          "filename": "rank5_confidence-1.63.sdf",
+          "rank": 5,
+          "confidence": 1.63
+        },
+        {
+          "file": "../backend/data/diffdock/2QLA/rank6_confidence-2.64.sdf",
+          "filename": "rank6_confidence-2.64.sdf",
+          "rank": 6,
+          "confidence": 2.64
+        },
+        {
+          "file": "../backend/data/diffdock/2QLA/rank7_confidence-3.41.sdf",
+          "filename": "rank7_confidence-3.41.sdf",
+          "rank": 7,
+          "confidence": 3.41
+        },
+        {
+          "file": "../backend/data/diffdock/2QLA/rank8_confidence-3.51.sdf",
+          "filename": "rank8_confidence-3.51.sdf",
+          "rank": 8,
+          "confidence": 3.51
+        },
+        {
+          "file": "../backend/data/diffdock/2QLA/rank9_confidence-3.71.sdf",
+          "filename": "rank9_confidence-3.71.sdf",
+          "rank": 9,
+          "confidence": 3.71
+        },
+        {
+          "file": "../backend/data/diffdock/2QLA/rank10_confidence-5.51.sdf",
+          "filename": "rank10_confidence-5.51.sdf",
+          "rank": 10,
+          "confidence": 5.51
+        }
+      ]
+    },
+    {
+      "id": "2W57",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/2W57/rank1_confidence-1.39.sdf",
+          "filename": "rank1_confidence-1.39.sdf",
+          "rank": 1,
+          "confidence": 1.39
+        },
+        {
+          "file": "../backend/data/diffdock/2W57/rank2_confidence-1.89.sdf",
+          "filename": "rank2_confidence-1.89.sdf",
+          "rank": 2,
+          "confidence": 1.89
+        },
+        {
+          "file": "../backend/data/diffdock/2W57/rank3_confidence-2.27.sdf",
+          "filename": "rank3_confidence-2.27.sdf",
+          "rank": 3,
+          "confidence": 2.27
+        },
+        {
+          "file": "../backend/data/diffdock/2W57/rank4_confidence-2.88.sdf",
+          "filename": "rank4_confidence-2.88.sdf",
+          "rank": 4,
+          "confidence": 2.88
+        },
+        {
+          "file": "../backend/data/diffdock/2W57/rank5_confidence-3.30.sdf",
+          "filename": "rank5_confidence-3.30.sdf",
+          "rank": 5,
+          "confidence": 3.3
+        },
+        {
+          "file": "../backend/data/diffdock/2W57/rank6_confidence-3.71.sdf",
+          "filename": "rank6_confidence-3.71.sdf",
+          "rank": 6,
+          "confidence": 3.71
+        },
+        {
+          "file": "../backend/data/diffdock/2W57/rank7_confidence-3.82.sdf",
+          "filename": "rank7_confidence-3.82.sdf",
+          "rank": 7,
+          "confidence": 3.82
+        },
+        {
+          "file": "../backend/data/diffdock/2W57/rank8_confidence-3.91.sdf",
+          "filename": "rank8_confidence-3.91.sdf",
+          "rank": 8,
+          "confidence": 3.91
+        },
+        {
+          "file": "../backend/data/diffdock/2W57/rank9_confidence-4.94.sdf",
+          "filename": "rank9_confidence-4.94.sdf",
+          "rank": 9,
+          "confidence": 4.94
+        },
+        {
+          "file": "../backend/data/diffdock/2W57/rank10_confidence-6.89.sdf",
+          "filename": "rank10_confidence-6.89.sdf",
+          "rank": 10,
+          "confidence": 6.89
+        }
+      ]
+    },
+    {
+      "id": "2XQC",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/2XQC/rank1_confidence-0.70.sdf",
+          "filename": "rank1_confidence-0.70.sdf",
+          "rank": 1,
+          "confidence": 0.7
+        },
+        {
+          "file": "../backend/data/diffdock/2XQC/rank2_confidence-1.00.sdf",
+          "filename": "rank2_confidence-1.00.sdf",
+          "rank": 2,
+          "confidence": 1.0
+        },
+        {
+          "file": "../backend/data/diffdock/2XQC/rank3_confidence-1.33.sdf",
+          "filename": "rank3_confidence-1.33.sdf",
+          "rank": 3,
+          "confidence": 1.33
+        },
+        {
+          "file": "../backend/data/diffdock/2XQC/rank4_confidence-1.47.sdf",
+          "filename": "rank4_confidence-1.47.sdf",
+          "rank": 4,
+          "confidence": 1.47
+        },
+        {
+          "file": "../backend/data/diffdock/2XQC/rank5_confidence-1.47.sdf",
+          "filename": "rank5_confidence-1.47.sdf",
+          "rank": 5,
+          "confidence": 1.47
+        },
+        {
+          "file": "../backend/data/diffdock/2XQC/rank6_confidence-2.04.sdf",
+          "filename": "rank6_confidence-2.04.sdf",
+          "rank": 6,
+          "confidence": 2.04
+        },
+        {
+          "file": "../backend/data/diffdock/2XQC/rank7_confidence-2.34.sdf",
+          "filename": "rank7_confidence-2.34.sdf",
+          "rank": 7,
+          "confidence": 2.34
+        },
+        {
+          "file": "../backend/data/diffdock/2XQC/rank8_confidence-2.42.sdf",
+          "filename": "rank8_confidence-2.42.sdf",
+          "rank": 8,
+          "confidence": 2.42
+        },
+        {
+          "file": "../backend/data/diffdock/2XQC/rank9_confidence-2.51.sdf",
+          "filename": "rank9_confidence-2.51.sdf",
+          "rank": 9,
+          "confidence": 2.51
+        },
+        {
+          "file": "../backend/data/diffdock/2XQC/rank10_confidence-8.20.sdf",
+          "filename": "rank10_confidence-8.20.sdf",
+          "rank": 10,
+          "confidence": 8.2
+        }
+      ]
+    },
+    {
+      "id": "2Y3D",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/2Y3D/rank1_confidence-1.95.sdf",
+          "filename": "rank1_confidence-1.95.sdf",
+          "rank": 1,
+          "confidence": 1.95
+        },
+        {
+          "file": "../backend/data/diffdock/2Y3D/rank2_confidence-4.08.sdf",
+          "filename": "rank2_confidence-4.08.sdf",
+          "rank": 2,
+          "confidence": 4.08
+        },
+        {
+          "file": "../backend/data/diffdock/2Y3D/rank3_confidence-4.34.sdf",
+          "filename": "rank3_confidence-4.34.sdf",
+          "rank": 3,
+          "confidence": 4.34
+        },
+        {
+          "file": "../backend/data/diffdock/2Y3D/rank4_confidence-4.48.sdf",
+          "filename": "rank4_confidence-4.48.sdf",
+          "rank": 4,
+          "confidence": 4.48
+        },
+        {
+          "file": "../backend/data/diffdock/2Y3D/rank5_confidence-5.33.sdf",
+          "filename": "rank5_confidence-5.33.sdf",
+          "rank": 5,
+          "confidence": 5.33
+        },
+        {
+          "file": "../backend/data/diffdock/2Y3D/rank6_confidence-5.55.sdf",
+          "filename": "rank6_confidence-5.55.sdf",
+          "rank": 6,
+          "confidence": 5.55
+        },
+        {
+          "file": "../backend/data/diffdock/2Y3D/rank7_confidence-6.01.sdf",
+          "filename": "rank7_confidence-6.01.sdf",
+          "rank": 7,
+          "confidence": 6.01
+        },
+        {
+          "file": "../backend/data/diffdock/2Y3D/rank8_confidence-6.32.sdf",
+          "filename": "rank8_confidence-6.32.sdf",
+          "rank": 8,
+          "confidence": 6.32
+        },
+        {
+          "file": "../backend/data/diffdock/2Y3D/rank9_confidence-6.86.sdf",
+          "filename": "rank9_confidence-6.86.sdf",
+          "rank": 9,
+          "confidence": 6.86
+        },
+        {
+          "file": "../backend/data/diffdock/2Y3D/rank10_confidence-8.30.sdf",
+          "filename": "rank10_confidence-8.30.sdf",
+          "rank": 10,
+          "confidence": 8.3
+        }
+      ]
+    },
+    {
+      "id": "3C37",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/3C37/rank1_confidence-0.28.sdf",
+          "filename": "rank1_confidence-0.28.sdf",
+          "rank": 1,
+          "confidence": 0.28
+        },
+        {
+          "file": "../backend/data/diffdock/3C37/rank2_confidence-0.63.sdf",
+          "filename": "rank2_confidence-0.63.sdf",
+          "rank": 2,
+          "confidence": 0.63
+        },
+        {
+          "file": "../backend/data/diffdock/3C37/rank3_confidence-1.31.sdf",
+          "filename": "rank3_confidence-1.31.sdf",
+          "rank": 3,
+          "confidence": 1.31
+        },
+        {
+          "file": "../backend/data/diffdock/3C37/rank4_confidence-2.28.sdf",
+          "filename": "rank4_confidence-2.28.sdf",
+          "rank": 4,
+          "confidence": 2.28
+        },
+        {
+          "file": "../backend/data/diffdock/3C37/rank5_confidence-2.58.sdf",
+          "filename": "rank5_confidence-2.58.sdf",
+          "rank": 5,
+          "confidence": 2.58
+        },
+        {
+          "file": "../backend/data/diffdock/3C37/rank6_confidence-3.11.sdf",
+          "filename": "rank6_confidence-3.11.sdf",
+          "rank": 6,
+          "confidence": 3.11
+        },
+        {
+          "file": "../backend/data/diffdock/3C37/rank7_confidence-3.32.sdf",
+          "filename": "rank7_confidence-3.32.sdf",
+          "rank": 7,
+          "confidence": 3.32
+        },
+        {
+          "file": "../backend/data/diffdock/3C37/rank8_confidence-4.43.sdf",
+          "filename": "rank8_confidence-4.43.sdf",
+          "rank": 8,
+          "confidence": 4.43
+        },
+        {
+          "file": "../backend/data/diffdock/3C37/rank9_confidence-4.59.sdf",
+          "filename": "rank9_confidence-4.59.sdf",
+          "rank": 9,
+          "confidence": 4.59
+        },
+        {
+          "file": "../backend/data/diffdock/3C37/rank10_confidence-4.73.sdf",
+          "filename": "rank10_confidence-4.73.sdf",
+          "rank": 10,
+          "confidence": 4.73
+        }
+      ]
+    },
+    {
+      "id": "3H3E",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/3H3E/rank1_confidence-0.99.sdf",
+          "filename": "rank1_confidence-0.99.sdf",
+          "rank": 1,
+          "confidence": 0.99
+        },
+        {
+          "file": "../backend/data/diffdock/3H3E/rank2_confidence-1.03.sdf",
+          "filename": "rank2_confidence-1.03.sdf",
+          "rank": 2,
+          "confidence": 1.03
+        },
+        {
+          "file": "../backend/data/diffdock/3H3E/rank3_confidence-1.62.sdf",
+          "filename": "rank3_confidence-1.62.sdf",
+          "rank": 3,
+          "confidence": 1.62
+        },
+        {
+          "file": "../backend/data/diffdock/3H3E/rank4_confidence-2.42.sdf",
+          "filename": "rank4_confidence-2.42.sdf",
+          "rank": 4,
+          "confidence": 2.42
+        },
+        {
+          "file": "../backend/data/diffdock/3H3E/rank5_confidence-3.08.sdf",
+          "filename": "rank5_confidence-3.08.sdf",
+          "rank": 5,
+          "confidence": 3.08
+        },
+        {
+          "file": "../backend/data/diffdock/3H3E/rank6_confidence-3.38.sdf",
+          "filename": "rank6_confidence-3.38.sdf",
+          "rank": 6,
+          "confidence": 3.38
+        },
+        {
+          "file": "../backend/data/diffdock/3H3E/rank7_confidence-4.20.sdf",
+          "filename": "rank7_confidence-4.20.sdf",
+          "rank": 7,
+          "confidence": 4.2
+        },
+        {
+          "file": "../backend/data/diffdock/3H3E/rank8_confidence-4.81.sdf",
+          "filename": "rank8_confidence-4.81.sdf",
+          "rank": 8,
+          "confidence": 4.81
+        },
+        {
+          "file": "../backend/data/diffdock/3H3E/rank9_confidence-6.57.sdf",
+          "filename": "rank9_confidence-6.57.sdf",
+          "rank": 9,
+          "confidence": 6.57
+        },
+        {
+          "file": "../backend/data/diffdock/3H3E/rank10_confidence-7.20.sdf",
+          "filename": "rank10_confidence-7.20.sdf",
+          "rank": 10,
+          "confidence": 7.2
+        }
+      ]
+    },
+    {
+      "id": "3KHI",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/3KHI/rank1_confidence-1.00.sdf",
+          "filename": "rank1_confidence-1.00.sdf",
+          "rank": 1,
+          "confidence": 1.0
+        },
+        {
+          "file": "../backend/data/diffdock/3KHI/rank2_confidence-2.04.sdf",
+          "filename": "rank2_confidence-2.04.sdf",
+          "rank": 2,
+          "confidence": 2.04
+        },
+        {
+          "file": "../backend/data/diffdock/3KHI/rank3_confidence-2.27.sdf",
+          "filename": "rank3_confidence-2.27.sdf",
+          "rank": 3,
+          "confidence": 2.27
+        },
+        {
+          "file": "../backend/data/diffdock/3KHI/rank4_confidence-2.36.sdf",
+          "filename": "rank4_confidence-2.36.sdf",
+          "rank": 4,
+          "confidence": 2.36
+        },
+        {
+          "file": "../backend/data/diffdock/3KHI/rank5_confidence-2.60.sdf",
+          "filename": "rank5_confidence-2.60.sdf",
+          "rank": 5,
+          "confidence": 2.6
+        },
+        {
+          "file": "../backend/data/diffdock/3KHI/rank6_confidence-3.51.sdf",
+          "filename": "rank6_confidence-3.51.sdf",
+          "rank": 6,
+          "confidence": 3.51
+        },
+        {
+          "file": "../backend/data/diffdock/3KHI/rank7_confidence-3.75.sdf",
+          "filename": "rank7_confidence-3.75.sdf",
+          "rank": 7,
+          "confidence": 3.75
+        },
+        {
+          "file": "../backend/data/diffdock/3KHI/rank8_confidence-5.00.sdf",
+          "filename": "rank8_confidence-5.00.sdf",
+          "rank": 8,
+          "confidence": 5.0
+        },
+        {
+          "file": "../backend/data/diffdock/3KHI/rank9_confidence-7.29.sdf",
+          "filename": "rank9_confidence-7.29.sdf",
+          "rank": 9,
+          "confidence": 7.29
+        },
+        {
+          "file": "../backend/data/diffdock/3KHI/rank10_confidence-8.24.sdf",
+          "filename": "rank10_confidence-8.24.sdf",
+          "rank": 10,
+          "confidence": 8.24
+        }
+      ]
+    },
+    {
+      "id": "3LUO",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/3LUO/rank1_confidence-0.47.sdf",
+          "filename": "rank1_confidence-0.47.sdf",
+          "rank": 1,
+          "confidence": 0.47
+        },
+        {
+          "file": "../backend/data/diffdock/3LUO/rank2_confidence-0.94.sdf",
+          "filename": "rank2_confidence-0.94.sdf",
+          "rank": 2,
+          "confidence": 0.94
+        },
+        {
+          "file": "../backend/data/diffdock/3LUO/rank3_confidence-1.26.sdf",
+          "filename": "rank3_confidence-1.26.sdf",
+          "rank": 3,
+          "confidence": 1.26
+        },
+        {
+          "file": "../backend/data/diffdock/3LUO/rank4_confidence-1.39.sdf",
+          "filename": "rank4_confidence-1.39.sdf",
+          "rank": 4,
+          "confidence": 1.39
+        },
+        {
+          "file": "../backend/data/diffdock/3LUO/rank5_confidence-1.61.sdf",
+          "filename": "rank5_confidence-1.61.sdf",
+          "rank": 5,
+          "confidence": 1.61
+        },
+        {
+          "file": "../backend/data/diffdock/3LUO/rank6_confidence-2.67.sdf",
+          "filename": "rank6_confidence-2.67.sdf",
+          "rank": 6,
+          "confidence": 2.67
+        },
+        {
+          "file": "../backend/data/diffdock/3LUO/rank7_confidence-2.75.sdf",
+          "filename": "rank7_confidence-2.75.sdf",
+          "rank": 7,
+          "confidence": 2.75
+        },
+        {
+          "file": "../backend/data/diffdock/3LUO/rank8_confidence-3.71.sdf",
+          "filename": "rank8_confidence-3.71.sdf",
+          "rank": 8,
+          "confidence": 3.71
+        },
+        {
+          "file": "../backend/data/diffdock/3LUO/rank9_confidence-4.28.sdf",
+          "filename": "rank9_confidence-4.28.sdf",
+          "rank": 9,
+          "confidence": 4.28
+        },
+        {
+          "file": "../backend/data/diffdock/3LUO/rank10_confidence-5.25.sdf",
+          "filename": "rank10_confidence-5.25.sdf",
+          "rank": 10,
+          "confidence": 5.25
+        }
+      ]
+    },
+    {
+      "id": "3MWM",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/3MWM/rank1_confidence-1.26.sdf",
+          "filename": "rank1_confidence-1.26.sdf",
+          "rank": 1,
+          "confidence": 1.26
+        },
+        {
+          "file": "../backend/data/diffdock/3MWM/rank2_confidence-1.46.sdf",
+          "filename": "rank2_confidence-1.46.sdf",
+          "rank": 2,
+          "confidence": 1.46
+        },
+        {
+          "file": "../backend/data/diffdock/3MWM/rank3_confidence-1.66.sdf",
+          "filename": "rank3_confidence-1.66.sdf",
+          "rank": 3,
+          "confidence": 1.66
+        },
+        {
+          "file": "../backend/data/diffdock/3MWM/rank4_confidence-1.69.sdf",
+          "filename": "rank4_confidence-1.69.sdf",
+          "rank": 4,
+          "confidence": 1.69
+        },
+        {
+          "file": "../backend/data/diffdock/3MWM/rank5_confidence-1.71.sdf",
+          "filename": "rank5_confidence-1.71.sdf",
+          "rank": 5,
+          "confidence": 1.71
+        },
+        {
+          "file": "../backend/data/diffdock/3MWM/rank6_confidence-1.95.sdf",
+          "filename": "rank6_confidence-1.95.sdf",
+          "rank": 6,
+          "confidence": 1.95
+        },
+        {
+          "file": "../backend/data/diffdock/3MWM/rank7_confidence-2.12.sdf",
+          "filename": "rank7_confidence-2.12.sdf",
+          "rank": 7,
+          "confidence": 2.12
+        },
+        {
+          "file": "../backend/data/diffdock/3MWM/rank8_confidence-3.07.sdf",
+          "filename": "rank8_confidence-3.07.sdf",
+          "rank": 8,
+          "confidence": 3.07
+        },
+        {
+          "file": "../backend/data/diffdock/3MWM/rank9_confidence-3.76.sdf",
+          "filename": "rank9_confidence-3.76.sdf",
+          "rank": 9,
+          "confidence": 3.76
+        },
+        {
+          "file": "../backend/data/diffdock/3MWM/rank10_confidence-7.45.sdf",
+          "filename": "rank10_confidence-7.45.sdf",
+          "rank": 10,
+          "confidence": 7.45
+        }
+      ]
+    },
+    {
+      "id": "3NQZ",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/3NQZ/rank1_confidence-0.83.sdf",
+          "filename": "rank1_confidence-0.83.sdf",
+          "rank": 1,
+          "confidence": 0.83
+        },
+        {
+          "file": "../backend/data/diffdock/3NQZ/rank2_confidence-1.12.sdf",
+          "filename": "rank2_confidence-1.12.sdf",
+          "rank": 2,
+          "confidence": 1.12
+        },
+        {
+          "file": "../backend/data/diffdock/3NQZ/rank3_confidence-1.57.sdf",
+          "filename": "rank3_confidence-1.57.sdf",
+          "rank": 3,
+          "confidence": 1.57
+        },
+        {
+          "file": "../backend/data/diffdock/3NQZ/rank4_confidence-1.82.sdf",
+          "filename": "rank4_confidence-1.82.sdf",
+          "rank": 4,
+          "confidence": 1.82
+        },
+        {
+          "file": "../backend/data/diffdock/3NQZ/rank5_confidence-1.86.sdf",
+          "filename": "rank5_confidence-1.86.sdf",
+          "rank": 5,
+          "confidence": 1.86
+        },
+        {
+          "file": "../backend/data/diffdock/3NQZ/rank6_confidence-2.13.sdf",
+          "filename": "rank6_confidence-2.13.sdf",
+          "rank": 6,
+          "confidence": 2.13
+        },
+        {
+          "file": "../backend/data/diffdock/3NQZ/rank7_confidence-3.23.sdf",
+          "filename": "rank7_confidence-3.23.sdf",
+          "rank": 7,
+          "confidence": 3.23
+        },
+        {
+          "file": "../backend/data/diffdock/3NQZ/rank8_confidence-6.85.sdf",
+          "filename": "rank8_confidence-6.85.sdf",
+          "rank": 8,
+          "confidence": 6.85
+        },
+        {
+          "file": "../backend/data/diffdock/3NQZ/rank9_confidence-7.05.sdf",
+          "filename": "rank9_confidence-7.05.sdf",
+          "rank": 9,
+          "confidence": 7.05
+        },
+        {
+          "file": "../backend/data/diffdock/3NQZ/rank10_confidence-7.43.sdf",
+          "filename": "rank10_confidence-7.43.sdf",
+          "rank": 10,
+          "confidence": 7.43
+        }
+      ]
+    },
+    {
+      "id": "3T9O",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/3T9O/rank1_confidence-2.96.sdf",
+          "filename": "rank1_confidence-2.96.sdf",
+          "rank": 1,
+          "confidence": 2.96
+        },
+        {
+          "file": "../backend/data/diffdock/3T9O/rank2_confidence-3.48.sdf",
+          "filename": "rank2_confidence-3.48.sdf",
+          "rank": 2,
+          "confidence": 3.48
+        },
+        {
+          "file": "../backend/data/diffdock/3T9O/rank3_confidence-5.27.sdf",
+          "filename": "rank3_confidence-5.27.sdf",
+          "rank": 3,
+          "confidence": 5.27
+        },
+        {
+          "file": "../backend/data/diffdock/3T9O/rank4_confidence-5.73.sdf",
+          "filename": "rank4_confidence-5.73.sdf",
+          "rank": 4,
+          "confidence": 5.73
+        },
+        {
+          "file": "../backend/data/diffdock/3T9O/rank5_confidence-6.90.sdf",
+          "filename": "rank5_confidence-6.90.sdf",
+          "rank": 5,
+          "confidence": 6.9
+        },
+        {
+          "file": "../backend/data/diffdock/3T9O/rank6_confidence-7.73.sdf",
+          "filename": "rank6_confidence-7.73.sdf",
+          "rank": 6,
+          "confidence": 7.73
+        },
+        {
+          "file": "../backend/data/diffdock/3T9O/rank7_confidence-8.36.sdf",
+          "filename": "rank7_confidence-8.36.sdf",
+          "rank": 7,
+          "confidence": 8.36
+        },
+        {
+          "file": "../backend/data/diffdock/3T9O/rank8_confidence-8.45.sdf",
+          "filename": "rank8_confidence-8.45.sdf",
+          "rank": 8,
+          "confidence": 8.45
+        },
+        {
+          "file": "../backend/data/diffdock/3T9O/rank9_confidence-8.57.sdf",
+          "filename": "rank9_confidence-8.57.sdf",
+          "rank": 9,
+          "confidence": 8.57
+        },
+        {
+          "file": "../backend/data/diffdock/3T9O/rank10_confidence-9.10.sdf",
+          "filename": "rank10_confidence-9.10.sdf",
+          "rank": 10,
+          "confidence": 9.1
+        }
+      ]
+    },
+    {
+      "id": "3TGN",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/3TGN/rank1_confidence-1.25.sdf",
+          "filename": "rank1_confidence-1.25.sdf",
+          "rank": 1,
+          "confidence": 1.25
+        },
+        {
+          "file": "../backend/data/diffdock/3TGN/rank2_confidence-1.52.sdf",
+          "filename": "rank2_confidence-1.52.sdf",
+          "rank": 2,
+          "confidence": 1.52
+        },
+        {
+          "file": "../backend/data/diffdock/3TGN/rank3_confidence-1.54.sdf",
+          "filename": "rank3_confidence-1.54.sdf",
+          "rank": 3,
+          "confidence": 1.54
+        },
+        {
+          "file": "../backend/data/diffdock/3TGN/rank4_confidence-2.51.sdf",
+          "filename": "rank4_confidence-2.51.sdf",
+          "rank": 4,
+          "confidence": 2.51
+        },
+        {
+          "file": "../backend/data/diffdock/3TGN/rank5_confidence-4.71.sdf",
+          "filename": "rank5_confidence-4.71.sdf",
+          "rank": 5,
+          "confidence": 4.71
+        },
+        {
+          "file": "../backend/data/diffdock/3TGN/rank6_confidence-6.21.sdf",
+          "filename": "rank6_confidence-6.21.sdf",
+          "rank": 6,
+          "confidence": 6.21
+        },
+        {
+          "file": "../backend/data/diffdock/3TGN/rank7_confidence-6.22.sdf",
+          "filename": "rank7_confidence-6.22.sdf",
+          "rank": 7,
+          "confidence": 6.22
+        },
+        {
+          "file": "../backend/data/diffdock/3TGN/rank8_confidence-6.52.sdf",
+          "filename": "rank8_confidence-6.52.sdf",
+          "rank": 8,
+          "confidence": 6.52
+        },
+        {
+          "file": "../backend/data/diffdock/3TGN/rank9_confidence-7.54.sdf",
+          "filename": "rank9_confidence-7.54.sdf",
+          "rank": 9,
+          "confidence": 7.54
+        },
+        {
+          "file": "../backend/data/diffdock/3TGN/rank10_confidence-8.89.sdf",
+          "filename": "rank10_confidence-8.89.sdf",
+          "rank": 10,
+          "confidence": 8.89
+        }
+      ]
+    },
+    {
+      "id": "3UJZ",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/3UJZ/rank1_confidence-0.62.sdf",
+          "filename": "rank1_confidence-0.62.sdf",
+          "rank": 1,
+          "confidence": 0.62
+        },
+        {
+          "file": "../backend/data/diffdock/3UJZ/rank2_confidence-1.09.sdf",
+          "filename": "rank2_confidence-1.09.sdf",
+          "rank": 2,
+          "confidence": 1.09
+        },
+        {
+          "file": "../backend/data/diffdock/3UJZ/rank3_confidence-1.53.sdf",
+          "filename": "rank3_confidence-1.53.sdf",
+          "rank": 3,
+          "confidence": 1.53
+        },
+        {
+          "file": "../backend/data/diffdock/3UJZ/rank4_confidence-1.77.sdf",
+          "filename": "rank4_confidence-1.77.sdf",
+          "rank": 4,
+          "confidence": 1.77
+        },
+        {
+          "file": "../backend/data/diffdock/3UJZ/rank5_confidence-1.89.sdf",
+          "filename": "rank5_confidence-1.89.sdf",
+          "rank": 5,
+          "confidence": 1.89
+        },
+        {
+          "file": "../backend/data/diffdock/3UJZ/rank6_confidence-3.08.sdf",
+          "filename": "rank6_confidence-3.08.sdf",
+          "rank": 6,
+          "confidence": 3.08
+        },
+        {
+          "file": "../backend/data/diffdock/3UJZ/rank7_confidence-3.96.sdf",
+          "filename": "rank7_confidence-3.96.sdf",
+          "rank": 7,
+          "confidence": 3.96
+        },
+        {
+          "file": "../backend/data/diffdock/3UJZ/rank8_confidence-6.28.sdf",
+          "filename": "rank8_confidence-6.28.sdf",
+          "rank": 8,
+          "confidence": 6.28
+        },
+        {
+          "file": "../backend/data/diffdock/3UJZ/rank9_confidence-6.77.sdf",
+          "filename": "rank9_confidence-6.77.sdf",
+          "rank": 9,
+          "confidence": 6.77
+        },
+        {
+          "file": "../backend/data/diffdock/3UJZ/rank10_confidence-7.25.sdf",
+          "filename": "rank10_confidence-7.25.sdf",
+          "rank": 10,
+          "confidence": 7.25
+        }
+      ]
+    },
+    {
+      "id": "3ZFJ",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/3ZFJ/rank1_confidence-1.18.sdf",
+          "filename": "rank1_confidence-1.18.sdf",
+          "rank": 1,
+          "confidence": 1.18
+        },
+        {
+          "file": "../backend/data/diffdock/3ZFJ/rank2_confidence-1.88.sdf",
+          "filename": "rank2_confidence-1.88.sdf",
+          "rank": 2,
+          "confidence": 1.88
+        },
+        {
+          "file": "../backend/data/diffdock/3ZFJ/rank3_confidence-1.93.sdf",
+          "filename": "rank3_confidence-1.93.sdf",
+          "rank": 3,
+          "confidence": 1.93
+        },
+        {
+          "file": "../backend/data/diffdock/3ZFJ/rank4_confidence-2.40.sdf",
+          "filename": "rank4_confidence-2.40.sdf",
+          "rank": 4,
+          "confidence": 2.4
+        },
+        {
+          "file": "../backend/data/diffdock/3ZFJ/rank5_confidence-2.61.sdf",
+          "filename": "rank5_confidence-2.61.sdf",
+          "rank": 5,
+          "confidence": 2.61
+        },
+        {
+          "file": "../backend/data/diffdock/3ZFJ/rank6_confidence-4.01.sdf",
+          "filename": "rank6_confidence-4.01.sdf",
+          "rank": 6,
+          "confidence": 4.01
+        },
+        {
+          "file": "../backend/data/diffdock/3ZFJ/rank7_confidence-4.86.sdf",
+          "filename": "rank7_confidence-4.86.sdf",
+          "rank": 7,
+          "confidence": 4.86
+        },
+        {
+          "file": "../backend/data/diffdock/3ZFJ/rank8_confidence-5.57.sdf",
+          "filename": "rank8_confidence-5.57.sdf",
+          "rank": 8,
+          "confidence": 5.57
+        },
+        {
+          "file": "../backend/data/diffdock/3ZFJ/rank9_confidence-6.17.sdf",
+          "filename": "rank9_confidence-6.17.sdf",
+          "rank": 9,
+          "confidence": 6.17
+        },
+        {
+          "file": "../backend/data/diffdock/3ZFJ/rank10_confidence-6.94.sdf",
+          "filename": "rank10_confidence-6.94.sdf",
+          "rank": 10,
+          "confidence": 6.94
+        }
+      ]
+    },
+    {
+      "id": "4E5V",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/4E5V/rank1_confidence-1.33.sdf",
+          "filename": "rank1_confidence-1.33.sdf",
+          "rank": 1,
+          "confidence": 1.33
+        },
+        {
+          "file": "../backend/data/diffdock/4E5V/rank2_confidence-3.17.sdf",
+          "filename": "rank2_confidence-3.17.sdf",
+          "rank": 2,
+          "confidence": 3.17
+        },
+        {
+          "file": "../backend/data/diffdock/4E5V/rank3_confidence-3.26.sdf",
+          "filename": "rank3_confidence-3.26.sdf",
+          "rank": 3,
+          "confidence": 3.26
+        },
+        {
+          "file": "../backend/data/diffdock/4E5V/rank4_confidence-3.53.sdf",
+          "filename": "rank4_confidence-3.53.sdf",
+          "rank": 4,
+          "confidence": 3.53
+        },
+        {
+          "file": "../backend/data/diffdock/4E5V/rank5_confidence-3.95.sdf",
+          "filename": "rank5_confidence-3.95.sdf",
+          "rank": 5,
+          "confidence": 3.95
+        },
+        {
+          "file": "../backend/data/diffdock/4E5V/rank6_confidence-5.50.sdf",
+          "filename": "rank6_confidence-5.50.sdf",
+          "rank": 6,
+          "confidence": 5.5
+        },
+        {
+          "file": "../backend/data/diffdock/4E5V/rank7_confidence-5.95.sdf",
+          "filename": "rank7_confidence-5.95.sdf",
+          "rank": 7,
+          "confidence": 5.95
+        },
+        {
+          "file": "../backend/data/diffdock/4E5V/rank8_confidence-6.81.sdf",
+          "filename": "rank8_confidence-6.81.sdf",
+          "rank": 8,
+          "confidence": 6.81
+        },
+        {
+          "file": "../backend/data/diffdock/4E5V/rank9_confidence-7.19.sdf",
+          "filename": "rank9_confidence-7.19.sdf",
+          "rank": 9,
+          "confidence": 7.19
+        },
+        {
+          "file": "../backend/data/diffdock/4E5V/rank10_confidence-7.98.sdf",
+          "filename": "rank10_confidence-7.98.sdf",
+          "rank": 10,
+          "confidence": 7.98
+        }
+      ]
+    },
+    {
+      "id": "4GXW",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/4GXW/rank1_confidence-0.90.sdf",
+          "filename": "rank1_confidence-0.90.sdf",
+          "rank": 1,
+          "confidence": 0.9
+        },
+        {
+          "file": "../backend/data/diffdock/4GXW/rank2_confidence-0.93.sdf",
+          "filename": "rank2_confidence-0.93.sdf",
+          "rank": 2,
+          "confidence": 0.93
+        },
+        {
+          "file": "../backend/data/diffdock/4GXW/rank3_confidence-2.18.sdf",
+          "filename": "rank3_confidence-2.18.sdf",
+          "rank": 3,
+          "confidence": 2.18
+        },
+        {
+          "file": "../backend/data/diffdock/4GXW/rank4_confidence-2.22.sdf",
+          "filename": "rank4_confidence-2.22.sdf",
+          "rank": 4,
+          "confidence": 2.22
+        },
+        {
+          "file": "../backend/data/diffdock/4GXW/rank5_confidence-2.61.sdf",
+          "filename": "rank5_confidence-2.61.sdf",
+          "rank": 5,
+          "confidence": 2.61
+        },
+        {
+          "file": "../backend/data/diffdock/4GXW/rank6_confidence-3.24.sdf",
+          "filename": "rank6_confidence-3.24.sdf",
+          "rank": 6,
+          "confidence": 3.24
+        },
+        {
+          "file": "../backend/data/diffdock/4GXW/rank7_confidence-3.99.sdf",
+          "filename": "rank7_confidence-3.99.sdf",
+          "rank": 7,
+          "confidence": 3.99
+        },
+        {
+          "file": "../backend/data/diffdock/4GXW/rank8_confidence-5.60.sdf",
+          "filename": "rank8_confidence-5.60.sdf",
+          "rank": 8,
+          "confidence": 5.6
+        },
+        {
+          "file": "../backend/data/diffdock/4GXW/rank9_confidence-6.55.sdf",
+          "filename": "rank9_confidence-6.55.sdf",
+          "rank": 9,
+          "confidence": 6.55
+        },
+        {
+          "file": "../backend/data/diffdock/4GXW/rank10_confidence-9.04.sdf",
+          "filename": "rank10_confidence-9.04.sdf",
+          "rank": 10,
+          "confidence": 9.04
+        }
+      ]
+    },
+    {
+      "id": "4JIV",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/4JIV/rank1_confidence-0.38.sdf",
+          "filename": "rank1_confidence-0.38.sdf",
+          "rank": 1,
+          "confidence": 0.38
+        },
+        {
+          "file": "../backend/data/diffdock/4JIV/rank2_confidence-1.24.sdf",
+          "filename": "rank2_confidence-1.24.sdf",
+          "rank": 2,
+          "confidence": 1.24
+        },
+        {
+          "file": "../backend/data/diffdock/4JIV/rank3_confidence-1.47.sdf",
+          "filename": "rank3_confidence-1.47.sdf",
+          "rank": 3,
+          "confidence": 1.47
+        },
+        {
+          "file": "../backend/data/diffdock/4JIV/rank4_confidence-1.59.sdf",
+          "filename": "rank4_confidence-1.59.sdf",
+          "rank": 4,
+          "confidence": 1.59
+        },
+        {
+          "file": "../backend/data/diffdock/4JIV/rank5_confidence-1.80.sdf",
+          "filename": "rank5_confidence-1.80.sdf",
+          "rank": 5,
+          "confidence": 1.8
+        },
+        {
+          "file": "../backend/data/diffdock/4JIV/rank6_confidence-2.22.sdf",
+          "filename": "rank6_confidence-2.22.sdf",
+          "rank": 6,
+          "confidence": 2.22
+        },
+        {
+          "file": "../backend/data/diffdock/4JIV/rank7_confidence-4.13.sdf",
+          "filename": "rank7_confidence-4.13.sdf",
+          "rank": 7,
+          "confidence": 4.13
+        },
+        {
+          "file": "../backend/data/diffdock/4JIV/rank8_confidence-4.51.sdf",
+          "filename": "rank8_confidence-4.51.sdf",
+          "rank": 8,
+          "confidence": 4.51
+        },
+        {
+          "file": "../backend/data/diffdock/4JIV/rank9_confidence-4.68.sdf",
+          "filename": "rank9_confidence-4.68.sdf",
+          "rank": 9,
+          "confidence": 4.68
+        },
+        {
+          "file": "../backend/data/diffdock/4JIV/rank10_confidence-6.83.sdf",
+          "filename": "rank10_confidence-6.83.sdf",
+          "rank": 10,
+          "confidence": 6.83
+        }
+      ]
+    },
+    {
+      "id": "4L63",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/4L63/rank1_confidence-0.54.sdf",
+          "filename": "rank1_confidence-0.54.sdf",
+          "rank": 1,
+          "confidence": 0.54
+        },
+        {
+          "file": "../backend/data/diffdock/4L63/rank2_confidence-0.88.sdf",
+          "filename": "rank2_confidence-0.88.sdf",
+          "rank": 2,
+          "confidence": 0.88
+        },
+        {
+          "file": "../backend/data/diffdock/4L63/rank3_confidence-0.91.sdf",
+          "filename": "rank3_confidence-0.91.sdf",
+          "rank": 3,
+          "confidence": 0.91
+        },
+        {
+          "file": "../backend/data/diffdock/4L63/rank4_confidence-1.11.sdf",
+          "filename": "rank4_confidence-1.11.sdf",
+          "rank": 4,
+          "confidence": 1.11
+        },
+        {
+          "file": "../backend/data/diffdock/4L63/rank5_confidence-1.39.sdf",
+          "filename": "rank5_confidence-1.39.sdf",
+          "rank": 5,
+          "confidence": 1.39
+        },
+        {
+          "file": "../backend/data/diffdock/4L63/rank6_confidence-1.70.sdf",
+          "filename": "rank6_confidence-1.70.sdf",
+          "rank": 6,
+          "confidence": 1.7
+        },
+        {
+          "file": "../backend/data/diffdock/4L63/rank7_confidence-2.77.sdf",
+          "filename": "rank7_confidence-2.77.sdf",
+          "rank": 7,
+          "confidence": 2.77
+        },
+        {
+          "file": "../backend/data/diffdock/4L63/rank8_confidence-2.82.sdf",
+          "filename": "rank8_confidence-2.82.sdf",
+          "rank": 8,
+          "confidence": 2.82
+        },
+        {
+          "file": "../backend/data/diffdock/4L63/rank9_confidence-3.52.sdf",
+          "filename": "rank9_confidence-3.52.sdf",
+          "rank": 9,
+          "confidence": 3.52
+        },
+        {
+          "file": "../backend/data/diffdock/4L63/rank10_confidence-6.79.sdf",
+          "filename": "rank10_confidence-6.79.sdf",
+          "rank": 10,
+          "confidence": 6.79
+        }
+      ]
+    },
+    {
+      "id": "4LMY",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/4LMY/rank1_confidence-2.20.sdf",
+          "filename": "rank1_confidence-2.20.sdf",
+          "rank": 1,
+          "confidence": 2.2
+        },
+        {
+          "file": "../backend/data/diffdock/4LMY/rank2_confidence-3.25.sdf",
+          "filename": "rank2_confidence-3.25.sdf",
+          "rank": 2,
+          "confidence": 3.25
+        },
+        {
+          "file": "../backend/data/diffdock/4LMY/rank3_confidence-3.62.sdf",
+          "filename": "rank3_confidence-3.62.sdf",
+          "rank": 3,
+          "confidence": 3.62
+        },
+        {
+          "file": "../backend/data/diffdock/4LMY/rank4_confidence-3.97.sdf",
+          "filename": "rank4_confidence-3.97.sdf",
+          "rank": 4,
+          "confidence": 3.97
+        },
+        {
+          "file": "../backend/data/diffdock/4LMY/rank5_confidence-4.34.sdf",
+          "filename": "rank5_confidence-4.34.sdf",
+          "rank": 5,
+          "confidence": 4.34
+        },
+        {
+          "file": "../backend/data/diffdock/4LMY/rank6_confidence-5.18.sdf",
+          "filename": "rank6_confidence-5.18.sdf",
+          "rank": 6,
+          "confidence": 5.18
+        },
+        {
+          "file": "../backend/data/diffdock/4LMY/rank7_confidence-6.09.sdf",
+          "filename": "rank7_confidence-6.09.sdf",
+          "rank": 7,
+          "confidence": 6.09
+        },
+        {
+          "file": "../backend/data/diffdock/4LMY/rank8_confidence-6.28.sdf",
+          "filename": "rank8_confidence-6.28.sdf",
+          "rank": 8,
+          "confidence": 6.28
+        },
+        {
+          "file": "../backend/data/diffdock/4LMY/rank9_confidence-6.29.sdf",
+          "filename": "rank9_confidence-6.29.sdf",
+          "rank": 9,
+          "confidence": 6.29
+        },
+        {
+          "file": "../backend/data/diffdock/4LMY/rank10_confidence-8.48.sdf",
+          "filename": "rank10_confidence-8.48.sdf",
+          "rank": 10,
+          "confidence": 8.48
+        }
+      ]
+    },
+    {
+      "id": "4O5O",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/4O5O/rank1_confidence-0.66.sdf",
+          "filename": "rank1_confidence-0.66.sdf",
+          "rank": 1,
+          "confidence": 0.66
+        },
+        {
+          "file": "../backend/data/diffdock/4O5O/rank2_confidence-0.75.sdf",
+          "filename": "rank2_confidence-0.75.sdf",
+          "rank": 2,
+          "confidence": 0.75
+        },
+        {
+          "file": "../backend/data/diffdock/4O5O/rank3_confidence-1.06.sdf",
+          "filename": "rank3_confidence-1.06.sdf",
+          "rank": 3,
+          "confidence": 1.06
+        },
+        {
+          "file": "../backend/data/diffdock/4O5O/rank4_confidence-1.95.sdf",
+          "filename": "rank4_confidence-1.95.sdf",
+          "rank": 4,
+          "confidence": 1.95
+        },
+        {
+          "file": "../backend/data/diffdock/4O5O/rank5_confidence-2.30.sdf",
+          "filename": "rank5_confidence-2.30.sdf",
+          "rank": 5,
+          "confidence": 2.3
+        },
+        {
+          "file": "../backend/data/diffdock/4O5O/rank6_confidence-2.40.sdf",
+          "filename": "rank6_confidence-2.40.sdf",
+          "rank": 6,
+          "confidence": 2.4
+        },
+        {
+          "file": "../backend/data/diffdock/4O5O/rank7_confidence-3.02.sdf",
+          "filename": "rank7_confidence-3.02.sdf",
+          "rank": 7,
+          "confidence": 3.02
+        },
+        {
+          "file": "../backend/data/diffdock/4O5O/rank8_confidence-3.13.sdf",
+          "filename": "rank8_confidence-3.13.sdf",
+          "rank": 8,
+          "confidence": 3.13
+        },
+        {
+          "file": "../backend/data/diffdock/4O5O/rank9_confidence-5.13.sdf",
+          "filename": "rank9_confidence-5.13.sdf",
+          "rank": 9,
+          "confidence": 5.13
+        },
+        {
+          "file": "../backend/data/diffdock/4O5O/rank10_confidence-8.08.sdf",
+          "filename": "rank10_confidence-8.08.sdf",
+          "rank": 10,
+          "confidence": 8.08
+        }
+      ]
+    },
+    {
+      "id": "4RUW",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/4RUW/rank1_confidence-1.68.sdf",
+          "filename": "rank1_confidence-1.68.sdf",
+          "rank": 1,
+          "confidence": 1.68
+        },
+        {
+          "file": "../backend/data/diffdock/4RUW/rank2_confidence-1.95.sdf",
+          "filename": "rank2_confidence-1.95.sdf",
+          "rank": 2,
+          "confidence": 1.95
+        },
+        {
+          "file": "../backend/data/diffdock/4RUW/rank3_confidence-3.06.sdf",
+          "filename": "rank3_confidence-3.06.sdf",
+          "rank": 3,
+          "confidence": 3.06
+        },
+        {
+          "file": "../backend/data/diffdock/4RUW/rank4_confidence-3.19.sdf",
+          "filename": "rank4_confidence-3.19.sdf",
+          "rank": 4,
+          "confidence": 3.19
+        },
+        {
+          "file": "../backend/data/diffdock/4RUW/rank5_confidence-4.12.sdf",
+          "filename": "rank5_confidence-4.12.sdf",
+          "rank": 5,
+          "confidence": 4.12
+        },
+        {
+          "file": "../backend/data/diffdock/4RUW/rank6_confidence-4.45.sdf",
+          "filename": "rank6_confidence-4.45.sdf",
+          "rank": 6,
+          "confidence": 4.45
+        },
+        {
+          "file": "../backend/data/diffdock/4RUW/rank7_confidence-4.79.sdf",
+          "filename": "rank7_confidence-4.79.sdf",
+          "rank": 7,
+          "confidence": 4.79
+        },
+        {
+          "file": "../backend/data/diffdock/4RUW/rank8_confidence-6.35.sdf",
+          "filename": "rank8_confidence-6.35.sdf",
+          "rank": 8,
+          "confidence": 6.35
+        },
+        {
+          "file": "../backend/data/diffdock/4RUW/rank9_confidence-6.70.sdf",
+          "filename": "rank9_confidence-6.70.sdf",
+          "rank": 9,
+          "confidence": 6.7
+        },
+        {
+          "file": "../backend/data/diffdock/4RUW/rank10_confidence-7.80.sdf",
+          "filename": "rank10_confidence-7.80.sdf",
+          "rank": 10,
+          "confidence": 7.8
+        }
+      ]
+    },
+    {
+      "id": "5CZW",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/5CZW/rank1_confidence-0.94.sdf",
+          "filename": "rank1_confidence-0.94.sdf",
+          "rank": 1,
+          "confidence": 0.94
+        },
+        {
+          "file": "../backend/data/diffdock/5CZW/rank2_confidence-0.95.sdf",
+          "filename": "rank2_confidence-0.95.sdf",
+          "rank": 2,
+          "confidence": 0.95
+        },
+        {
+          "file": "../backend/data/diffdock/5CZW/rank3_confidence-1.50.sdf",
+          "filename": "rank3_confidence-1.50.sdf",
+          "rank": 3,
+          "confidence": 1.5
+        },
+        {
+          "file": "../backend/data/diffdock/5CZW/rank4_confidence-1.58.sdf",
+          "filename": "rank4_confidence-1.58.sdf",
+          "rank": 4,
+          "confidence": 1.58
+        },
+        {
+          "file": "../backend/data/diffdock/5CZW/rank5_confidence-2.35.sdf",
+          "filename": "rank5_confidence-2.35.sdf",
+          "rank": 5,
+          "confidence": 2.35
+        },
+        {
+          "file": "../backend/data/diffdock/5CZW/rank6_confidence-3.32.sdf",
+          "filename": "rank6_confidence-3.32.sdf",
+          "rank": 6,
+          "confidence": 3.32
+        },
+        {
+          "file": "../backend/data/diffdock/5CZW/rank7_confidence-3.45.sdf",
+          "filename": "rank7_confidence-3.45.sdf",
+          "rank": 7,
+          "confidence": 3.45
+        },
+        {
+          "file": "../backend/data/diffdock/5CZW/rank8_confidence-3.65.sdf",
+          "filename": "rank8_confidence-3.65.sdf",
+          "rank": 8,
+          "confidence": 3.65
+        },
+        {
+          "file": "../backend/data/diffdock/5CZW/rank9_confidence-6.46.sdf",
+          "filename": "rank9_confidence-6.46.sdf",
+          "rank": 9,
+          "confidence": 6.46
+        },
+        {
+          "file": "../backend/data/diffdock/5CZW/rank10_confidence-7.22.sdf",
+          "filename": "rank10_confidence-7.22.sdf",
+          "rank": 10,
+          "confidence": 7.22
+        }
+      ]
+    },
+    {
+      "id": "6CQG",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/6CQG/rank1_confidence-0.82.sdf",
+          "filename": "rank1_confidence-0.82.sdf",
+          "rank": 1,
+          "confidence": 0.82
+        },
+        {
+          "file": "../backend/data/diffdock/6CQG/rank2_confidence-1.10.sdf",
+          "filename": "rank2_confidence-1.10.sdf",
+          "rank": 2,
+          "confidence": 1.1
+        },
+        {
+          "file": "../backend/data/diffdock/6CQG/rank3_confidence-1.57.sdf",
+          "filename": "rank3_confidence-1.57.sdf",
+          "rank": 3,
+          "confidence": 1.57
+        },
+        {
+          "file": "../backend/data/diffdock/6CQG/rank4_confidence-2.38.sdf",
+          "filename": "rank4_confidence-2.38.sdf",
+          "rank": 4,
+          "confidence": 2.38
+        },
+        {
+          "file": "../backend/data/diffdock/6CQG/rank5_confidence-2.61.sdf",
+          "filename": "rank5_confidence-2.61.sdf",
+          "rank": 5,
+          "confidence": 2.61
+        },
+        {
+          "file": "../backend/data/diffdock/6CQG/rank6_confidence-3.25.sdf",
+          "filename": "rank6_confidence-3.25.sdf",
+          "rank": 6,
+          "confidence": 3.25
+        },
+        {
+          "file": "../backend/data/diffdock/6CQG/rank7_confidence-3.39.sdf",
+          "filename": "rank7_confidence-3.39.sdf",
+          "rank": 7,
+          "confidence": 3.39
+        },
+        {
+          "file": "../backend/data/diffdock/6CQG/rank8_confidence-5.15.sdf",
+          "filename": "rank8_confidence-5.15.sdf",
+          "rank": 8,
+          "confidence": 5.15
+        },
+        {
+          "file": "../backend/data/diffdock/6CQG/rank9_confidence-6.79.sdf",
+          "filename": "rank9_confidence-6.79.sdf",
+          "rank": 9,
+          "confidence": 6.79
+        },
+        {
+          "file": "../backend/data/diffdock/6CQG/rank10_confidence-7.81.sdf",
+          "filename": "rank10_confidence-7.81.sdf",
+          "rank": 10,
+          "confidence": 7.81
+        }
+      ]
+    },
+    {
+      "id": "6GHC",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/6GHC/rank1_confidence-0.85.sdf",
+          "filename": "rank1_confidence-0.85.sdf",
+          "rank": 1,
+          "confidence": 0.85
+        },
+        {
+          "file": "../backend/data/diffdock/6GHC/rank2_confidence-1.43.sdf",
+          "filename": "rank2_confidence-1.43.sdf",
+          "rank": 2,
+          "confidence": 1.43
+        },
+        {
+          "file": "../backend/data/diffdock/6GHC/rank3_confidence-1.65.sdf",
+          "filename": "rank3_confidence-1.65.sdf",
+          "rank": 3,
+          "confidence": 1.65
+        },
+        {
+          "file": "../backend/data/diffdock/6GHC/rank4_confidence-1.66.sdf",
+          "filename": "rank4_confidence-1.66.sdf",
+          "rank": 4,
+          "confidence": 1.66
+        },
+        {
+          "file": "../backend/data/diffdock/6GHC/rank5_confidence-2.32.sdf",
+          "filename": "rank5_confidence-2.32.sdf",
+          "rank": 5,
+          "confidence": 2.32
+        },
+        {
+          "file": "../backend/data/diffdock/6GHC/rank6_confidence-2.91.sdf",
+          "filename": "rank6_confidence-2.91.sdf",
+          "rank": 6,
+          "confidence": 2.91
+        },
+        {
+          "file": "../backend/data/diffdock/6GHC/rank7_confidence-3.02.sdf",
+          "filename": "rank7_confidence-3.02.sdf",
+          "rank": 7,
+          "confidence": 3.02
+        },
+        {
+          "file": "../backend/data/diffdock/6GHC/rank8_confidence-5.23.sdf",
+          "filename": "rank8_confidence-5.23.sdf",
+          "rank": 8,
+          "confidence": 5.23
+        },
+        {
+          "file": "../backend/data/diffdock/6GHC/rank9_confidence-5.85.sdf",
+          "filename": "rank9_confidence-5.85.sdf",
+          "rank": 9,
+          "confidence": 5.85
+        },
+        {
+          "file": "../backend/data/diffdock/6GHC/rank10_confidence-8.35.sdf",
+          "filename": "rank10_confidence-8.35.sdf",
+          "rank": 10,
+          "confidence": 8.35
+        }
+      ]
+    },
+    {
+      "id": "6J4C",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/6J4C/rank1_confidence-0.14.sdf",
+          "filename": "rank1_confidence-0.14.sdf",
+          "rank": 1,
+          "confidence": 0.14
+        },
+        {
+          "file": "../backend/data/diffdock/6J4C/rank2_confidence-0.26.sdf",
+          "filename": "rank2_confidence-0.26.sdf",
+          "rank": 2,
+          "confidence": 0.26
+        },
+        {
+          "file": "../backend/data/diffdock/6J4C/rank3_confidence-0.46.sdf",
+          "filename": "rank3_confidence-0.46.sdf",
+          "rank": 3,
+          "confidence": 0.46
+        },
+        {
+          "file": "../backend/data/diffdock/6J4C/rank4_confidence-0.50.sdf",
+          "filename": "rank4_confidence-0.50.sdf",
+          "rank": 4,
+          "confidence": 0.5
+        },
+        {
+          "file": "../backend/data/diffdock/6J4C/rank5_confidence-0.77.sdf",
+          "filename": "rank5_confidence-0.77.sdf",
+          "rank": 5,
+          "confidence": 0.77
+        },
+        {
+          "file": "../backend/data/diffdock/6J4C/rank6_confidence-1.04.sdf",
+          "filename": "rank6_confidence-1.04.sdf",
+          "rank": 6,
+          "confidence": 1.04
+        },
+        {
+          "file": "../backend/data/diffdock/6J4C/rank7_confidence-1.04.sdf",
+          "filename": "rank7_confidence-1.04.sdf",
+          "rank": 7,
+          "confidence": 1.04
+        },
+        {
+          "file": "../backend/data/diffdock/6J4C/rank8_confidence-1.28.sdf",
+          "filename": "rank8_confidence-1.28.sdf",
+          "rank": 8,
+          "confidence": 1.28
+        },
+        {
+          "file": "../backend/data/diffdock/6J4C/rank9_confidence-1.57.sdf",
+          "filename": "rank9_confidence-1.57.sdf",
+          "rank": 9,
+          "confidence": 1.57
+        },
+        {
+          "file": "../backend/data/diffdock/6J4C/rank10_confidence-2.72.sdf",
+          "filename": "rank10_confidence-2.72.sdf",
+          "rank": 10,
+          "confidence": 2.72
+        }
+      ]
+    },
+    {
+      "id": "6N9A",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/6N9A/rank1_confidence-1.50.sdf",
+          "filename": "rank1_confidence-1.50.sdf",
+          "rank": 1,
+          "confidence": 1.5
+        },
+        {
+          "file": "../backend/data/diffdock/6N9A/rank2_confidence-2.20.sdf",
+          "filename": "rank2_confidence-2.20.sdf",
+          "rank": 2,
+          "confidence": 2.2
+        },
+        {
+          "file": "../backend/data/diffdock/6N9A/rank3_confidence-2.66.sdf",
+          "filename": "rank3_confidence-2.66.sdf",
+          "rank": 3,
+          "confidence": 2.66
+        },
+        {
+          "file": "../backend/data/diffdock/6N9A/rank4_confidence-2.71.sdf",
+          "filename": "rank4_confidence-2.71.sdf",
+          "rank": 4,
+          "confidence": 2.71
+        },
+        {
+          "file": "../backend/data/diffdock/6N9A/rank5_confidence-3.34.sdf",
+          "filename": "rank5_confidence-3.34.sdf",
+          "rank": 5,
+          "confidence": 3.34
+        },
+        {
+          "file": "../backend/data/diffdock/6N9A/rank6_confidence-5.33.sdf",
+          "filename": "rank6_confidence-5.33.sdf",
+          "rank": 6,
+          "confidence": 5.33
+        },
+        {
+          "file": "../backend/data/diffdock/6N9A/rank7_confidence-5.98.sdf",
+          "filename": "rank7_confidence-5.98.sdf",
+          "rank": 7,
+          "confidence": 5.98
+        },
+        {
+          "file": "../backend/data/diffdock/6N9A/rank8_confidence-7.21.sdf",
+          "filename": "rank8_confidence-7.21.sdf",
+          "rank": 8,
+          "confidence": 7.21
+        },
+        {
+          "file": "../backend/data/diffdock/6N9A/rank9_confidence-7.53.sdf",
+          "filename": "rank9_confidence-7.53.sdf",
+          "rank": 9,
+          "confidence": 7.53
+        },
+        {
+          "file": "../backend/data/diffdock/6N9A/rank10_confidence-7.60.sdf",
+          "filename": "rank10_confidence-7.60.sdf",
+          "rank": 10,
+          "confidence": 7.6
+        }
+      ]
+    },
+    {
+      "id": "6ON4",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/6ON4/rank1_confidence-0.82.sdf",
+          "filename": "rank1_confidence-0.82.sdf",
+          "rank": 1,
+          "confidence": 0.82
+        },
+        {
+          "file": "../backend/data/diffdock/6ON4/rank2_confidence-1.03.sdf",
+          "filename": "rank2_confidence-1.03.sdf",
+          "rank": 2,
+          "confidence": 1.03
+        },
+        {
+          "file": "../backend/data/diffdock/6ON4/rank3_confidence-1.42.sdf",
+          "filename": "rank3_confidence-1.42.sdf",
+          "rank": 3,
+          "confidence": 1.42
+        },
+        {
+          "file": "../backend/data/diffdock/6ON4/rank4_confidence-1.71.sdf",
+          "filename": "rank4_confidence-1.71.sdf",
+          "rank": 4,
+          "confidence": 1.71
+        },
+        {
+          "file": "../backend/data/diffdock/6ON4/rank5_confidence-2.13.sdf",
+          "filename": "rank5_confidence-2.13.sdf",
+          "rank": 5,
+          "confidence": 2.13
+        },
+        {
+          "file": "../backend/data/diffdock/6ON4/rank6_confidence-2.61.sdf",
+          "filename": "rank6_confidence-2.61.sdf",
+          "rank": 6,
+          "confidence": 2.61
+        },
+        {
+          "file": "../backend/data/diffdock/6ON4/rank7_confidence-3.34.sdf",
+          "filename": "rank7_confidence-3.34.sdf",
+          "rank": 7,
+          "confidence": 3.34
+        },
+        {
+          "file": "../backend/data/diffdock/6ON4/rank8_confidence-3.58.sdf",
+          "filename": "rank8_confidence-3.58.sdf",
+          "rank": 8,
+          "confidence": 3.58
+        },
+        {
+          "file": "../backend/data/diffdock/6ON4/rank9_confidence-4.64.sdf",
+          "filename": "rank9_confidence-4.64.sdf",
+          "rank": 9,
+          "confidence": 4.64
+        },
+        {
+          "file": "../backend/data/diffdock/6ON4/rank10_confidence-5.31.sdf",
+          "filename": "rank10_confidence-5.31.sdf",
+          "rank": 10,
+          "confidence": 5.31
+        }
+      ]
+    },
+    {
+      "id": "6P1G",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/6P1G/rank1_confidence-1.17.sdf",
+          "filename": "rank1_confidence-1.17.sdf",
+          "rank": 1,
+          "confidence": 1.17
+        },
+        {
+          "file": "../backend/data/diffdock/6P1G/rank2_confidence-1.24.sdf",
+          "filename": "rank2_confidence-1.24.sdf",
+          "rank": 2,
+          "confidence": 1.24
+        },
+        {
+          "file": "../backend/data/diffdock/6P1G/rank3_confidence-1.29.sdf",
+          "filename": "rank3_confidence-1.29.sdf",
+          "rank": 3,
+          "confidence": 1.29
+        },
+        {
+          "file": "../backend/data/diffdock/6P1G/rank4_confidence-1.89.sdf",
+          "filename": "rank4_confidence-1.89.sdf",
+          "rank": 4,
+          "confidence": 1.89
+        },
+        {
+          "file": "../backend/data/diffdock/6P1G/rank5_confidence-1.95.sdf",
+          "filename": "rank5_confidence-1.95.sdf",
+          "rank": 5,
+          "confidence": 1.95
+        },
+        {
+          "file": "../backend/data/diffdock/6P1G/rank6_confidence-2.08.sdf",
+          "filename": "rank6_confidence-2.08.sdf",
+          "rank": 6,
+          "confidence": 2.08
+        },
+        {
+          "file": "../backend/data/diffdock/6P1G/rank7_confidence-3.86.sdf",
+          "filename": "rank7_confidence-3.86.sdf",
+          "rank": 7,
+          "confidence": 3.86
+        },
+        {
+          "file": "../backend/data/diffdock/6P1G/rank8_confidence-4.26.sdf",
+          "filename": "rank8_confidence-4.26.sdf",
+          "rank": 8,
+          "confidence": 4.26
+        },
+        {
+          "file": "../backend/data/diffdock/6P1G/rank9_confidence-5.58.sdf",
+          "filename": "rank9_confidence-5.58.sdf",
+          "rank": 9,
+          "confidence": 5.58
+        },
+        {
+          "file": "../backend/data/diffdock/6P1G/rank10_confidence-7.96.sdf",
+          "filename": "rank10_confidence-7.96.sdf",
+          "rank": 10,
+          "confidence": 7.96
+        }
+      ]
+    },
+    {
+      "id": "6R1G",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/6R1G/rank1_confidence-0.81.sdf",
+          "filename": "rank1_confidence-0.81.sdf",
+          "rank": 1,
+          "confidence": 0.81
+        },
+        {
+          "file": "../backend/data/diffdock/6R1G/rank2_confidence-1.14.sdf",
+          "filename": "rank2_confidence-1.14.sdf",
+          "rank": 2,
+          "confidence": 1.14
+        },
+        {
+          "file": "../backend/data/diffdock/6R1G/rank3_confidence-1.23.sdf",
+          "filename": "rank3_confidence-1.23.sdf",
+          "rank": 3,
+          "confidence": 1.23
+        },
+        {
+          "file": "../backend/data/diffdock/6R1G/rank4_confidence-1.41.sdf",
+          "filename": "rank4_confidence-1.41.sdf",
+          "rank": 4,
+          "confidence": 1.41
+        },
+        {
+          "file": "../backend/data/diffdock/6R1G/rank5_confidence-1.46.sdf",
+          "filename": "rank5_confidence-1.46.sdf",
+          "rank": 5,
+          "confidence": 1.46
+        },
+        {
+          "file": "../backend/data/diffdock/6R1G/rank6_confidence-1.93.sdf",
+          "filename": "rank6_confidence-1.93.sdf",
+          "rank": 6,
+          "confidence": 1.93
+        },
+        {
+          "file": "../backend/data/diffdock/6R1G/rank7_confidence-2.94.sdf",
+          "filename": "rank7_confidence-2.94.sdf",
+          "rank": 7,
+          "confidence": 2.94
+        },
+        {
+          "file": "../backend/data/diffdock/6R1G/rank8_confidence-2.97.sdf",
+          "filename": "rank8_confidence-2.97.sdf",
+          "rank": 8,
+          "confidence": 2.97
+        },
+        {
+          "file": "../backend/data/diffdock/6R1G/rank9_confidence-3.77.sdf",
+          "filename": "rank9_confidence-3.77.sdf",
+          "rank": 9,
+          "confidence": 3.77
+        },
+        {
+          "file": "../backend/data/diffdock/6R1G/rank10_confidence-3.90.sdf",
+          "filename": "rank10_confidence-3.90.sdf",
+          "rank": 10,
+          "confidence": 3.9
+        }
+      ]
+    },
+    {
+      "id": "6R3R",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/6R3R/rank1_confidence-1.08.sdf",
+          "filename": "rank1_confidence-1.08.sdf",
+          "rank": 1,
+          "confidence": 1.08
+        },
+        {
+          "file": "../backend/data/diffdock/6R3R/rank2_confidence-1.12.sdf",
+          "filename": "rank2_confidence-1.12.sdf",
+          "rank": 2,
+          "confidence": 1.12
+        },
+        {
+          "file": "../backend/data/diffdock/6R3R/rank3_confidence-2.36.sdf",
+          "filename": "rank3_confidence-2.36.sdf",
+          "rank": 3,
+          "confidence": 2.36
+        },
+        {
+          "file": "../backend/data/diffdock/6R3R/rank4_confidence-2.55.sdf",
+          "filename": "rank4_confidence-2.55.sdf",
+          "rank": 4,
+          "confidence": 2.55
+        },
+        {
+          "file": "../backend/data/diffdock/6R3R/rank5_confidence-2.82.sdf",
+          "filename": "rank5_confidence-2.82.sdf",
+          "rank": 5,
+          "confidence": 2.82
+        },
+        {
+          "file": "../backend/data/diffdock/6R3R/rank6_confidence-4.42.sdf",
+          "filename": "rank6_confidence-4.42.sdf",
+          "rank": 6,
+          "confidence": 4.42
+        },
+        {
+          "file": "../backend/data/diffdock/6R3R/rank7_confidence-5.41.sdf",
+          "filename": "rank7_confidence-5.41.sdf",
+          "rank": 7,
+          "confidence": 5.41
+        },
+        {
+          "file": "../backend/data/diffdock/6R3R/rank8_confidence-5.50.sdf",
+          "filename": "rank8_confidence-5.50.sdf",
+          "rank": 8,
+          "confidence": 5.5
+        },
+        {
+          "file": "../backend/data/diffdock/6R3R/rank9_confidence-6.18.sdf",
+          "filename": "rank9_confidence-6.18.sdf",
+          "rank": 9,
+          "confidence": 6.18
+        },
+        {
+          "file": "../backend/data/diffdock/6R3R/rank10_confidence-7.45.sdf",
+          "filename": "rank10_confidence-7.45.sdf",
+          "rank": 10,
+          "confidence": 7.45
+        }
+      ]
+    },
+    {
+      "id": "6R7U",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/6R7U/rank1_confidence-1.25.sdf",
+          "filename": "rank1_confidence-1.25.sdf",
+          "rank": 1,
+          "confidence": 1.25
+        },
+        {
+          "file": "../backend/data/diffdock/6R7U/rank2_confidence-1.71.sdf",
+          "filename": "rank2_confidence-1.71.sdf",
+          "rank": 2,
+          "confidence": 1.71
+        },
+        {
+          "file": "../backend/data/diffdock/6R7U/rank3_confidence-2.41.sdf",
+          "filename": "rank3_confidence-2.41.sdf",
+          "rank": 3,
+          "confidence": 2.41
+        },
+        {
+          "file": "../backend/data/diffdock/6R7U/rank4_confidence-2.46.sdf",
+          "filename": "rank4_confidence-2.46.sdf",
+          "rank": 4,
+          "confidence": 2.46
+        },
+        {
+          "file": "../backend/data/diffdock/6R7U/rank5_confidence-3.73.sdf",
+          "filename": "rank5_confidence-3.73.sdf",
+          "rank": 5,
+          "confidence": 3.73
+        },
+        {
+          "file": "../backend/data/diffdock/6R7U/rank6_confidence-3.76.sdf",
+          "filename": "rank6_confidence-3.76.sdf",
+          "rank": 6,
+          "confidence": 3.76
+        },
+        {
+          "file": "../backend/data/diffdock/6R7U/rank7_confidence-4.57.sdf",
+          "filename": "rank7_confidence-4.57.sdf",
+          "rank": 7,
+          "confidence": 4.57
+        },
+        {
+          "file": "../backend/data/diffdock/6R7U/rank8_confidence-4.79.sdf",
+          "filename": "rank8_confidence-4.79.sdf",
+          "rank": 8,
+          "confidence": 4.79
+        },
+        {
+          "file": "../backend/data/diffdock/6R7U/rank9_confidence-6.16.sdf",
+          "filename": "rank9_confidence-6.16.sdf",
+          "rank": 9,
+          "confidence": 6.16
+        },
+        {
+          "file": "../backend/data/diffdock/6R7U/rank10_confidence-6.30.sdf",
+          "filename": "rank10_confidence-6.30.sdf",
+          "rank": 10,
+          "confidence": 6.3
+        }
+      ]
+    },
+    {
+      "id": "6Y4E",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/6Y4E/rank1_confidence-0.72.sdf",
+          "filename": "rank1_confidence-0.72.sdf",
+          "rank": 1,
+          "confidence": 0.72
+        },
+        {
+          "file": "../backend/data/diffdock/6Y4E/rank2_confidence-0.82.sdf",
+          "filename": "rank2_confidence-0.82.sdf",
+          "rank": 2,
+          "confidence": 0.82
+        },
+        {
+          "file": "../backend/data/diffdock/6Y4E/rank3_confidence-0.99.sdf",
+          "filename": "rank3_confidence-0.99.sdf",
+          "rank": 3,
+          "confidence": 0.99
+        },
+        {
+          "file": "../backend/data/diffdock/6Y4E/rank4_confidence-1.28.sdf",
+          "filename": "rank4_confidence-1.28.sdf",
+          "rank": 4,
+          "confidence": 1.28
+        },
+        {
+          "file": "../backend/data/diffdock/6Y4E/rank5_confidence-1.51.sdf",
+          "filename": "rank5_confidence-1.51.sdf",
+          "rank": 5,
+          "confidence": 1.51
+        },
+        {
+          "file": "../backend/data/diffdock/6Y4E/rank6_confidence-1.60.sdf",
+          "filename": "rank6_confidence-1.60.sdf",
+          "rank": 6,
+          "confidence": 1.6
+        },
+        {
+          "file": "../backend/data/diffdock/6Y4E/rank7_confidence-1.98.sdf",
+          "filename": "rank7_confidence-1.98.sdf",
+          "rank": 7,
+          "confidence": 1.98
+        },
+        {
+          "file": "../backend/data/diffdock/6Y4E/rank8_confidence-2.50.sdf",
+          "filename": "rank8_confidence-2.50.sdf",
+          "rank": 8,
+          "confidence": 2.5
+        },
+        {
+          "file": "../backend/data/diffdock/6Y4E/rank9_confidence-2.91.sdf",
+          "filename": "rank9_confidence-2.91.sdf",
+          "rank": 9,
+          "confidence": 2.91
+        },
+        {
+          "file": "../backend/data/diffdock/6Y4E/rank10_confidence-3.28.sdf",
+          "filename": "rank10_confidence-3.28.sdf",
+          "rank": 10,
+          "confidence": 3.28
+        }
+      ]
+    },
+    {
+      "id": "6Z2D",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/6Z2D/rank1_confidence-1.21.sdf",
+          "filename": "rank1_confidence-1.21.sdf",
+          "rank": 1,
+          "confidence": 1.21
+        },
+        {
+          "file": "../backend/data/diffdock/6Z2D/rank2_confidence-1.44.sdf",
+          "filename": "rank2_confidence-1.44.sdf",
+          "rank": 2,
+          "confidence": 1.44
+        },
+        {
+          "file": "../backend/data/diffdock/6Z2D/rank3_confidence-1.58.sdf",
+          "filename": "rank3_confidence-1.58.sdf",
+          "rank": 3,
+          "confidence": 1.58
+        },
+        {
+          "file": "../backend/data/diffdock/6Z2D/rank4_confidence-2.14.sdf",
+          "filename": "rank4_confidence-2.14.sdf",
+          "rank": 4,
+          "confidence": 2.14
+        },
+        {
+          "file": "../backend/data/diffdock/6Z2D/rank5_confidence-3.15.sdf",
+          "filename": "rank5_confidence-3.15.sdf",
+          "rank": 5,
+          "confidence": 3.15
+        },
+        {
+          "file": "../backend/data/diffdock/6Z2D/rank6_confidence-3.42.sdf",
+          "filename": "rank6_confidence-3.42.sdf",
+          "rank": 6,
+          "confidence": 3.42
+        },
+        {
+          "file": "../backend/data/diffdock/6Z2D/rank7_confidence-6.58.sdf",
+          "filename": "rank7_confidence-6.58.sdf",
+          "rank": 7,
+          "confidence": 6.58
+        },
+        {
+          "file": "../backend/data/diffdock/6Z2D/rank8_confidence-7.22.sdf",
+          "filename": "rank8_confidence-7.22.sdf",
+          "rank": 8,
+          "confidence": 7.22
+        },
+        {
+          "file": "../backend/data/diffdock/6Z2D/rank9_confidence-7.89.sdf",
+          "filename": "rank9_confidence-7.89.sdf",
+          "rank": 9,
+          "confidence": 7.89
+        },
+        {
+          "file": "../backend/data/diffdock/6Z2D/rank10_confidence-8.76.sdf",
+          "filename": "rank10_confidence-8.76.sdf",
+          "rank": 10,
+          "confidence": 8.76
+        }
+      ]
+    },
+    {
+      "id": "7ESI",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/7ESI/rank1_confidence-0.78.sdf",
+          "filename": "rank1_confidence-0.78.sdf",
+          "rank": 1,
+          "confidence": 0.78
+        },
+        {
+          "file": "../backend/data/diffdock/7ESI/rank2_confidence-1.50.sdf",
+          "filename": "rank2_confidence-1.50.sdf",
+          "rank": 2,
+          "confidence": 1.5
+        },
+        {
+          "file": "../backend/data/diffdock/7ESI/rank3_confidence-1.53.sdf",
+          "filename": "rank3_confidence-1.53.sdf",
+          "rank": 3,
+          "confidence": 1.53
+        },
+        {
+          "file": "../backend/data/diffdock/7ESI/rank4_confidence-1.98.sdf",
+          "filename": "rank4_confidence-1.98.sdf",
+          "rank": 4,
+          "confidence": 1.98
+        },
+        {
+          "file": "../backend/data/diffdock/7ESI/rank5_confidence-2.18.sdf",
+          "filename": "rank5_confidence-2.18.sdf",
+          "rank": 5,
+          "confidence": 2.18
+        },
+        {
+          "file": "../backend/data/diffdock/7ESI/rank6_confidence-2.20.sdf",
+          "filename": "rank6_confidence-2.20.sdf",
+          "rank": 6,
+          "confidence": 2.2
+        },
+        {
+          "file": "../backend/data/diffdock/7ESI/rank7_confidence-2.41.sdf",
+          "filename": "rank7_confidence-2.41.sdf",
+          "rank": 7,
+          "confidence": 2.41
+        },
+        {
+          "file": "../backend/data/diffdock/7ESI/rank8_confidence-3.20.sdf",
+          "filename": "rank8_confidence-3.20.sdf",
+          "rank": 8,
+          "confidence": 3.2
+        },
+        {
+          "file": "../backend/data/diffdock/7ESI/rank9_confidence-4.48.sdf",
+          "filename": "rank9_confidence-4.48.sdf",
+          "rank": 9,
+          "confidence": 4.48
+        },
+        {
+          "file": "../backend/data/diffdock/7ESI/rank10_confidence-5.25.sdf",
+          "filename": "rank10_confidence-5.25.sdf",
+          "rank": 10,
+          "confidence": 5.25
+        }
+      ]
+    },
+    {
+      "id": "7OB6",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/7OB6/rank1_confidence-1.22.sdf",
+          "filename": "rank1_confidence-1.22.sdf",
+          "rank": 1,
+          "confidence": 1.22
+        },
+        {
+          "file": "../backend/data/diffdock/7OB6/rank2_confidence-1.33.sdf",
+          "filename": "rank2_confidence-1.33.sdf",
+          "rank": 2,
+          "confidence": 1.33
+        },
+        {
+          "file": "../backend/data/diffdock/7OB6/rank3_confidence-2.04.sdf",
+          "filename": "rank3_confidence-2.04.sdf",
+          "rank": 3,
+          "confidence": 2.04
+        },
+        {
+          "file": "../backend/data/diffdock/7OB6/rank4_confidence-2.12.sdf",
+          "filename": "rank4_confidence-2.12.sdf",
+          "rank": 4,
+          "confidence": 2.12
+        },
+        {
+          "file": "../backend/data/diffdock/7OB6/rank5_confidence-3.91.sdf",
+          "filename": "rank5_confidence-3.91.sdf",
+          "rank": 5,
+          "confidence": 3.91
+        },
+        {
+          "file": "../backend/data/diffdock/7OB6/rank6_confidence-4.06.sdf",
+          "filename": "rank6_confidence-4.06.sdf",
+          "rank": 6,
+          "confidence": 4.06
+        },
+        {
+          "file": "../backend/data/diffdock/7OB6/rank7_confidence-5.10.sdf",
+          "filename": "rank7_confidence-5.10.sdf",
+          "rank": 7,
+          "confidence": 5.1
+        },
+        {
+          "file": "../backend/data/diffdock/7OB6/rank8_confidence-6.28.sdf",
+          "filename": "rank8_confidence-6.28.sdf",
+          "rank": 8,
+          "confidence": 6.28
+        },
+        {
+          "file": "../backend/data/diffdock/7OB6/rank9_confidence-6.69.sdf",
+          "filename": "rank9_confidence-6.69.sdf",
+          "rank": 9,
+          "confidence": 6.69
+        },
+        {
+          "file": "../backend/data/diffdock/7OB6/rank10_confidence-8.35.sdf",
+          "filename": "rank10_confidence-8.35.sdf",
+          "rank": 10,
+          "confidence": 8.35
+        }
+      ]
+    },
+    {
+      "id": "7U5Q",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/7U5Q/rank1_confidence-1.13.sdf",
+          "filename": "rank1_confidence-1.13.sdf",
+          "rank": 1,
+          "confidence": 1.13
+        },
+        {
+          "file": "../backend/data/diffdock/7U5Q/rank2_confidence-1.40.sdf",
+          "filename": "rank2_confidence-1.40.sdf",
+          "rank": 2,
+          "confidence": 1.4
+        },
+        {
+          "file": "../backend/data/diffdock/7U5Q/rank3_confidence-1.43.sdf",
+          "filename": "rank3_confidence-1.43.sdf",
+          "rank": 3,
+          "confidence": 1.43
+        },
+        {
+          "file": "../backend/data/diffdock/7U5Q/rank4_confidence-1.45.sdf",
+          "filename": "rank4_confidence-1.45.sdf",
+          "rank": 4,
+          "confidence": 1.45
+        },
+        {
+          "file": "../backend/data/diffdock/7U5Q/rank5_confidence-1.83.sdf",
+          "filename": "rank5_confidence-1.83.sdf",
+          "rank": 5,
+          "confidence": 1.83
+        },
+        {
+          "file": "../backend/data/diffdock/7U5Q/rank6_confidence-1.91.sdf",
+          "filename": "rank6_confidence-1.91.sdf",
+          "rank": 6,
+          "confidence": 1.91
+        },
+        {
+          "file": "../backend/data/diffdock/7U5Q/rank7_confidence-3.08.sdf",
+          "filename": "rank7_confidence-3.08.sdf",
+          "rank": 7,
+          "confidence": 3.08
+        },
+        {
+          "file": "../backend/data/diffdock/7U5Q/rank8_confidence-3.88.sdf",
+          "filename": "rank8_confidence-3.88.sdf",
+          "rank": 8,
+          "confidence": 3.88
+        },
+        {
+          "file": "../backend/data/diffdock/7U5Q/rank9_confidence-5.27.sdf",
+          "filename": "rank9_confidence-5.27.sdf",
+          "rank": 9,
+          "confidence": 5.27
+        },
+        {
+          "file": "../backend/data/diffdock/7U5Q/rank10_confidence-5.54.sdf",
+          "filename": "rank10_confidence-5.54.sdf",
+          "rank": 10,
+          "confidence": 5.54
+        }
+      ]
+    },
+    {
+      "id": "7Y7O",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/7Y7O/rank1_confidence-1.31.sdf",
+          "filename": "rank1_confidence-1.31.sdf",
+          "rank": 1,
+          "confidence": 1.31
+        },
+        {
+          "file": "../backend/data/diffdock/7Y7O/rank2_confidence-1.68.sdf",
+          "filename": "rank2_confidence-1.68.sdf",
+          "rank": 2,
+          "confidence": 1.68
+        },
+        {
+          "file": "../backend/data/diffdock/7Y7O/rank3_confidence-1.94.sdf",
+          "filename": "rank3_confidence-1.94.sdf",
+          "rank": 3,
+          "confidence": 1.94
+        },
+        {
+          "file": "../backend/data/diffdock/7Y7O/rank4_confidence-3.92.sdf",
+          "filename": "rank4_confidence-3.92.sdf",
+          "rank": 4,
+          "confidence": 3.92
+        },
+        {
+          "file": "../backend/data/diffdock/7Y7O/rank5_confidence-5.29.sdf",
+          "filename": "rank5_confidence-5.29.sdf",
+          "rank": 5,
+          "confidence": 5.29
+        },
+        {
+          "file": "../backend/data/diffdock/7Y7O/rank6_confidence-5.49.sdf",
+          "filename": "rank6_confidence-5.49.sdf",
+          "rank": 6,
+          "confidence": 5.49
+        },
+        {
+          "file": "../backend/data/diffdock/7Y7O/rank7_confidence-5.64.sdf",
+          "filename": "rank7_confidence-5.64.sdf",
+          "rank": 7,
+          "confidence": 5.64
+        },
+        {
+          "file": "../backend/data/diffdock/7Y7O/rank8_confidence-6.20.sdf",
+          "filename": "rank8_confidence-6.20.sdf",
+          "rank": 8,
+          "confidence": 6.2
+        },
+        {
+          "file": "../backend/data/diffdock/7Y7O/rank9_confidence-6.46.sdf",
+          "filename": "rank9_confidence-6.46.sdf",
+          "rank": 9,
+          "confidence": 6.46
+        },
+        {
+          "file": "../backend/data/diffdock/7Y7O/rank10_confidence-6.94.sdf",
+          "filename": "rank10_confidence-6.94.sdf",
+          "rank": 10,
+          "confidence": 6.94
+        }
+      ]
+    },
+    {
+      "id": "8RHE",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/8RHE/rank1_confidence-1.72.sdf",
+          "filename": "rank1_confidence-1.72.sdf",
+          "rank": 1,
+          "confidence": 1.72
+        },
+        {
+          "file": "../backend/data/diffdock/8RHE/rank2_confidence-1.99.sdf",
+          "filename": "rank2_confidence-1.99.sdf",
+          "rank": 2,
+          "confidence": 1.99
+        },
+        {
+          "file": "../backend/data/diffdock/8RHE/rank3_confidence-2.47.sdf",
+          "filename": "rank3_confidence-2.47.sdf",
+          "rank": 3,
+          "confidence": 2.47
+        },
+        {
+          "file": "../backend/data/diffdock/8RHE/rank4_confidence-2.79.sdf",
+          "filename": "rank4_confidence-2.79.sdf",
+          "rank": 4,
+          "confidence": 2.79
+        },
+        {
+          "file": "../backend/data/diffdock/8RHE/rank5_confidence-2.84.sdf",
+          "filename": "rank5_confidence-2.84.sdf",
+          "rank": 5,
+          "confidence": 2.84
+        },
+        {
+          "file": "../backend/data/diffdock/8RHE/rank6_confidence-3.20.sdf",
+          "filename": "rank6_confidence-3.20.sdf",
+          "rank": 6,
+          "confidence": 3.2
+        },
+        {
+          "file": "../backend/data/diffdock/8RHE/rank7_confidence-3.26.sdf",
+          "filename": "rank7_confidence-3.26.sdf",
+          "rank": 7,
+          "confidence": 3.26
+        },
+        {
+          "file": "../backend/data/diffdock/8RHE/rank8_confidence-5.72.sdf",
+          "filename": "rank8_confidence-5.72.sdf",
+          "rank": 8,
+          "confidence": 5.72
+        },
+        {
+          "file": "../backend/data/diffdock/8RHE/rank9_confidence-5.95.sdf",
+          "filename": "rank9_confidence-5.95.sdf",
+          "rank": 9,
+          "confidence": 5.95
+        },
+        {
+          "file": "../backend/data/diffdock/8RHE/rank10_confidence-7.14.sdf",
+          "filename": "rank10_confidence-7.14.sdf",
+          "rank": 10,
+          "confidence": 7.14
+        }
+      ]
+    },
+    {
+      "id": "8TWU",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/8TWU/rank1_confidence-1.14.sdf",
+          "filename": "rank1_confidence-1.14.sdf",
+          "rank": 1,
+          "confidence": 1.14
+        },
+        {
+          "file": "../backend/data/diffdock/8TWU/rank2_confidence-1.26.sdf",
+          "filename": "rank2_confidence-1.26.sdf",
+          "rank": 2,
+          "confidence": 1.26
+        },
+        {
+          "file": "../backend/data/diffdock/8TWU/rank3_confidence-1.79.sdf",
+          "filename": "rank3_confidence-1.79.sdf",
+          "rank": 3,
+          "confidence": 1.79
+        },
+        {
+          "file": "../backend/data/diffdock/8TWU/rank4_confidence-2.04.sdf",
+          "filename": "rank4_confidence-2.04.sdf",
+          "rank": 4,
+          "confidence": 2.04
+        },
+        {
+          "file": "../backend/data/diffdock/8TWU/rank5_confidence-2.37.sdf",
+          "filename": "rank5_confidence-2.37.sdf",
+          "rank": 5,
+          "confidence": 2.37
+        },
+        {
+          "file": "../backend/data/diffdock/8TWU/rank6_confidence-5.12.sdf",
+          "filename": "rank6_confidence-5.12.sdf",
+          "rank": 6,
+          "confidence": 5.12
+        },
+        {
+          "file": "../backend/data/diffdock/8TWU/rank7_confidence-5.22.sdf",
+          "filename": "rank7_confidence-5.22.sdf",
+          "rank": 7,
+          "confidence": 5.22
+        },
+        {
+          "file": "../backend/data/diffdock/8TWU/rank8_confidence-5.49.sdf",
+          "filename": "rank8_confidence-5.49.sdf",
+          "rank": 8,
+          "confidence": 5.49
+        },
+        {
+          "file": "../backend/data/diffdock/8TWU/rank9_confidence-6.12.sdf",
+          "filename": "rank9_confidence-6.12.sdf",
+          "rank": 9,
+          "confidence": 6.12
+        },
+        {
+          "file": "../backend/data/diffdock/8TWU/rank10_confidence-7.97.sdf",
+          "filename": "rank10_confidence-7.97.sdf",
+          "rank": 10,
+          "confidence": 7.97
+        }
+      ]
+    },
+    {
+      "id": "9FLN",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/9FLN/rank1_confidence-1.29.sdf",
+          "filename": "rank1_confidence-1.29.sdf",
+          "rank": 1,
+          "confidence": 1.29
+        },
+        {
+          "file": "../backend/data/diffdock/9FLN/rank2_confidence-2.03.sdf",
+          "filename": "rank2_confidence-2.03.sdf",
+          "rank": 2,
+          "confidence": 2.03
+        },
+        {
+          "file": "../backend/data/diffdock/9FLN/rank3_confidence-2.34.sdf",
+          "filename": "rank3_confidence-2.34.sdf",
+          "rank": 3,
+          "confidence": 2.34
+        },
+        {
+          "file": "../backend/data/diffdock/9FLN/rank4_confidence-2.83.sdf",
+          "filename": "rank4_confidence-2.83.sdf",
+          "rank": 4,
+          "confidence": 2.83
+        },
+        {
+          "file": "../backend/data/diffdock/9FLN/rank5_confidence-2.95.sdf",
+          "filename": "rank5_confidence-2.95.sdf",
+          "rank": 5,
+          "confidence": 2.95
+        },
+        {
+          "file": "../backend/data/diffdock/9FLN/rank6_confidence-3.13.sdf",
+          "filename": "rank6_confidence-3.13.sdf",
+          "rank": 6,
+          "confidence": 3.13
+        },
+        {
+          "file": "../backend/data/diffdock/9FLN/rank7_confidence-3.39.sdf",
+          "filename": "rank7_confidence-3.39.sdf",
+          "rank": 7,
+          "confidence": 3.39
+        },
+        {
+          "file": "../backend/data/diffdock/9FLN/rank8_confidence-3.81.sdf",
+          "filename": "rank8_confidence-3.81.sdf",
+          "rank": 8,
+          "confidence": 3.81
+        },
+        {
+          "file": "../backend/data/diffdock/9FLN/rank9_confidence-6.57.sdf",
+          "filename": "rank9_confidence-6.57.sdf",
+          "rank": 9,
+          "confidence": 6.57
+        },
+        {
+          "file": "../backend/data/diffdock/9FLN/rank10_confidence-8.24.sdf",
+          "filename": "rank10_confidence-8.24.sdf",
+          "rank": 10,
+          "confidence": 8.24
+        }
+      ]
+    },
+    {
+      "id": "9J9P",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/9J9P/rank1_confidence-1.22.sdf",
+          "filename": "rank1_confidence-1.22.sdf",
+          "rank": 1,
+          "confidence": 1.22
+        },
+        {
+          "file": "../backend/data/diffdock/9J9P/rank2_confidence-1.28.sdf",
+          "filename": "rank2_confidence-1.28.sdf",
+          "rank": 2,
+          "confidence": 1.28
+        },
+        {
+          "file": "../backend/data/diffdock/9J9P/rank3_confidence-1.66.sdf",
+          "filename": "rank3_confidence-1.66.sdf",
+          "rank": 3,
+          "confidence": 1.66
+        },
+        {
+          "file": "../backend/data/diffdock/9J9P/rank4_confidence-1.90.sdf",
+          "filename": "rank4_confidence-1.90.sdf",
+          "rank": 4,
+          "confidence": 1.9
+        },
+        {
+          "file": "../backend/data/diffdock/9J9P/rank5_confidence-2.23.sdf",
+          "filename": "rank5_confidence-2.23.sdf",
+          "rank": 5,
+          "confidence": 2.23
+        },
+        {
+          "file": "../backend/data/diffdock/9J9P/rank6_confidence-2.49.sdf",
+          "filename": "rank6_confidence-2.49.sdf",
+          "rank": 6,
+          "confidence": 2.49
+        },
+        {
+          "file": "../backend/data/diffdock/9J9P/rank7_confidence-2.99.sdf",
+          "filename": "rank7_confidence-2.99.sdf",
+          "rank": 7,
+          "confidence": 2.99
+        },
+        {
+          "file": "../backend/data/diffdock/9J9P/rank8_confidence-4.51.sdf",
+          "filename": "rank8_confidence-4.51.sdf",
+          "rank": 8,
+          "confidence": 4.51
+        },
+        {
+          "file": "../backend/data/diffdock/9J9P/rank9_confidence-6.49.sdf",
+          "filename": "rank9_confidence-6.49.sdf",
+          "rank": 9,
+          "confidence": 6.49
+        },
+        {
+          "file": "../backend/data/diffdock/9J9P/rank10_confidence-7.83.sdf",
+          "filename": "rank10_confidence-7.83.sdf",
+          "rank": 10,
+          "confidence": 7.83
+        }
+      ]
+    },
+    {
+      "id": "9MHL",
+      "pose_count": 10,
+      "poses": [
+        {
+          "file": "../backend/data/diffdock/9MHL/rank1_confidence-0.61.sdf",
+          "filename": "rank1_confidence-0.61.sdf",
+          "rank": 1,
+          "confidence": 0.61
+        },
+        {
+          "file": "../backend/data/diffdock/9MHL/rank2_confidence-1.19.sdf",
+          "filename": "rank2_confidence-1.19.sdf",
+          "rank": 2,
+          "confidence": 1.19
+        },
+        {
+          "file": "../backend/data/diffdock/9MHL/rank3_confidence-1.70.sdf",
+          "filename": "rank3_confidence-1.70.sdf",
+          "rank": 3,
+          "confidence": 1.7
+        },
+        {
+          "file": "../backend/data/diffdock/9MHL/rank4_confidence-2.27.sdf",
+          "filename": "rank4_confidence-2.27.sdf",
+          "rank": 4,
+          "confidence": 2.27
+        },
+        {
+          "file": "../backend/data/diffdock/9MHL/rank5_confidence-2.67.sdf",
+          "filename": "rank5_confidence-2.67.sdf",
+          "rank": 5,
+          "confidence": 2.67
+        },
+        {
+          "file": "../backend/data/diffdock/9MHL/rank6_confidence-2.90.sdf",
+          "filename": "rank6_confidence-2.90.sdf",
+          "rank": 6,
+          "confidence": 2.9
+        },
+        {
+          "file": "../backend/data/diffdock/9MHL/rank7_confidence-3.24.sdf",
+          "filename": "rank7_confidence-3.24.sdf",
+          "rank": 7,
+          "confidence": 3.24
+        },
+        {
+          "file": "../backend/data/diffdock/9MHL/rank8_confidence-4.92.sdf",
+          "filename": "rank8_confidence-4.92.sdf",
+          "rank": 8,
+          "confidence": 4.92
+        },
+        {
+          "file": "../backend/data/diffdock/9MHL/rank9_confidence-6.69.sdf",
+          "filename": "rank9_confidence-6.69.sdf",
+          "rank": 9,
+          "confidence": 6.69
+        },
+        {
+          "file": "../backend/data/diffdock/9MHL/rank10_confidence-7.02.sdf",
+          "filename": "rank10_confidence-7.02.sdf",
+          "rank": 10,
+          "confidence": 7.02
+        }
+      ]
+    }
+  ],
+  "total_proteins": 71
+}

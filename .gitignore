@@ -1,5 +1,9 @@
 # Local Codex state
 /.codex
+/.git.broken-*/
+
+# Nested local repositories
+/AI-homework/
 
 # Local toolchains, binary deps, and virtualenvs
 /.tools/

@@ -117,12 +117,35 @@ def discover_pdbzn_pdb_dir(base_dir: Path):
     return found or (DATA_DIR / "structures")
 
 
+def _env_truthy(name, default=False):
+    raw = str(os.environ.get(name, "") or "").strip().lower()
+    if not raw:
+        return bool(default)
+    return raw in {"1", "true", "yes", "y", "on"}
+
+
+def _split_path_list(raw):
+    text = str(raw or "").strip()
+    if not text:
+        return []
+    parts = []
+    for seg in re.split(rf"[{re.escape(os.pathsep)}\n\r,;]+", text):
+        item = str(seg or "").strip()
+        if item:
+            parts.append(item)
+    return parts
+
+
 WORK_DIR = RUNTIME_DIR / "diffdock_jobs"
 WORK_DIR.mkdir(parents=True, exist_ok=True)
 FPOCKET_WORK_DIR = RUNTIME_DIR / "fpocket_jobs"
 FPOCKET_WORK_DIR.mkdir(parents=True, exist_ok=True)
 TMALIGN_WORK_DIR = RUNTIME_DIR / "tmalign_jobs"
 TMALIGN_WORK_DIR.mkdir(parents=True, exist_ok=True)
+CAVER_WORK_DIR = RUNTIME_DIR / "caver_jobs"
+CAVER_WORK_DIR.mkdir(parents=True, exist_ok=True)
+ALPHAFOLD_WORK_DIR = RUNTIME_DIR / "alphafold_jobs"
+ALPHAFOLD_WORK_DIR.mkdir(parents=True, exist_ok=True)
 PDBZN_BASE_DIR = discover_pdbzn_base_dir()
 PDBZN_PDB_DIR = discover_pdbzn_pdb_dir(PDBZN_BASE_DIR)
 PDBZN_DB_PATH = RUNTIME_DIR / "pdbzn.sqlite"
@@ -148,6 +171,161 @@ def discover_infer_py():
     return ""
 
 
+def discover_caver_java_bin():
+    env = os.environ.get("CAVER_JAVA_BIN", "").strip()
+    if env:
+        if _safe_path_exists(env):
+            return env
+        found = shutil.which(env)
+        if found:
+            return found
+    found_default = shutil.which("java")
+    return found_default or ""
+
+
+def discover_caver_home():
+    env = os.environ.get("CAVER_HOME", "").strip()
+    if env and _safe_existing_dir(env):
+        return str(Path(env).resolve())
+    candidates = [
+        PROJECT_DIR / ".tools" / "caver",
+        PROJECT_DIR / ".tools" / "src" / "caver",
+        PROJECT_DIR / ".tools" / "src" / "caver_3.0" / "caver_3.0" / "caver",
+        PROJECT_DIR / ".tools" / "src" / "caver_3.0.3" / "caver",
+        PROJECT_DIR / ".tools" / "src" / "caver_3.0.2" / "caver",
+        Path.home() / "caver",
+        Path("/opt/caver"),
+    ]
+    for p in candidates:
+        if _safe_existing_dir(p):
+            return str(Path(p).resolve())
+    return ""
+
+
+def discover_caver_jar():
+    env = os.environ.get("CAVER_JAR", "").strip()
+    if env and _safe_existing_file(env):
+        return str(Path(env).resolve())
+    home_dir = discover_caver_home()
+    candidates = []
+    if home_dir:
+        home_path = Path(home_dir)
+        candidates.extend(
+            [
+                home_path / "caver.jar",
+                home_path / "lib" / "caver.jar",
+            ]
+        )
+    candidates.extend(
+        [
+            PROJECT_DIR / ".tools" / "caver" / "caver.jar",
+            PROJECT_DIR / ".tools" / "src" / "caver" / "caver.jar",
+            PROJECT_DIR / ".tools" / "src" / "caver_3.0" / "caver_3.0" / "caver" / "caver.jar",
+        ]
+    )
+    for p in candidates:
+        if _safe_existing_file(p):
+            return str(Path(p).resolve())
+    return ""
+
+
+def discover_caver_lib_dir():
+    env = os.environ.get("CAVER_LIB_DIR", "").strip()
+    if env and _safe_existing_dir(env):
+        return str(Path(env).resolve())
+    home_dir = discover_caver_home()
+    if home_dir:
+        home_path = Path(home_dir)
+        lib_dir = _safe_existing_dir(home_path / "lib")
+        if lib_dir is not None:
+            return str(lib_dir.resolve())
+    return ""
+
+
+def discover_alphafold3_runner():
+    env = os.environ.get("ALPHAFOLD3_RUNNER", "").strip()
+    if env and _safe_path_exists(env):
+        return env
+    candidates = [
+        PROJECT_DIR / ".tools" / "src" / "alphafold3" / "run_alphafold.py",
+        PROJECT_DIR / ".tools" / "src" / "AlphaFold3" / "run_alphafold.py",
+        PROJECT_DIR / ".tools" / "alphafold3" / "run_alphafold.py",
+        Path.home() / "alphafold3" / "run_alphafold.py",
+        Path("/opt/alphafold3/run_alphafold.py"),
+        Path("/root/alphafold3/run_alphafold.py"),
+    ]
+    for p in candidates:
+        if _safe_path_exists(p):
+            return str(Path(p).resolve())
+    return ""
+
+
+def discover_alphafold3_python_bin():
+    env = os.environ.get("ALPHAFOLD3_PYTHON_BIN", "").strip()
+    if env:
+        if _safe_path_exists(env):
+            return env
+        found = shutil.which(env)
+        if found:
+            return found
+    candidates = [
+        PROJECT_DIR / ".tools" / "alphafold3-venv" / "bin" / "python",
+        PROJECT_DIR / ".tools" / "venvs" / "alphafold3" / "bin" / "python",
+        Path.home() / "alphafold3_venv" / "bin" / "python",
+    ]
+    for p in candidates:
+        if _safe_path_exists(p):
+            return str(Path(p).resolve())
+    return PYTHON_BIN
+
+
+def discover_alphafold3_model_dir():
+    env = os.environ.get("ALPHAFOLD3_MODEL_DIR", "").strip()
+    if env:
+        return env
+    candidates = [
+        Path.home() / "models",
+        PROJECT_DIR / ".tools" / "alphafold3" / "models",
+    ]
+    for p in candidates:
+        if _safe_existing_dir(p):
+            return str(Path(p).resolve())
+    return ""
+
+
+def discover_alphafold3_db_dirs():
+    raw = os.environ.get("ALPHAFOLD3_DB_DIR", "") or os.environ.get("ALPHAFOLD3_DB_DIRS", "")
+    out = []
+    seen = set()
+    for item in _split_path_list(raw):
+        key = str(Path(item).expanduser())
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(str(Path(item).expanduser()))
+    if out:
+        return out
+    candidates = [
+        Path.home() / "public_databases",
+        PROJECT_DIR / ".tools" / "alphafold3" / "databases",
+    ]
+    for p in candidates:
+        hit = _safe_existing_dir(p)
+        if hit is not None:
+            return [str(hit.resolve())]
+    return []
+
+
+def discover_alphafold3_home():
+    env = os.environ.get("ALPHAFOLD3_HOME", "").strip()
+    if env and _safe_existing_dir(env):
+        return str(Path(env).resolve())
+    runner = discover_alphafold3_runner()
+    if runner:
+        return str(Path(runner).resolve().parent)
+    return str(PROJECT_DIR)
+
+
 INFER_PY = discover_infer_py()
 PYTHON_BIN = os.environ.get(
     "DIFFDOCK_PYTHON_BIN",
@@ -155,6 +333,20 @@ PYTHON_BIN = os.environ.get(
 )
 FPOCKET_BIN = os.environ.get("FPOCKET_BIN", "fpocket")
 TMALIGN_BIN = os.environ.get("TMALIGN_BIN", "TMalign")
+CAVER_JAVA_BIN = discover_caver_java_bin()
+CAVER_HOME = discover_caver_home()
+CAVER_JAR = discover_caver_jar()
+CAVER_LIB_DIR = discover_caver_lib_dir()
+CAVER_COMMAND = str(os.environ.get("CAVER_COMMAND", "") or "").strip()
+CAVER_JAVA_HEAP = str(os.environ.get("CAVER_JAVA_HEAP", "2g") or "2g").strip()
+ALPHAFOLD3_RUNNER = discover_alphafold3_runner()
+ALPHAFOLD3_PYTHON_BIN = discover_alphafold3_python_bin()
+ALPHAFOLD3_MODEL_DIR = discover_alphafold3_model_dir()
+ALPHAFOLD3_DB_DIRS = discover_alphafold3_db_dirs()
+ALPHAFOLD3_HOME = discover_alphafold3_home()
+ALPHAFOLD3_COMMAND = str(os.environ.get("ALPHAFOLD3_COMMAND", "") or "").strip()
+ALPHAFOLD3_EXTRA_ARGS = shlex.split(str(os.environ.get("ALPHAFOLD3_EXTRA_ARGS", "") or ""))
+ALPHAFOLD3_FORCE_OUTPUT_DIR = _env_truthy("ALPHAFOLD3_FORCE_OUTPUT_DIR", default=True)
 
 jobs = {}
 jobs_lock = threading.Lock()
@@ -162,6 +354,10 @@ fpocket_jobs = {}
 fpocket_jobs_lock = threading.Lock()
 tmalign_jobs = {}
 tmalign_jobs_lock = threading.Lock()
+caver_jobs = {}
+caver_jobs_lock = threading.Lock()
+alphafold_jobs = {}
+alphafold_jobs_lock = threading.Lock()
 pdbzn_db_lock = threading.Lock()
 PDBZN_LARGE_LIGANDS = {
     "NAD", "NAI", "NDP", "FAD", "FMN",
@@ -487,6 +683,840 @@ def parse_tmalign_log(text: str):
         "rmsd": rmsd,
         "seq_id": seq_id,
     }
+
+
+PDBZN_PROTEIN_CHAIN_RESIDUES = {
+    "ALA", "ARG", "ASN", "ASP", "ASH", "CYS", "CYM", "CYX", "GLN", "GLU", "GLH",
+    "GLY", "HIS", "HID", "HIE", "HIP", "HSD", "HSE", "HSP", "ILE", "LEU", "LYS",
+    "LYN", "MET", "MSE", "PHE", "PRO", "SEC", "SER", "THR", "TRP", "TYR", "VAL",
+}
+
+
+def _pdbzn_parse_pdb_chains(text: str):
+    chains = {}
+    seen_res = {}
+    for line in str(text or "").splitlines():
+        if not line.startswith("ATOM"):
+            continue
+        chain = str(line[21:22] or "").strip()
+        resn = str(line[17:20] or "").strip().upper()
+        if resn not in PDBZN_PROTEIN_CHAIN_RESIDUES:
+            continue
+        resi = str(line[22:26] or "").strip()
+        icode = str(line[26:27] or "").strip()
+        key = (resi, icode, resn)
+        if chain not in chains:
+            chains[chain] = {"lines": [], "residues": set()}
+            seen_res[chain] = set()
+        chains[chain]["lines"].append(line)
+        if key not in seen_res[chain]:
+            seen_res[chain].add(key)
+            chains[chain]["residues"].add(key)
+    return chains
+
+
+def _pdbzn_chain_residue_count(chain_info):
+    if isinstance(chain_info, dict):
+        return len(chain_info.get("residues", set()) or set())
+    seen = set()
+    for line in chain_info or []:
+        resn = str(line[17:20] or "").strip().upper()
+        resi = str(line[22:26] or "").strip()
+        icode = str(line[26:27] or "").strip()
+        seen.add((resi, icode, resn))
+    return len(seen)
+
+
+def _pdbzn_extract_chain_text(pdb_text: str, chain_id: str):
+    target = str(chain_id or "").strip()
+    if not target:
+        return ""
+    out = []
+    for line in str(pdb_text or "").splitlines():
+        if line.startswith("ATOM") and str(line[21:22] or "").strip() == target:
+            out.append(line)
+        elif line.startswith("TER"):
+            out.append(line)
+    return ("\n".join(out) + "\n") if out else ""
+
+
+def _pdbzn_run_tmalign_once(tmalign_bin: str, pdb1: Path, pdb2: Path):
+    proc = subprocess.run(
+        [tmalign_bin, str(pdb1), str(pdb2)],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    log_text = str(proc.stdout or "") + (("\n" + str(proc.stderr or "")) if proc.stderr else "")
+    metrics = parse_tmalign_log(log_text)
+    return proc.returncode, log_text, metrics
+
+
+def _pdbzn_prepare_tmalign_inputs(job_dir: Path, job: dict):
+    in_dir = job_dir / "input"
+    in_dir.mkdir(parents=True, exist_ok=True)
+    pdb1_name = job.get("pdb1_name", "struct1.pdb")
+    pdb2_name = job.get("pdb2_name", "struct2.pdb")
+    pdb1_text = str(job.get("pdb1_text", "") or "")
+    pdb2_text = str(job.get("pdb2_text", "") or "")
+    chain_mode = str(job.get("chain_mode", "whole") or "whole").strip().lower()
+    if chain_mode == "manual":
+        chain1 = str(job.get("chain1", "") or "").strip()
+        chain2 = str(job.get("chain2", "") or "").strip()
+        text1 = _pdbzn_extract_chain_text(pdb1_text, chain1)
+        text2 = _pdbzn_extract_chain_text(pdb2_text, chain2)
+        if not text1 or not text2:
+            raise ValueError("手动链模式下未找到指定链")
+        out1 = in_dir / f"{Path(pdb1_name).stem}_chain_{chain1}.pdb"
+        out2 = in_dir / f"{Path(pdb2_name).stem}_chain_{chain2}.pdb"
+        out1.write_text(text1, encoding="utf-8")
+        out2.write_text(text2, encoding="utf-8")
+        return {
+            "pdb1_path": out1,
+            "pdb2_path": out2,
+            "chain_mode": "manual",
+            "selected_chain_1": chain1,
+            "selected_chain_2": chain2,
+        }
+    if chain_mode == "auto_best":
+        chains1 = _pdbzn_parse_pdb_chains(pdb1_text)
+        chains2 = _pdbzn_parse_pdb_chains(pdb2_text)
+        if not chains1 or not chains2:
+            raise ValueError("自动最佳链模式下未解析到蛋白链")
+        best = None
+        best_log = ""
+        best_metrics = {}
+        tmalign_bin = discover_tmalign_bin()
+        for c1, info1 in chains1.items():
+            if _pdbzn_chain_residue_count(info1) < 20:
+                continue
+            text1 = _pdbzn_extract_chain_text(pdb1_text, c1)
+            tmp1 = in_dir / f"{Path(pdb1_name).stem}_chain_{c1}.pdb"
+            tmp1.write_text(text1, encoding="utf-8")
+            for c2, info2 in chains2.items():
+                if _pdbzn_chain_residue_count(info2) < 20:
+                    continue
+                text2 = _pdbzn_extract_chain_text(pdb2_text, c2)
+                tmp2 = in_dir / f"{Path(pdb2_name).stem}_chain_{c2}.pdb"
+                tmp2.write_text(text2, encoding="utf-8")
+                code, log_text, metrics = _pdbzn_run_tmalign_once(tmalign_bin, tmp1, tmp2)
+                score = _pdbzn_to_num(metrics.get("tm_score_max"))
+                aligned = _pdbzn_to_num(metrics.get("aligned_length"))
+                rmsd = _pdbzn_to_num(metrics.get("rmsd"))
+                key = (
+                    -(float(score) if score is not None else -1.0),
+                    -(float(aligned) if aligned is not None else -1.0),
+                    float(rmsd) if rmsd is not None else 10**9,
+                    -_pdbzn_chain_residue_count(info1),
+                    -_pdbzn_chain_residue_count(info2),
+                    str(c1),
+                    str(c2),
+                )
+                if best is None or key < best[0]:
+                    best = (key, tmp1, tmp2, c1, c2, code)
+                    best_log = log_text
+                    best_metrics = metrics
+        if best is None:
+            raise ValueError("自动最佳链模式下没有可用链对")
+        _, best1, best2, c1, c2, code = best
+        return {
+            "pdb1_path": best1,
+            "pdb2_path": best2,
+            "chain_mode": "auto_best",
+            "selected_chain_1": c1,
+            "selected_chain_2": c2,
+            "precomputed_exit_code": code,
+            "precomputed_log": best_log,
+            "precomputed_metrics": best_metrics,
+        }
+    out1 = in_dir / pdb1_name
+    out2 = in_dir / pdb2_name
+    out1.write_text(pdb1_text, encoding="utf-8")
+    out2.write_text(pdb2_text, encoding="utf-8")
+    return {
+        "pdb1_path": out1,
+        "pdb2_path": out2,
+        "chain_mode": "whole",
+        "selected_chain_1": "",
+        "selected_chain_2": "",
+    }
+
+
+def _alphafold_name(name, fallback):
+    clean = re.sub(r"[^A-Za-z0-9._-]+", "_", str(name or "").strip())
+    return clean or fallback
+
+
+def _alphafold_slug(name):
+    clean = re.sub(r"[^A-Za-z0-9._-]+", "_", str(name or "").strip())
+    return clean[:96] or "job"
+
+
+def _alphafold_split_fasta(text):
+    raw = str(text or "").replace("\r", "")
+    if not raw.strip():
+        return []
+    records = []
+    current_name = ""
+    current_lines = []
+    unnamed_index = 0
+    for line in raw.split("\n"):
+        seg = line.strip()
+        if not seg:
+            continue
+        if seg.startswith(">"):
+            if current_lines:
+                unnamed_index += 1
+                records.append(
+                    {
+                        "name": current_name or f"chain_{unnamed_index}",
+                        "sequence": "".join(current_lines).upper(),
+                    }
+                )
+            current_name = seg[1:].strip()
+            current_lines = []
+            continue
+        current_lines.append(re.sub(r"[^A-Za-z]", "", seg).upper())
+    if current_lines:
+        unnamed_index += 1
+        records.append(
+            {
+                "name": current_name or f"chain_{unnamed_index}",
+                "sequence": "".join(current_lines).upper(),
+            }
+        )
+    out = []
+    for rec in records:
+        seq = str(rec.get("sequence", "") or "").strip().upper()
+        if not seq:
+            continue
+        out.append(
+            {
+                "name": _alphafold_name(rec.get("name", ""), f"chain_{len(out) + 1}"),
+                "sequence": seq,
+            }
+        )
+    return out
+
+
+def _alphafold_build_input_payload(payload, job_name):
+    seeds = payload.get("model_seeds", [1]) if isinstance(payload.get("model_seeds"), list) else [1]
+    clean_seeds = []
+    for item in seeds:
+        try:
+            clean_seeds.append(int(item))
+        except Exception:
+            continue
+    if not clean_seeds:
+        clean_seeds = [1]
+    dialect = str(payload.get("dialect", "alphafold3") or "alphafold3").strip() or "alphafold3"
+    version = int(payload.get("version", 1) or 1)
+    msa_mode = str(payload.get("msa_mode", "auto") or "auto").strip().lower()
+    entities = []
+    if isinstance(payload.get("entities"), list) and payload.get("entities"):
+        entities = list(payload.get("entities") or [])
+    else:
+        seq_records = []
+        if isinstance(payload.get("fasta"), str) and payload.get("fasta").strip():
+            seq_records = _alphafold_split_fasta(payload.get("fasta"))
+        elif isinstance(payload.get("sequence"), str) and payload.get("sequence").strip():
+            seq_records = [{"name": "chain_A", "sequence": re.sub(r"[^A-Za-z]", "", str(payload.get("sequence"))).upper()}]
+        elif isinstance(payload.get("sequences"), list):
+            for idx, item in enumerate(payload.get("sequences") or [], start=1):
+                if isinstance(item, dict):
+                    name = item.get("name") or f"chain_{idx}"
+                    seq = re.sub(r"[^A-Za-z]", "", str(item.get("sequence", "") or "")).upper()
+                else:
+                    name = f"chain_{idx}"
+                    seq = re.sub(r"[^A-Za-z]", "", str(item or "")).upper()
+                if seq:
+                    seq_records.append({"name": name, "sequence": seq})
+        if not seq_records:
+            return None, "缺少序列输入，请提供 sequence、fasta 或 sequences"
+        for idx, rec in enumerate(seq_records, start=1):
+            seq = str(rec.get("sequence", "") or "").strip().upper()
+            if not seq:
+                continue
+            chain_id = str(rec.get("chain_id", "") or "").strip().upper()
+            if not chain_id:
+                chain_id = chr(ord("A") + ((idx - 1) % 26))
+            protein_payload = {
+                "id": chain_id,
+                "sequence": seq,
+            }
+            if msa_mode in {"none", "msa_free", "single_sequence"}:
+                protein_payload["unpairedMsa"] = ""
+                protein_payload["pairedMsa"] = ""
+                protein_payload["templates"] = []
+            entities.append(
+                {
+                    "protein": protein_payload
+                }
+            )
+    if not entities:
+        return None, "未解析到有效实体"
+    return {
+        "name": _alphafold_slug(job_name),
+        "modelSeeds": clean_seeds,
+        "sequences": entities,
+        "dialect": dialect,
+        "version": version,
+    }, ""
+
+
+def _alphafold_collect_files(root: Path):
+    items = []
+    if not root.exists():
+        return items
+    for p in sorted(root.rglob("*")):
+        if not p.is_file():
+            continue
+        rel = p.relative_to(root).as_posix()
+        items.append(
+            {
+                "name": p.name,
+                "path": rel,
+                "size": p.stat().st_size,
+            }
+        )
+    return items
+
+
+def _alphafold_find_output_root(job_dir: Path):
+    candidates = [
+        job_dir / "output",
+        job_dir / "result",
+        job_dir / "results",
+        job_dir / "imported_result",
+    ]
+    for p in candidates:
+        if p.exists() and p.is_dir():
+            return p
+    return None
+
+
+def _alphafold_pick_structure_file(job_dir: Path):
+    out_root = _alphafold_find_output_root(job_dir)
+    if out_root is None:
+        return None
+    prefs = []
+    for pattern in ["**/*.cif", "**/*.mmcif", "**/*.pdb"]:
+        prefs.extend(sorted(out_root.glob(pattern), key=lambda p: p.as_posix()))
+    for p in prefs:
+        if p.is_file():
+            return p
+    return None
+
+
+def _alphafold_read_small_json(path: Path):
+    try:
+        if not path.exists() or not path.is_file():
+            return None
+        if path.stat().st_size > 2_000_000:
+            return None
+        return json.loads(path.read_text(encoding="utf-8", errors="ignore"))
+    except Exception:
+        return None
+
+
+def _alphafold_extract_metrics_from_json(obj):
+    if not isinstance(obj, dict):
+        return {}
+    metrics = {}
+    direct_keys = [
+        "ptm", "iptm", "ranking_score", "fraction_disordered",
+        "has_clash", "num_recycles", "mean_plddt", "plddt",
+    ]
+    for key in direct_keys:
+        if key in obj and isinstance(obj.get(key), (int, float, str, bool)):
+            metrics[key] = obj.get(key)
+    if isinstance(obj.get("chain_pair_iptm"), (int, float)):
+        metrics["chain_pair_iptm"] = obj.get("chain_pair_iptm")
+    return metrics
+
+
+def _alphafold_collect_metrics(job_dir: Path):
+    out_root = _alphafold_find_output_root(job_dir)
+    if out_root is None:
+        return {}
+    metric_files = []
+    for pattern in [
+        "**/summary_confidences.json",
+        "**/confidences.json",
+        "**/*summary*.json",
+        "**/*confidence*.json",
+        "**/*ranking*.json",
+    ]:
+        metric_files.extend(sorted(out_root.glob(pattern), key=lambda p: p.as_posix()))
+    metrics = {}
+    seen = set()
+    for p in metric_files:
+        if p.as_posix() in seen:
+            continue
+        seen.add(p.as_posix())
+        obj = _alphafold_read_small_json(p)
+        parsed = _alphafold_extract_metrics_from_json(obj)
+        if parsed:
+            metrics.update(parsed)
+    return metrics
+
+
+def _alphafold_job_result(job_id: str, job=None):
+    job_dir = ALPHAFOLD_WORK_DIR / job_id
+    structure_path = _alphafold_pick_structure_file(job_dir)
+    structure_rel = ""
+    structure_format = ""
+    structure_text = ""
+    if structure_path is not None:
+        try:
+            structure_rel = structure_path.relative_to(job_dir).as_posix()
+            structure_format = structure_path.suffix.lower().lstrip(".")
+            structure_text = structure_path.read_text(encoding="utf-8", errors="ignore")
+        except Exception:
+            structure_rel = ""
+            structure_format = ""
+            structure_text = ""
+    out_root = _alphafold_find_output_root(job_dir)
+    files = []
+    if out_root is not None:
+        files = _alphafold_collect_files(out_root)
+        root_prefix = out_root.relative_to(job_dir).as_posix()
+        for item in files:
+            rel_path = item.get("path", "")
+            item["path"] = f"{root_prefix}/{rel_path}" if root_prefix else rel_path
+            item["url"] = f"/api/alphafold/file/{job_id}/{item['path']}"
+    return {
+        "job_id": job_id,
+        "job_name": str((job or {}).get("job_name", "") or ""),
+        "structure_file": structure_rel,
+        "structure_format": structure_format,
+        "structure_text": structure_text,
+        "metrics": _alphafold_collect_metrics(job_dir),
+        "files": files,
+        "output_root": out_root.relative_to(job_dir).as_posix() if out_root else "",
+    }
+
+
+def _alphafold_build_command(job_id: str, input_json: Path, output_dir: Path):
+    if ALPHAFOLD3_COMMAND:
+        template = ALPHAFOLD3_COMMAND
+        mapping = {
+            "{job_dir}": str((ALPHAFOLD_WORK_DIR / job_id).resolve()),
+            "{input_json}": str(input_json.resolve()),
+            "{output_dir}": str(output_dir.resolve()),
+            "{runner}": ALPHAFOLD3_RUNNER,
+            "{python}": ALPHAFOLD3_PYTHON_BIN,
+            "{model_dir}": ALPHAFOLD3_MODEL_DIR,
+            "{db_dirs}": os.pathsep.join(ALPHAFOLD3_DB_DIRS),
+            "{db_dir}": ALPHAFOLD3_DB_DIRS[0] if ALPHAFOLD3_DB_DIRS else "",
+            "{alphafold_home}": ALPHAFOLD3_HOME,
+        }
+        for key, value in mapping.items():
+            template = template.replace(key, value)
+        return shlex.split(template)
+    if not ALPHAFOLD3_RUNNER:
+        return []
+    cmd = [
+        ALPHAFOLD3_PYTHON_BIN,
+        ALPHAFOLD3_RUNNER,
+        f"--json_path={str(input_json.resolve())}",
+    ]
+    if ALPHAFOLD3_MODEL_DIR:
+        cmd.append(f"--model_dir={ALPHAFOLD3_MODEL_DIR}")
+    for db_dir in ALPHAFOLD3_DB_DIRS:
+        cmd.append(f"--db_dir={db_dir}")
+    if ALPHAFOLD3_FORCE_OUTPUT_DIR:
+        cmd.append(f"--output_dir={str(output_dir.resolve())}")
+    cmd.extend(ALPHAFOLD3_EXTRA_ARGS)
+    return cmd
+
+
+def _caver_format_num(value, digits=3):
+    try:
+        num = float(value)
+    except Exception:
+        return ""
+    text = f"{num:.{int(digits)}f}"
+    text = text.rstrip("0").rstrip(".")
+    return text or "0"
+
+
+def _caver_collect_files(root: Path):
+    items = []
+    if not root.exists():
+        return items
+    for p in sorted(root.rglob("*")):
+        if not p.is_file():
+            continue
+        rel = p.relative_to(root).as_posix()
+        items.append(
+            {
+                "name": p.name,
+                "path": rel,
+                "size": p.stat().st_size,
+            }
+        )
+    return items
+
+
+def _caver_extract_seed_from_structure_text(pdb_text: str):
+    lines = str(pdb_text or "").splitlines()
+    zn_atoms = []
+    atom_hits = []
+    for line in lines:
+        if not (line.startswith("ATOM") or line.startswith("HETATM")):
+            continue
+        atom_name = str(line[12:16] or "").strip().upper()
+        resn = str(line[17:20] or "").strip().upper()
+        chain = str(line[21:22] or "").strip()
+        resi = str(line[22:26] or "").strip()
+        elem = str(line[76:78] or "").strip().upper()
+        if not elem:
+            letters = re.sub(r"[^A-Za-z]+", "", atom_name or "")
+            if letters:
+                elem = letters[:2].upper()
+        try:
+            x = float(str(line[30:38] or "").strip())
+            y = float(str(line[38:46] or "").strip())
+            z = float(str(line[46:54] or "").strip())
+        except Exception:
+            continue
+        hit = {
+            "atom_name": atom_name,
+            "resn": resn,
+            "chain": chain,
+            "resi": resi,
+            "elem": elem,
+            "x": x,
+            "y": y,
+            "z": z,
+        }
+        atom_hits.append(hit)
+        if elem == "ZN" or resn == "ZN" or atom_name == "ZN":
+            zn_atoms.append(hit)
+    if zn_atoms:
+        return {
+            "mode": "zn",
+            "x": zn_atoms[0]["x"],
+            "y": zn_atoms[0]["y"],
+            "z": zn_atoms[0]["z"],
+            "label": f"ZN:{zn_atoms[0].get('chain', '')}:{zn_atoms[0].get('resi', '')}",
+            "all_zn": zn_atoms,
+        }
+    return {
+        "mode": "none",
+        "x": None,
+        "y": None,
+        "z": None,
+        "label": "",
+        "all_zn": [],
+    }
+
+
+def _caver_seed_from_payload(payload, pdb_text: str):
+    if isinstance(payload, dict):
+        if all(k in payload for k in ["seed_x", "seed_y", "seed_z"]):
+            try:
+                x = float(payload.get("seed_x"))
+                y = float(payload.get("seed_y"))
+                z = float(payload.get("seed_z"))
+                return {
+                    "mode": "manual_xyz",
+                    "x": x,
+                    "y": y,
+                    "z": z,
+                    "label": "manual_xyz",
+                    "all_zn": [],
+                }
+            except Exception:
+                pass
+        seed_mode = str(payload.get("seed_mode", "") or "").strip().lower()
+        if seed_mode in {"zn", "auto_zn", "auto"}:
+            seed = _caver_extract_seed_from_structure_text(pdb_text)
+            if seed.get("mode") == "zn":
+                return seed
+    return _caver_extract_seed_from_structure_text(pdb_text)
+
+
+def _caver_default_config(seed, output_dir: Path):
+    x = _caver_format_num(seed.get("x"), 3)
+    y = _caver_format_num(seed.get("y"), 3)
+    z = _caver_format_num(seed.get("z"), 3)
+    return "\n".join(
+        [
+            "# Auto-generated by enzyme-search-engine",
+            f"starting_point_coordinates {x} {y} {z}",
+            "probe_radius 0.9",
+            "shell_radius 3",
+            "shell_depth 4",
+            "frame_clustering_threshold 1",
+            "clustering_threshold 3.5",
+            "seed 1",
+            "",
+        ]
+    )
+
+
+def _caver_read_csv(path: Path):
+    try:
+        with path.open("r", encoding="utf-8", errors="ignore", newline="") as f:
+            rows = list(csv.reader(f))
+    except Exception:
+        return {"columns": [], "rows": []}
+    if not rows:
+        return {"columns": [], "rows": []}
+    header = _pdbzn_header_unique(rows[0])
+    out_rows = []
+    n = len(header)
+    for raw in rows[1:]:
+        raw = list(raw)
+        if len(raw) < n:
+            raw.extend([""] * (n - len(raw)))
+        out_rows.append({header[i]: raw[i] for i in range(n)})
+    return {"columns": header, "rows": out_rows}
+
+
+def _caver_choose_summary_csv(output_root: Path):
+    names = [
+        "summary_precise_numbers.csv",
+        "summary.csv",
+        "tunnel_profiles.csv",
+    ]
+    for name in names:
+        hit = _safe_existing_file(output_root / name)
+        if hit is not None:
+            return hit
+    hits = []
+    for pattern in ["**/*summary*.csv", "**/*tunnel*.csv", "**/*profile*.csv"]:
+        hits.extend(sorted(output_root.glob(pattern), key=lambda p: p.as_posix()))
+    return hits[0] if hits else None
+
+
+def _caver_centerline_candidates(output_root: Path):
+    patterns = [
+        "**/tun_cl_*.pdb",
+        "**/clusters_timeless/*.pdb",
+        "**/*tunnel*.pdb",
+        "**/*cluster*.pdb",
+        "**/*path*.pdb",
+    ]
+    out = []
+    seen = set()
+    for pattern in patterns:
+        for p in sorted(output_root.glob(pattern), key=lambda q: q.as_posix()):
+            if not p.is_file():
+                continue
+            key = p.as_posix()
+            if key in seen:
+                continue
+            seen.add(key)
+            out.append(p)
+    return out
+
+
+def _caver_pick_centerline(output_root: Path):
+    hits = _caver_centerline_candidates(output_root)
+    return hits[0] if hits else None
+
+
+def _caver_structure_file_candidates(output_root: Path):
+    hits = []
+    for pattern in ["data/*.pdb", "*.pdb", "**/*structure*.pdb"]:
+        hits.extend(sorted(output_root.glob(pattern), key=lambda p: p.as_posix()))
+    seen = set()
+    out = []
+    for p in hits:
+        key = p.as_posix()
+        if key in seen or not p.is_file():
+            continue
+        seen.add(key)
+        out.append(p)
+    return out
+
+
+def _caver_resolved_output_root(job_dir: Path):
+    output_root = job_dir / "output"
+    if output_root.exists():
+        return output_root
+    imported = job_dir / "imported_result"
+    if imported.exists():
+        return imported
+    return output_root
+
+
+def _caver_result_payload_from_job_dir(job_dir: Path, route_file_prefix: str, job_name: str = "", seed=None, job_id: str = ""):
+    output_root = _caver_resolved_output_root(job_dir)
+    files = _caver_collect_files(output_root) if output_root.exists() else []
+    for item in files:
+        item["path"] = f"{output_root.relative_to(job_dir).as_posix()}/{item['path']}" if output_root.exists() else item["path"]
+        item["url"] = f"{route_file_prefix}/{item['path']}"
+    summary_csv = _caver_choose_summary_csv(output_root) if output_root.exists() else None
+    summary = _caver_read_csv(summary_csv) if summary_csv else {"columns": [], "rows": []}
+    centerline = _caver_pick_centerline(output_root) if output_root.exists() else None
+    centerline_text = ""
+    centerline_rel = ""
+    if centerline is not None:
+        try:
+            centerline_text = centerline.read_text(encoding="utf-8", errors="ignore")
+            centerline_rel = centerline.relative_to(job_dir).as_posix()
+        except Exception:
+            centerline_text = ""
+            centerline_rel = ""
+    structure_text = ""
+    structure_rel = ""
+    if output_root.exists():
+        for cand in _caver_structure_file_candidates(output_root):
+            try:
+                structure_text = cand.read_text(encoding="utf-8", errors="ignore")
+                structure_rel = cand.relative_to(job_dir).as_posix()
+                break
+            except Exception:
+                continue
+    return {
+        "job_id": job_id,
+        "job_name": str(job_name or ""),
+        "seed": dict(seed or {}),
+        "structure_file": structure_rel,
+        "structure_pdb_text": structure_text,
+        "summary_file": summary_csv.relative_to(job_dir).as_posix() if summary_csv else "",
+        "summary_columns": summary.get("columns", []),
+        "summary_rows": summary.get("rows", []),
+        "centerline_file": centerline_rel,
+        "centerline_pdb_text": centerline_text,
+        "files": files,
+    }
+
+
+def _caver_result_payload(job_id: str, job=None):
+    job_dir = CAVER_WORK_DIR / job_id
+    return _caver_result_payload_from_job_dir(
+        job_dir,
+        route_file_prefix=f"/api/caver/file/{job_id}",
+        job_name=str((job or {}).get("job_name", "") or ""),
+        seed=dict((job or {}).get("seed") or {}),
+        job_id=job_id,
+    )
+
+
+def _caver_preset_definitions():
+    return {
+        "workflow_table_2_pocket_seed_v1": {
+            "label": "第三轮筛选 13 蛋白 · pocket seed v1",
+            "job_root": RUNTIME_DIR / "caver_batch_workflow_table_2",
+            "job_prefix": "pocket_seed_v1_",
+            "summary_csv": RUNTIME_DIR / "reports" / "workflow_table_2_caver_pocket_seed_v1_acetophenone_summary.csv",
+        }
+    }
+
+
+def _caver_preset_job_dir(preset_id: str, pdb_id: str):
+    preset = _caver_preset_definitions().get(preset_id)
+    if not preset:
+        return None
+    job_dir = Path(preset["job_root"]) / f"{preset['job_prefix']}{str(pdb_id or '').strip().upper()}"
+    if job_dir.exists() and job_dir.is_dir():
+        return job_dir
+    return None
+
+
+def _caver_preset_summary_rows(preset_id: str):
+    preset = _caver_preset_definitions().get(preset_id)
+    if not preset:
+        return []
+    path = Path(preset["summary_csv"])
+    if not path.exists():
+        return []
+    with path.open("r", encoding="utf-8", errors="ignore", newline="") as f:
+        return [{str(k or "").strip(): v for k, v in row.items()} for row in csv.DictReader(f)]
+
+
+def _caver_preset_list_payload(preset_id: str):
+    preset = _caver_preset_definitions().get(preset_id)
+    if not preset:
+        return {"ok": False, "error": "preset not found"}
+    rows = _caver_preset_summary_rows(preset_id)
+    items = []
+    for row in rows:
+        pid = str(row.get("PDB_ID", "") or "").strip().upper()
+        if not pid:
+            continue
+        items.append(
+            {
+                "id": pid,
+                "label": pid,
+                "channel_count": row.get("Channel_count", ""),
+                "best_bottleneck_radius_a": row.get("Best_bottleneck_radius_A", ""),
+                "acetophenone_size_pass_by_caver": row.get("Acetophenone_size_pass_by_caver", ""),
+                "existing_acetophenone_judgement": row.get("Existing_acetophenone_judgement", ""),
+                "job_dir": row.get("Job_dir", ""),
+            }
+        )
+    return {
+        "ok": True,
+        "preset_id": preset_id,
+        "label": preset.get("label", preset_id),
+        "items": items,
+    }
+
+
+def _caver_preset_result_payload(preset_id: str, pdb_id: str):
+    job_dir = _caver_preset_job_dir(preset_id, pdb_id)
+    if job_dir is None:
+        return {"ok": False, "error": "preset result not found"}
+    summary_rows = _caver_preset_summary_rows(preset_id)
+    summary_row = next((r for r in summary_rows if str(r.get("PDB_ID", "") or "").strip().upper() == str(pdb_id or "").strip().upper()), {})
+    return {
+        "ok": True,
+        "preset_id": preset_id,
+        "pdb_id": str(pdb_id or "").strip().upper(),
+        "summary_meta": summary_row,
+        "result": _caver_result_payload_from_job_dir(
+            job_dir,
+            route_file_prefix=f"/api/caver/preset/file/{preset_id}/{str(pdb_id or '').strip().upper()}",
+            job_name=f"{preset_id}:{str(pdb_id or '').strip().upper()}",
+            seed={},
+            job_id=str(pdb_id or "").strip().upper(),
+        ),
+    }
+
+
+def _caver_build_command(input_pdb: Path, config_path: Path, output_dir: Path):
+    if CAVER_COMMAND:
+        template = CAVER_COMMAND
+        mapping = {
+            "{input_pdb}": str(input_pdb.resolve()),
+            "{input_dir}": str(input_pdb.resolve().parent),
+            "{config}": str(config_path.resolve()),
+            "{output_dir}": str(output_dir.resolve()),
+            "{caver_home}": CAVER_HOME,
+            "{caver_jar}": CAVER_JAR,
+            "{java}": CAVER_JAVA_BIN,
+        }
+        for key, value in mapping.items():
+            template = template.replace(key, value)
+        return shlex.split(template)
+    if CAVER_JAR and CAVER_JAVA_BIN:
+        jar_path = Path(CAVER_JAR).resolve()
+        if CAVER_HOME:
+            home_dir = CAVER_HOME
+        else:
+            home_dir = str(jar_path.parent.parent if jar_path.parent.name.lower() == "lib" else jar_path.parent)
+        return [
+            CAVER_JAVA_BIN,
+            f"-Xmx{CAVER_JAVA_HEAP}",
+            "-jar",
+            str(jar_path),
+            "-home",
+            home_dir,
+            "-pdb",
+            str(input_pdb.resolve().parent),
+            "-conf",
+            str(config_path.resolve()),
+            "-out",
+            str(output_dir.resolve()),
+        ]
+    return []
 
 
 def _pdbzn_data_aliases(name):
@@ -2470,6 +3500,181 @@ def _pdbzn_upsert_registry_entry(entry):
     _pdbzn_save_table_registry(tables)
 
 
+def _pdbzn_remove_registry_entry(table_id):
+    table_id = str(table_id or "").strip().lower()
+    tables = _pdbzn_load_table_registry()
+    kept = [t for t in tables if str((t or {}).get("id", "") or "").strip().lower() != table_id]
+    _pdbzn_save_table_registry(kept)
+
+
+def _pdbzn_delete_master_table(payload):
+    if not isinstance(payload, dict):
+        return {"ok": False, "error": "payload must be object"}
+    table_id = str(payload.get("table_id", "") or "").strip().lower()
+    if not table_id:
+        return {"ok": False, "error": "table_id is required"}
+    if table_id == "table1":
+        return {"ok": False, "error": "table1 主表快照不允许删除"}
+    with _pdbzn_table_registry_lock:
+        tables = _pdbzn_load_table_registry()
+        entry = next(
+            (
+                t
+                for t in tables
+                if str((t or {}).get("id", "") or "").strip().lower() == table_id
+            ),
+            None,
+        )
+        if not entry:
+            return {"ok": False, "error": f"未找到数据表 {table_id}"}
+        deleted_files = []
+        for key in ["full", "data", "csv", "ids"]:
+            rel = str((entry or {}).get(key, "") or "").strip()
+            if not rel:
+                continue
+            path = DATA_DIR / rel
+            try:
+                if path.exists() and path.is_file():
+                    path.unlink()
+                    deleted_files.append(str(path))
+            except Exception as e:
+                return {"ok": False, "error": f"删除文件失败: {path} ({e})"}
+        _pdbzn_remove_registry_entry(table_id)
+    return {
+        "ok": True,
+        "deleted_table_id": table_id,
+        "deleted_files": deleted_files,
+        "table_registry_file": str(TABLE_REGISTRY_PATH),
+    }
+
+
+def _pdbzn_normalize_save_header(header, rows):
+    out = []
+    seen = set()
+
+    def add(name):
+        raw = str(name or "").strip()
+        if not raw or raw == "_id" or raw in seen:
+            return
+        seen.add(raw)
+        out.append(raw)
+
+    for name in header or []:
+        add(name)
+    for row in rows or []:
+        if not isinstance(row, dict):
+            continue
+        for key in row.keys():
+            add(key)
+    return out
+
+
+def _pdbzn_normalize_save_rows(rows, header):
+    clean_rows = []
+    for src in rows or []:
+        if not isinstance(src, dict):
+            continue
+        row = {col: src.get(col, "") for col in header}
+        rid = str(src.get("_id", "") or "").strip()
+        if rid and str(row.get("Representative", "") or "").strip() == "":
+            row["_id"] = rid
+        clean_rows.append(row)
+    return clean_rows
+
+
+def _pdbzn_write_named_table_explicit(table_id, label, header, rows, stage, description):
+    safe_id = str(table_id or "").strip().lower()
+    if not safe_id or safe_id == "table1" or not re.fullmatch(r"[a-z0-9._-]+", safe_id):
+        raise ValueError("invalid table_id")
+    with _pdbzn_table_registry_lock:
+        tables = _pdbzn_load_table_registry()
+        existing = next(
+            (
+                t
+                for t in tables
+                if str((t or {}).get("id", "") or "").strip().lower() == safe_id
+            ),
+            None,
+        )
+        final_label = str(label or "").strip() or str((existing or {}).get("label", "") or "").strip() or safe_id
+        clean_rows = []
+        ids = []
+        for src in rows or []:
+            row = {c: (src or {}).get(c, "") for c in header}
+            rid = str((src or {}).get("_id", "") or "").strip()
+            if rid and str(row.get("Representative", "") or "").strip() == "":
+                row["_id"] = rid
+            clean_rows.append(row)
+            rep = _pdbzn_table_rep_or_id(row)
+            if rep and rep not in ids:
+                ids.append(rep)
+        full_name = f"{safe_id}_master_full.json"
+        data_name = f"{safe_id}_data.json"
+        csv_name = f"{safe_id}_master_table.csv"
+        ids_name = f"{safe_id}_ids.json"
+        data_items = [_pdbzn_dataset_item_from_row(r) for r in clean_rows if _pdbzn_table_rep_or_id(r)]
+        _pdbzn_write_json(DATA_DIR / full_name, {"rows": clean_rows, "header": list(header or [])})
+        _pdbzn_write_json(DATA_DIR / data_name, {"items": data_items})
+        _pdbzn_write_json(DATA_DIR / ids_name, {"table_id": safe_id, "label": final_label, "ids": ids})
+        _pdbzn_write_table(DATA_DIR / csv_name, ["_id"] + list(header or []), [{"_id": _pdbzn_table_rep_or_id(r), **r} for r in clean_rows])
+        entry = {
+            "id": safe_id,
+            "label": final_label,
+            "full": full_name,
+            "data": data_name,
+            "csv": csv_name,
+            "ids": ids_name,
+            "row_count": len(clean_rows),
+            "stage": stage,
+            "description": description,
+            "updated_at": now_ts(),
+            "updated_at_text": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
+        }
+        _pdbzn_upsert_registry_entry(entry)
+        return entry
+
+
+def _pdbzn_save_master_table_edit(payload):
+    if not isinstance(payload, dict):
+        return {"ok": False, "error": "payload must be object"}
+    rows_in = payload.get("rows")
+    if not isinstance(rows_in, list) or not rows_in:
+        return {"ok": False, "error": "rows is required"}
+    header = _pdbzn_normalize_save_header(payload.get("header") or [], rows_in)
+    if not header:
+        return {"ok": False, "error": "header is empty"}
+    rows = _pdbzn_normalize_save_rows(rows_in, header)
+    if not rows:
+        return {"ok": False, "error": "no valid rows to save"}
+
+    raw_table_id = str(payload.get("table_id", "") or "").strip().lower()
+    overwrite = bool(payload.get("overwrite"))
+    label = str(payload.get("label", "") or "").strip()
+    if not label:
+        label = f"{raw_table_id or 'master_table'} ({len(rows)} proteins)"
+    description = str(payload.get("description", "") or "").strip()
+    if not description:
+        sources = payload.get("source_table_ids") or []
+        if isinstance(sources, list):
+            src_text = ", ".join(str(x or "").strip() for x in sources if str(x or "").strip())
+        else:
+            src_text = str(sources or "").strip()
+        description = f"Master Table 手工保存结果，来源：{src_text}" if src_text else "Master Table 手工保存结果"
+    stage = str(payload.get("stage", "") or "").strip() or "master_table_edit"
+
+    if overwrite and raw_table_id and raw_table_id != "table1":
+        entry = _pdbzn_write_named_table_explicit(raw_table_id, label, header, rows, stage, description)
+    else:
+        entry = _pdbzn_write_named_table(label, header, rows, stage, description)
+    return {
+        "ok": True,
+        "entry": entry,
+        "saved_row_count": len(rows),
+        "saved_header_count": len(header),
+        "table_registry_file": str(TABLE_REGISTRY_PATH),
+    }
+
+
 def _pdbzn_label_slug(label):
     raw = safe_name(str(label or "").strip().lower()).strip("._-")
     return raw or "workflow_table"
@@ -2538,6 +3743,9 @@ def _pdbzn_write_named_table(label, header, rows, stage, description):
         ids = []
         for src in rows or []:
             row = {c: (src or {}).get(c, "") for c in header}
+            rid = str((src or {}).get("_id", "") or "").strip()
+            if rid and str(row.get("Representative", "") or "").strip() == "":
+                row["_id"] = rid
             clean_rows.append(row)
             rep = _pdbzn_table_rep_or_id(row)
             if rep and rep not in ids:
@@ -2857,6 +4065,8 @@ def _pdbzn_best_pocket_catalog_row(rep):
         best = sorted(
             matching,
             key=lambda r: (
+                -float(_pdbzn_num_or((r or {}).get("pocket_zn_count", ""), -10**9)),
+                -float(_pdbzn_num_or((r or {}).get("pocket_his_count", ""), -10**9)),
                 float(_pdbzn_num_or((r or {}).get("min_dist_to_any_zn", ""), 10**9)),
                 -float(_pdbzn_num_or((r or {}).get("druggability_score", ""), -10**9)),
                 -float(_pdbzn_num_or((r or {}).get("score", ""), -10**9)),
@@ -2864,18 +4074,21 @@ def _pdbzn_best_pocket_catalog_row(rep):
                 int(_pdbzn_num_or((r or {}).get("pocket_id", ""), 10**9)),
             ),
         )[0]
-        rule = "zn_priority"
+        rule = "zn_active_site_priority"
     else:
         best = sorted(
             rows,
             key=lambda r: (
+                -float(_pdbzn_num_or((r or {}).get("pocket_zn_count", ""), -10**9)),
+                -float(_pdbzn_num_or((r or {}).get("pocket_his_count", ""), -10**9)),
+                float(_pdbzn_num_or((r or {}).get("min_dist_to_any_zn", ""), 10**9)),
                 -float(_pdbzn_num_or((r or {}).get("volume", ""), -10**9)),
                 -float(_pdbzn_num_or((r or {}).get("druggability_score", ""), -10**9)),
                 -float(_pdbzn_num_or((r or {}).get("score", ""), -10**9)),
                 int(_pdbzn_num_or((r or {}).get("pocket_id", ""), 10**9)),
             ),
         )[0]
-        rule = "largest_volume"
+        rule = "closest_pocket_fallback"
     return {
         "Representative": str(rep or "").strip().upper(),
         "Protein_Name": best.get("Protein_Name", ""),
@@ -3354,6 +4567,89 @@ def recover_fpocket_job(job_id: str):
     return job
 
 
+def recover_alphafold_job(job_id: str):
+    safe_job_id = safe_name(job_id)
+    if safe_job_id != job_id:
+        return None
+    job_dir = ALPHAFOLD_WORK_DIR / job_id
+    if (not job_dir.exists()) or (not job_dir.is_dir()):
+        return None
+    input_json = job_dir / "input" / "fold_input.json"
+    payload = _alphafold_read_small_json(input_json) or {}
+    log_path = job_dir / "run.log"
+    out_root = _alphafold_find_output_root(job_dir)
+    result = _alphafold_job_result(job_id, payload)
+    status = "done" if result.get("structure_file") else ("failed" if log_path.exists() else "queued")
+    error = "" if status == "done" else ("AlphaFold 输出不存在，可能执行失败或只导入了不完整结果" if log_path.exists() else "")
+    job = {
+        "id": job_id,
+        "status": status,
+        "created_at": int(job_dir.stat().st_mtime),
+        "started_at": int(job_dir.stat().st_mtime),
+        "ended_at": int(job_dir.stat().st_mtime),
+        "job_name": str(payload.get("name", "") or job_id),
+        "sequence_count": len(payload.get("sequences") or []),
+        "mode": "recovered",
+        "input_json": str(input_json) if input_json.exists() else "",
+        "output_dir": str(out_root) if out_root else "",
+        "structure_file": result.get("structure_file", ""),
+        "structure_format": result.get("structure_format", ""),
+        "metrics": result.get("metrics", {}),
+        "files": result.get("files", []),
+        "error": error,
+        "pid": None,
+        "command": "",
+        "phase": "done_recovered" if status == "done" else "recovered",
+        "phase_at": now_ts(),
+        "imported_result": bool((job_dir / "imported_result").exists()),
+    }
+    with alphafold_jobs_lock:
+        alphafold_jobs[job_id] = job
+    return job
+
+
+def recover_caver_job(job_id: str):
+    safe_job_id = safe_name(job_id)
+    if safe_job_id != job_id:
+        return None
+    job_dir = CAVER_WORK_DIR / job_id
+    if (not job_dir.exists()) or (not job_dir.is_dir()):
+        return None
+    input_dir = job_dir / "input"
+    pdb_files = sorted([p for p in input_dir.glob("*.pdb") if p.is_file()], key=lambda p: p.name)
+    input_pdb = pdb_files[0] if pdb_files else (input_dir / "structure.pdb")
+    config_path = job_dir / "input" / "config.txt"
+    seed = {}
+    seed_path = job_dir / "input" / "seed.json"
+    if seed_path.exists():
+        seed = _pdbzn_read_json(seed_path) or {}
+    result = _caver_result_payload(job_id, {"seed": seed})
+    log_path = job_dir / "run.log"
+    status = "done" if result.get("summary_rows") or result.get("centerline_file") else ("failed" if log_path.exists() else "queued")
+    job = {
+        "id": job_id,
+        "status": status,
+        "created_at": int(job_dir.stat().st_mtime),
+        "started_at": int(job_dir.stat().st_mtime),
+        "ended_at": int(job_dir.stat().st_mtime),
+        "job_name": job_dir.name,
+        "input_pdb": str(input_pdb) if input_pdb.exists() else "",
+        "config_file": str(config_path) if config_path.exists() else "",
+        "seed": seed,
+        "summary_file": result.get("summary_file", ""),
+        "centerline_file": result.get("centerline_file", ""),
+        "files": result.get("files", []),
+        "error": "" if status == "done" else ("CAVER 输出不存在，可能执行失败或后端重启后状态丢失" if log_path.exists() else ""),
+        "pid": None,
+        "command": "",
+        "phase": "done_recovered" if status == "done" else "recovered",
+        "phase_at": now_ts(),
+    }
+    with caver_jobs_lock:
+        caver_jobs[job_id] = job
+    return job
+
+
 def run_job(job_id: str):
     with jobs_lock:
         job = jobs.get(job_id)
@@ -3444,6 +4740,186 @@ def run_job(job_id: str):
         except Exception as e:
             traceback.print_exc(file=logf)
             with jobs_lock:
+                job["status"] = "failed"
+                job["error"] = str(e)
+                job["ended_at"] = now_ts()
+                job["phase"] = "failed_exception"
+                job["phase_at"] = now_ts()
+
+
+def run_alphafold_job(job_id: str):
+    with alphafold_jobs_lock:
+        job = alphafold_jobs.get(job_id)
+        if not job:
+            return
+        job["status"] = "running"
+        job["started_at"] = now_ts()
+        job["phase"] = "starting"
+        job["phase_at"] = now_ts()
+    job_dir = ALPHAFOLD_WORK_DIR / job_id
+    in_dir = job_dir / "input"
+    out_dir = job_dir / "output"
+    log_path = job_dir / "run.log"
+    in_dir.mkdir(parents=True, exist_ok=True)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    input_json = in_dir / "fold_input.json"
+    with alphafold_jobs_lock:
+        job["phase"] = "prepare_dirs"
+        job["phase_at"] = now_ts()
+    with open(log_path, "a", encoding="utf-8") as logf:
+        cmd = _alphafold_build_command(job_id, input_json, out_dir)
+        if not cmd:
+            msg = (
+                "未找到 AlphaFold 3 运行器。"
+                "请设置 ALPHAFOLD3_RUNNER 或 ALPHAFOLD3_COMMAND，"
+                "也可以先用页面上的“导入已有结果目录”模式。"
+            )
+            logf.write(msg + "\n")
+            with alphafold_jobs_lock:
+                job["status"] = "failed"
+                job["error"] = msg
+                job["ended_at"] = now_ts()
+                job["phase"] = "failed_no_runner"
+                job["phase_at"] = now_ts()
+            return
+        env = os.environ.copy()
+        env.setdefault("ALPHAFOLD3_HOME", ALPHAFOLD3_HOME)
+        if ALPHAFOLD3_MODEL_DIR:
+            env.setdefault("ALPHAFOLD3_MODEL_DIR", ALPHAFOLD3_MODEL_DIR)
+        if ALPHAFOLD3_DB_DIRS:
+            env.setdefault("ALPHAFOLD3_DB_DIR", ALPHAFOLD3_DB_DIRS[0])
+            env.setdefault("ALPHAFOLD3_DB_DIRS", os.pathsep.join(ALPHAFOLD3_DB_DIRS))
+        logf.write("CMD: " + " ".join(shlex.quote(x) for x in cmd) + "\n")
+        if ALPHAFOLD3_MODEL_DIR:
+            logf.write(f"MODEL_DIR: {ALPHAFOLD3_MODEL_DIR}\n")
+        if ALPHAFOLD3_DB_DIRS:
+            logf.write(f"DB_DIRS: {os.pathsep.join(ALPHAFOLD3_DB_DIRS)}\n")
+        logf.flush()
+        try:
+            with alphafold_jobs_lock:
+                job["command"] = " ".join(shlex.quote(x) for x in cmd)
+                job["phase"] = "spawn"
+                job["phase_at"] = now_ts()
+            proc = subprocess.Popen(
+                cmd,
+                cwd=ALPHAFOLD3_HOME if _safe_existing_dir(ALPHAFOLD3_HOME) else str(job_dir),
+                stdout=logf,
+                stderr=subprocess.STDOUT,
+                env=env,
+            )
+            with alphafold_jobs_lock:
+                job["pid"] = proc.pid
+                job["phase"] = "waiting"
+                job["phase_at"] = now_ts()
+            code = proc.wait()
+            result = _alphafold_job_result(job_id, job)
+            with alphafold_jobs_lock:
+                job["exit_code"] = code
+                job["metrics"] = result.get("metrics", {})
+                job["files"] = result.get("files", [])
+                job["structure_file"] = result.get("structure_file", "")
+                job["structure_format"] = result.get("structure_format", "")
+                job["output_dir"] = result.get("output_root", "")
+                job["status"] = "done" if code == 0 and result.get("structure_file") else "failed"
+                if code != 0:
+                    job["error"] = f"AlphaFold 任务执行失败，退出码 {code}"
+                    job["phase"] = "failed_exit"
+                elif not result.get("structure_file"):
+                    job["error"] = "AlphaFold 运行结束，但没有找到结构输出文件"
+                    job["phase"] = "failed_no_structure"
+                else:
+                    job["phase"] = "done"
+                job["ended_at"] = now_ts()
+                job["phase_at"] = now_ts()
+        except Exception as e:
+            traceback.print_exc(file=logf)
+            with alphafold_jobs_lock:
+                job["status"] = "failed"
+                job["error"] = str(e)
+                job["ended_at"] = now_ts()
+                job["phase"] = "failed_exception"
+                job["phase_at"] = now_ts()
+
+
+def run_caver_job(job_id: str):
+    with caver_jobs_lock:
+        job = caver_jobs.get(job_id)
+        if not job:
+            return
+        job["status"] = "running"
+        job["started_at"] = now_ts()
+        job["phase"] = "starting"
+        job["phase_at"] = now_ts()
+    job_dir = CAVER_WORK_DIR / job_id
+    input_dir = job_dir / "input"
+    output_dir = job_dir / "output"
+    log_path = job_dir / "run.log"
+    input_pdb = Path(str(job.get("input_pdb", "") or "")) if str(job.get("input_pdb", "") or "").strip() else (input_dir / "structure.pdb")
+    config_path = input_dir / "config.txt"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    with open(log_path, "a", encoding="utf-8") as logf:
+        cmd = _caver_build_command(input_pdb, config_path, output_dir)
+        if not cmd:
+            msg = (
+                "未找到 CAVER 运行命令。"
+                "请设置 CAVER_JAR 或 CAVER_COMMAND，"
+                "并确保 Java runtime 可用。"
+            )
+            logf.write(msg + "\n")
+            with caver_jobs_lock:
+                job["status"] = "failed"
+                job["error"] = msg
+                job["ended_at"] = now_ts()
+                job["phase"] = "failed_no_runner"
+                job["phase_at"] = now_ts()
+            return
+        logf.write("CMD: " + " ".join(shlex.quote(x) for x in cmd) + "\n")
+        logf.flush()
+        try:
+            with caver_jobs_lock:
+                job["command"] = " ".join(shlex.quote(x) for x in cmd)
+                job["phase"] = "spawn"
+                job["phase_at"] = now_ts()
+            proc = subprocess.Popen(
+                cmd,
+                cwd=str(job_dir),
+                stdout=logf,
+                stderr=subprocess.STDOUT,
+                env=os.environ.copy(),
+            )
+            with caver_jobs_lock:
+                job["pid"] = proc.pid
+                job["phase"] = "waiting"
+                job["phase_at"] = now_ts()
+            code = proc.wait()
+            whole_clustering = job_dir / "whole_clustering.csv"
+            if whole_clustering.exists():
+                try:
+                    target = output_dir / "analysis" / "whole_clustering.csv"
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.move(str(whole_clustering), str(target))
+                except Exception:
+                    pass
+            result = _caver_result_payload(job_id, job)
+            with caver_jobs_lock:
+                job["exit_code"] = code
+                job["summary_file"] = result.get("summary_file", "")
+                job["centerline_file"] = result.get("centerline_file", "")
+                job["files"] = result.get("files", [])
+                job["status"] = "done" if code == 0 and (result.get("summary_rows") or result.get("centerline_file")) else "failed"
+                if code != 0:
+                    job["error"] = f"CAVER 执行失败，退出码 {code}"
+                    job["phase"] = "failed_exit"
+                elif not (result.get("summary_rows") or result.get("centerline_file")):
+                    job["error"] = "CAVER 执行结束，但没有发现可解析的输出"
+                    job["phase"] = "failed_no_output"
+                else:
+                    job["phase"] = "done"
+                job["ended_at"] = now_ts()
+                job["phase_at"] = now_ts()
+        except Exception as e:
+            traceback.print_exc(file=logf)
+            with caver_jobs_lock:
                 job["status"] = "failed"
                 job["error"] = str(e)
                 job["ended_at"] = now_ts()
@@ -3545,10 +5021,7 @@ def run_tmalign_job(job_id: str):
         job["status"] = "running"
         job["started_at"] = now_ts()
     job_dir = TMALIGN_WORK_DIR / job_id
-    in_dir = job_dir / "input"
     log_path = job_dir / "run.log"
-    pdb1 = in_dir / job["pdb1_name"]
-    pdb2 = in_dir / job["pdb2_name"]
     tmalign_bin = discover_tmalign_bin()
     with open(log_path, "a", encoding="utf-8") as logf:
         if not tmalign_bin:
@@ -3559,23 +5032,39 @@ def run_tmalign_job(job_id: str):
                 job["error"] = msg
                 job["ended_at"] = now_ts()
             return
-        cmd = [tmalign_bin, str(pdb1), str(pdb2)]
-        logf.write("CMD: " + " ".join(shlex.quote(x) for x in cmd) + "\n")
-        logf.flush()
         try:
-            proc = subprocess.Popen(
-                cmd,
-                cwd=str(job_dir),
-                stdout=logf,
-                stderr=subprocess.STDOUT,
-                env=os.environ.copy(),
-            )
+            prepared = _pdbzn_prepare_tmalign_inputs(job_dir, job)
             with tmalign_jobs_lock:
-                job["pid"] = proc.pid
+                job["chain_mode"] = prepared.get("chain_mode", "whole")
+                job["selected_chain_1"] = prepared.get("selected_chain_1", "")
+                job["selected_chain_2"] = prepared.get("selected_chain_2", "")
                 job["tmalign_bin"] = tmalign_bin
-            code = proc.wait()
-            log_text = log_path.read_text(encoding="utf-8", errors="ignore") if log_path.exists() else ""
-            metrics = parse_tmalign_log(log_text)
+            if prepared.get("precomputed_log") is not None:
+                code = int(prepared.get("precomputed_exit_code", 0) or 0)
+                log_text = str(prepared.get("precomputed_log", "") or "")
+                metrics = prepared.get("precomputed_metrics", {}) or {}
+                cmd = [tmalign_bin, str(prepared["pdb1_path"]), str(prepared["pdb2_path"])]
+                logf.write("CMD: " + " ".join(shlex.quote(x) for x in cmd) + "\n")
+                logf.write(log_text)
+                logf.flush()
+                with tmalign_jobs_lock:
+                    job["pid"] = None
+            else:
+                cmd = [tmalign_bin, str(prepared["pdb1_path"]), str(prepared["pdb2_path"])]
+                logf.write("CMD: " + " ".join(shlex.quote(x) for x in cmd) + "\n")
+                logf.flush()
+                proc = subprocess.Popen(
+                    cmd,
+                    cwd=str(job_dir),
+                    stdout=logf,
+                    stderr=subprocess.STDOUT,
+                    env=os.environ.copy(),
+                )
+                with tmalign_jobs_lock:
+                    job["pid"] = proc.pid
+                code = proc.wait()
+                log_text = log_path.read_text(encoding="utf-8", errors="ignore") if log_path.exists() else ""
+                metrics = parse_tmalign_log(log_text)
             with tmalign_jobs_lock:
                 job["exit_code"] = code
                 job["status"] = "done" if code == 0 else "failed"
@@ -3644,6 +5133,41 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/tmalign/ping":
             self._write_json(200, {"ok": True, "service": "tmalign-api", "tmalign_bin": discover_tmalign_bin()})
             return
+        if path == "/api/caver/ping":
+            self._write_json(
+                200,
+                {
+                    "ok": True,
+                    "service": "caver-api",
+                    "java_bin": CAVER_JAVA_BIN,
+                    "caver_home": CAVER_HOME,
+                    "caver_jar": CAVER_JAR,
+                    "caver_lib_dir": CAVER_LIB_DIR,
+                    "command_override": CAVER_COMMAND,
+                    "ready": bool(CAVER_COMMAND or (CAVER_JAVA_BIN and CAVER_JAR)),
+                },
+            )
+            return
+        if path == "/api/alphafold/ping":
+            self._write_json(
+                200,
+                {
+                    "ok": True,
+                    "service": "alphafold-api",
+                    "runner": ALPHAFOLD3_RUNNER,
+                    "python_bin": ALPHAFOLD3_PYTHON_BIN,
+                    "model_dir": ALPHAFOLD3_MODEL_DIR,
+                    "db_dirs": ALPHAFOLD3_DB_DIRS,
+                    "command_override": ALPHAFOLD3_COMMAND,
+                    "features": {
+                        "submit": True,
+                        "import_result_dir": True,
+                        "inline_structure_result": True,
+                    },
+                    "ready": bool(ALPHAFOLD3_COMMAND or ALPHAFOLD3_RUNNER),
+                },
+            )
+            return
         if path == "/api/pdbzn/workflow/config":
             selection = _pdbzn_active_import_selection()
             self._write_json(200, {
@@ -3697,6 +5221,26 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/tmalign/jobs":
             with tmalign_jobs_lock:
                 arr = list(tmalign_jobs.values())
+            arr.sort(key=lambda x: x.get("created_at", 0), reverse=True)
+            self._write_json(200, {"ok": True, "jobs": arr[:50]})
+            return
+        if path == "/api/caver/jobs":
+            with caver_jobs_lock:
+                arr = list(caver_jobs.values())
+            arr.sort(key=lambda x: x.get("created_at", 0), reverse=True)
+            self._write_json(200, {"ok": True, "jobs": arr[:50]})
+            return
+        if path.startswith("/api/caver/preset/list/"):
+            preset_id = path.split("/")[-1]
+            payload = _caver_preset_list_payload(preset_id)
+            if payload.get("ok"):
+                self._write_json(200, payload)
+                return
+            self._write_json(404, payload)
+            return
+        if path == "/api/alphafold/jobs":
+            with alphafold_jobs_lock:
+                arr = list(alphafold_jobs.values())
             arr.sort(key=lambda x: x.get("created_at", 0), reverse=True)
             self._write_json(200, {"ok": True, "jobs": arr[:50]})
             return
@@ -3758,6 +5302,62 @@ class Handler(BaseHTTPRequestHandler):
                 return
             self._write_json(200, {"ok": True, "job": job})
             return
+        if path.startswith("/api/caver/status/"):
+            job_id = path.split("/")[-1]
+            with caver_jobs_lock:
+                job = caver_jobs.get(job_id)
+            if not job:
+                job = recover_caver_job(job_id)
+                if not job:
+                    self._write_json(404, {"ok": False, "error": "job not found"})
+                    return
+            self._write_json(200, {"ok": True, "job": job})
+            return
+        if path.startswith("/api/caver/result/"):
+            job_id = path.split("/")[-1]
+            with caver_jobs_lock:
+                job = caver_jobs.get(job_id)
+            if not job:
+                job = recover_caver_job(job_id)
+                if not job:
+                    self._write_json(404, {"ok": False, "error": "job not found"})
+                    return
+            self._write_json(200, {"ok": True, "result": _caver_result_payload(job_id, job)})
+            return
+        if path.startswith("/api/caver/preset/result/"):
+            tail = path[len("/api/caver/preset/result/"):]
+            seg = tail.split("/", 1)
+            if len(seg) != 2:
+                self._write_json(400, {"ok": False, "error": "invalid preset path"})
+                return
+            payload = _caver_preset_result_payload(seg[0], seg[1])
+            if payload.get("ok"):
+                self._write_json(200, payload)
+                return
+            self._write_json(404, payload)
+            return
+        if path.startswith("/api/alphafold/status/"):
+            job_id = path.split("/")[-1]
+            with alphafold_jobs_lock:
+                job = alphafold_jobs.get(job_id)
+            if not job:
+                job = recover_alphafold_job(job_id)
+                if not job:
+                    self._write_json(404, {"ok": False, "error": "job not found"})
+                    return
+            self._write_json(200, {"ok": True, "job": job})
+            return
+        if path.startswith("/api/alphafold/result/"):
+            job_id = path.split("/")[-1]
+            with alphafold_jobs_lock:
+                job = alphafold_jobs.get(job_id)
+            if not job:
+                job = recover_alphafold_job(job_id)
+                if not job:
+                    self._write_json(404, {"ok": False, "error": "job not found"})
+                    return
+            self._write_json(200, {"ok": True, "result": _alphafold_job_result(job_id, job)})
+            return
         if path.startswith("/api/diffdock/file/"):
             parts = path.split("/")
             if len(parts) < 6:
@@ -3790,6 +5390,53 @@ class Handler(BaseHTTPRequestHandler):
                 return
             self._write_file(file_path)
             return
+        if path.startswith("/api/caver/file/"):
+            prefix = "/api/caver/file/"
+            tail = path[len(prefix):]
+            seg = tail.split("/", 1)
+            if len(seg) != 2:
+                self._write_json(400, {"ok": False, "error": "invalid file path"})
+                return
+            job_id, rel_path = seg[0], seg[1]
+            job_dir = CAVER_WORK_DIR / job_id
+            file_path = resolve_under(job_dir, rel_path)
+            if (not file_path) or (not file_path.exists()) or (not file_path.is_file()):
+                self._write_json(404, {"ok": False, "error": "file not found"})
+                return
+            self._write_file(file_path)
+            return
+        if path.startswith("/api/caver/preset/file/"):
+            tail = path[len("/api/caver/preset/file/"):]
+            seg = tail.split("/", 2)
+            if len(seg) != 3:
+                self._write_json(400, {"ok": False, "error": "invalid preset file path"})
+                return
+            preset_id, pdb_id, rel_path = seg
+            job_dir = _caver_preset_job_dir(preset_id, pdb_id)
+            if job_dir is None:
+                self._write_json(404, {"ok": False, "error": "preset result not found"})
+                return
+            file_path = resolve_under(job_dir, rel_path)
+            if (not file_path) or (not file_path.exists()) or (not file_path.is_file()):
+                self._write_json(404, {"ok": False, "error": "file not found"})
+                return
+            self._write_file(file_path)
+            return
+        if path.startswith("/api/alphafold/file/"):
+            prefix = "/api/alphafold/file/"
+            tail = path[len(prefix):]
+            seg = tail.split("/", 1)
+            if len(seg) != 2:
+                self._write_json(400, {"ok": False, "error": "invalid file path"})
+                return
+            job_id, rel_path = seg[0], seg[1]
+            job_dir = ALPHAFOLD_WORK_DIR / job_id
+            file_path = resolve_under(job_dir, rel_path)
+            if (not file_path) or (not file_path.exists()) or (not file_path.is_file()):
+                self._write_json(404, {"ok": False, "error": "file not found"})
+                return
+            self._write_file(file_path)
+            return
         if path.startswith("/api/diffdock/log/"):
             job_id = path.split("/")[-1]
             log_path = WORK_DIR / job_id / "run.log"
@@ -3809,6 +5456,22 @@ class Handler(BaseHTTPRequestHandler):
         if path.startswith("/api/tmalign/log/"):
             job_id = path.split("/")[-1]
             log_path = TMALIGN_WORK_DIR / job_id / "run.log"
+            if not log_path.exists():
+                self._write_json(404, {"ok": False, "error": "log not found"})
+                return
+            self._write_json(200, {"ok": True, "log": log_path.read_text(encoding="utf-8", errors="ignore")})
+            return
+        if path.startswith("/api/caver/log/"):
+            job_id = path.split("/")[-1]
+            log_path = CAVER_WORK_DIR / job_id / "run.log"
+            if not log_path.exists():
+                self._write_json(404, {"ok": False, "error": "log not found"})
+                return
+            self._write_json(200, {"ok": True, "log": log_path.read_text(encoding="utf-8", errors="ignore")})
+            return
+        if path.startswith("/api/alphafold/log/"):
+            job_id = path.split("/")[-1]
+            log_path = ALPHAFOLD_WORK_DIR / job_id / "run.log"
             if not log_path.exists():
                 self._write_json(404, {"ok": False, "error": "log not found"})
                 return
@@ -3878,6 +5541,16 @@ class Handler(BaseHTTPRequestHandler):
         if parsed.path == "/api/fpocket/submit":
             pdb_name = safe_name(payload.get("pdb_name", "receptor.pdb"))
             pdb_text = payload.get("pdb_text", "")
+            fpocket_bin = discover_fpocket_bin()
+            if not fpocket_bin:
+                self._write_json(
+                    400,
+                    {
+                        "ok": False,
+                        "error": "fpocket 未安装或未找到。请先设置 FPOCKET_BIN，或将可执行文件放到 .tools/bin/fpocket",
+                    },
+                )
+                return
             if not pdb_text:
                 self._write_json(400, {"ok": False, "error": "missing pdb_text"})
                 return
@@ -3898,7 +5571,7 @@ class Handler(BaseHTTPRequestHandler):
                 "outputs": [],
                 "error": "",
                 "pid": None,
-                "fpocket_bin": "",
+                "fpocket_bin": fpocket_bin,
                 "phase": "queued",
                 "phase_at": now_ts(),
             }
@@ -3913,6 +5586,15 @@ class Handler(BaseHTTPRequestHandler):
             pdb2_name = safe_name(payload.get("pdb2_name", "struct2.pdb"))
             pdb1_text = payload.get("pdb1_text", "")
             pdb2_text = payload.get("pdb2_text", "")
+            chain_mode = str(payload.get("chain_mode", "whole") or "whole").strip().lower()
+            if chain_mode not in {"whole", "manual", "auto_best"}:
+                chain_mode = "whole"
+            chain1 = str(payload.get("chain1", "") or "").strip()
+            chain2 = str(payload.get("chain2", "") or "").strip()
+            tmalign_bin = discover_tmalign_bin()
+            if not tmalign_bin:
+                self._write_json(400, {"ok": False, "error": "TMalign 未安装或未找到，请先设置 TMALIGN_BIN 或将可执行文件放到 .tools/bin/TMalign"})
+                return
             if not pdb1_text or not pdb2_text:
                 self._write_json(400, {"ok": False, "error": "missing pdb1_text or pdb2_text"})
                 return
@@ -3939,13 +5621,191 @@ class Handler(BaseHTTPRequestHandler):
                 "metrics": {},
                 "error": "",
                 "pid": None,
-                "tmalign_bin": "",
+                "tmalign_bin": tmalign_bin,
+                "pdb1_text": pdb1_text,
+                "pdb2_text": pdb2_text,
+                "chain_mode": chain_mode,
+                "chain1": chain1,
+                "chain2": chain2,
+                "selected_chain_1": "",
+                "selected_chain_2": "",
             }
             with tmalign_jobs_lock:
                 tmalign_jobs[job_id] = job
             t = threading.Thread(target=run_tmalign_job, args=(job_id,), daemon=True)
             t.start()
             self._write_json(200, {"ok": True, "job_id": job_id, "status_url": f"/api/tmalign/status/{job_id}"})
+            return
+        if parsed.path == "/api/caver/submit":
+            pdb_name = safe_name(payload.get("pdb_name", "structure.pdb"))
+            pdb_text = payload.get("pdb_text", "")
+            if not pdb_text:
+                self._write_json(400, {"ok": False, "error": "missing pdb_text"})
+                return
+            if not pdb_name.lower().endswith(".pdb"):
+                pdb_name = Path(pdb_name).stem + ".pdb"
+            job_name = str(payload.get("job_name", "") or Path(pdb_name).stem or "caver_job").strip() or "caver_job"
+            job_id = uuid.uuid4().hex[:12]
+            job_dir = CAVER_WORK_DIR / job_id
+            input_dir = job_dir / "input"
+            output_dir = job_dir / "output"
+            input_dir.mkdir(parents=True, exist_ok=True)
+            output_dir.mkdir(parents=True, exist_ok=True)
+            input_pdb = input_dir / pdb_name
+            input_pdb.write_text(pdb_text, encoding="utf-8")
+            seed = _caver_seed_from_payload(payload, pdb_text)
+            if seed.get("x") is None or seed.get("y") is None or seed.get("z") is None:
+                self._write_json(400, {"ok": False, "error": "未能确定 CAVER 起点；请手工提供 seed_x/seed_y/seed_z，或提供含 Zn 的结构"})
+                return
+            _pdbzn_write_json(input_dir / "seed.json", seed)
+            config_text = str(payload.get("config_text", "") or "").strip()
+            if not config_text:
+                config_text = _caver_default_config(seed, output_dir)
+            config_path = input_dir / "config.txt"
+            config_path.write_text(config_text, encoding="utf-8")
+            job = {
+                "id": job_id,
+                "status": "queued",
+                "created_at": now_ts(),
+                "job_name": job_name,
+                "input_pdb": str(input_pdb),
+                "config_file": str(config_path),
+                "seed": seed,
+                "summary_file": "",
+                "centerline_file": "",
+                "files": [],
+                "error": "",
+                "pid": None,
+                "command": "",
+                "phase": "queued",
+                "phase_at": now_ts(),
+            }
+            with caver_jobs_lock:
+                caver_jobs[job_id] = job
+            t = threading.Thread(target=run_caver_job, args=(job_id,), daemon=True)
+            t.start()
+            self._write_json(200, {"ok": True, "job_id": job_id, "status_url": f"/api/caver/status/{job_id}"})
+            return
+        if parsed.path == "/api/alphafold/submit":
+            job_name = str(payload.get("job_name", "") or "").strip() or "alphafold_job"
+            input_payload, err = _alphafold_build_input_payload(payload, job_name)
+            if err:
+                self._write_json(400, {"ok": False, "error": err})
+                return
+            job_id = uuid.uuid4().hex[:12]
+            job_dir = ALPHAFOLD_WORK_DIR / job_id
+            in_dir = job_dir / "input"
+            out_dir = job_dir / "output"
+            in_dir.mkdir(parents=True, exist_ok=True)
+            out_dir.mkdir(parents=True, exist_ok=True)
+            input_json = in_dir / "fold_input.json"
+            _pdbzn_write_json(input_json, input_payload)
+            mode = str(payload.get("mode", "run") or "run").strip().lower()
+            job = {
+                "id": job_id,
+                "status": "queued",
+                "created_at": now_ts(),
+                "job_name": str(input_payload.get("name", "") or job_name),
+                "sequence_count": len(input_payload.get("sequences") or []),
+                "mode": mode or "run",
+                "input_json": str(input_json),
+                "output_dir": str(out_dir),
+                "structure_file": "",
+                "structure_format": "",
+                "metrics": {},
+                "files": [],
+                "error": "",
+                "pid": None,
+                "command": "",
+                "phase": "queued",
+                "phase_at": now_ts(),
+                "imported_result": False,
+            }
+            with alphafold_jobs_lock:
+                alphafold_jobs[job_id] = job
+            t = threading.Thread(target=run_alphafold_job, args=(job_id,), daemon=True)
+            t.start()
+            self._write_json(200, {"ok": True, "job_id": job_id, "status_url": f"/api/alphafold/status/{job_id}"})
+            return
+        if parsed.path == "/api/alphafold/import":
+            source_dir = str(payload.get("result_dir", "") or "").strip()
+            source = _safe_existing_dir(source_dir)
+            if source is None:
+                self._write_json(400, {"ok": False, "error": "result_dir 不存在或不是目录"})
+                return
+            job_name = str(payload.get("job_name", "") or source.name or "alphafold_import").strip() or "alphafold_import"
+            job_id = uuid.uuid4().hex[:12]
+            job_dir = ALPHAFOLD_WORK_DIR / job_id
+            in_dir = job_dir / "input"
+            import_dir = job_dir / "imported_result"
+            in_dir.mkdir(parents=True, exist_ok=True)
+            if import_dir.exists():
+                shutil.rmtree(import_dir)
+            shutil.copytree(source, import_dir)
+            input_payload, err = _alphafold_build_input_payload(payload, job_name)
+            if not err and input_payload:
+                _pdbzn_write_json(in_dir / "fold_input.json", input_payload)
+            result = _alphafold_job_result(job_id, {"job_name": job_name})
+            if not result.get("structure_file"):
+                self._write_json(400, {"ok": False, "error": "导入目录中未找到 .cif/.mmcif/.pdb 结构文件"})
+                return
+            job = {
+                "id": job_id,
+                "status": "done",
+                "created_at": now_ts(),
+                "started_at": now_ts(),
+                "ended_at": now_ts(),
+                "job_name": job_name,
+                "sequence_count": len((input_payload or {}).get("sequences") or []),
+                "mode": "import",
+                "input_json": str(in_dir / "fold_input.json") if (in_dir / "fold_input.json").exists() else "",
+                "output_dir": result.get("output_root", ""),
+                "structure_file": result.get("structure_file", ""),
+                "structure_format": result.get("structure_format", ""),
+                "metrics": result.get("metrics", {}),
+                "files": result.get("files", []),
+                "error": "",
+                "pid": None,
+                "command": "",
+                "phase": "done_imported",
+                "phase_at": now_ts(),
+                "imported_result": True,
+            }
+            with alphafold_jobs_lock:
+                alphafold_jobs[job_id] = job
+            self._write_json(
+                200,
+                {
+                    "ok": True,
+                    "job_id": job_id,
+                    "status_url": f"/api/alphafold/status/{job_id}",
+                    "result_url": f"/api/alphafold/result/{job_id}",
+                },
+            )
+            return
+        if parsed.path == "/api/master_table/save":
+            try:
+                result = _pdbzn_save_master_table_edit(payload)
+            except Exception as e:
+                traceback.print_exc()
+                self._write_json(500, {"ok": False, "error": f"master_table_save_internal_error: {e}"})
+                return
+            if result.get("ok"):
+                self._write_json(200, result)
+                return
+            self._write_json(400, result)
+            return
+        if parsed.path == "/api/master_table/delete":
+            try:
+                result = _pdbzn_delete_master_table(payload)
+            except Exception as e:
+                traceback.print_exc()
+                self._write_json(500, {"ok": False, "error": f"master_table_delete_internal_error: {e}"})
+                return
+            if result.get("ok"):
+                self._write_json(200, result)
+                return
+            self._write_json(400, result)
             return
         if parsed.path == "/api/pdbzn/workflow/run":
             result = _pdbzn_run_workflow(payload)

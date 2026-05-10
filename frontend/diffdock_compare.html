@@ -6,22 +6,37 @@
 <title>DiffDock 对比页面</title>
 <script src="https://unpkg.com/3dmol/build/3Dmol-min.js"></script>
 <style>
+/* 页面私有样式：这里负责左右对比布局，统一主题仍然由 theme.css 提供。 */
 body { font-family: system-ui, sans-serif; margin: 16px; }
 .top_nav { display: flex; gap: 8px; margin-bottom: 10px; }
 .top_nav a { display: inline-block; padding: 6px 10px; border: 1px solid #d9d9d9; background: #f6f8fa; color: #0b5394; text-decoration: none; border-radius: 6px; font-weight: 600; }
 .top_nav a:hover { background: #eaf2ff; }
-.layout { display: grid; grid-template-columns: 360px 1fr; gap: 14px; align-items: start; }
+.layout { display: grid; grid-template-columns: 360px minmax(0, 1fr) 300px; gap: 14px; align-items: start; }
 #controls { border: 1px solid #ddd; background: #fafafa; padding: 10px; }
+#right_sidebar { display: grid; gap: 10px; align-items: start; }
 label { display: block; margin-bottom: 8px; }
 select, input, button { width: 100%; box-sizing: border-box; padding: 6px; }
 .viewer_row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .viewer_box { border: 1px solid #ddd; height: 720px; position: relative; }
+.side_card { border: 1px solid #e5e5e5; background: #fff; padding: 8px; }
+.side_title { font-weight: 700; margin-bottom: 6px; }
+.summary_block { padding: 8px; border: 1px solid #e9ecef; border-radius: 8px; background: #fbfbfb; font-size: 12px; line-height: 1.5; }
+.summary_block + .summary_block { margin-top: 8px; }
+.summary_block.is_warn { background: #fff1f0; border-color: #f0c7c2; color: #9f2d20; }
+.summary_block.is_good { background: #eef8f1; border-color: #c8e4d1; color: #215c39; }
 .viewer_title { position: absolute; top: 6px; left: 8px; background: rgba(255,255,255,0.9); border: 1px solid #ddd; border-radius: 4px; padding: 2px 6px; font-size: 12px; z-index: 3; }
 #viewer_left, #viewer_right { width: 100%; height: 100%; }
 #status { margin-top: 10px; color: #333; }
 .rank_panel { margin-top: 10px; border: 1px solid #e5e5e5; background: #fff; padding: 6px; max-height: 220px; overflow: auto; font-size: 12px; }
 .rank_row { display: flex; justify-content: space-between; gap: 8px; padding: 4px 2px; border-bottom: 1px dashed #eee; cursor: pointer; }
 .rank_row:hover { background: #f7f7f7; }
+.rank_row.is_warn { background: #fff1f0; color: #9f2d20; }
+.rank_row.is_warn:hover { background: #ffe1de; }
+.rank_row.is_good { background: #eef8f1; color: #215c39; }
+.filter_box { margin-top: 10px; border: 1px solid #e5e5e5; background: #fff; padding: 8px; }
+.filter_title { font-weight: 700; margin-bottom: 6px; }
+.threshold_row { display: grid; grid-template-columns: 1fr 110px; gap: 8px; align-items: end; }
+.status_warn { color: #9f2d20; font-weight: 700; }
 .rank_title { font-weight: 700; margin-bottom: 4px; }
 .local_box { margin-top: 10px; border: 1px solid #e5e5e5; background: #fff; padding: 8px; }
 .local_title { font-weight: 700; margin-bottom: 6px; }
@@ -36,16 +51,21 @@ select, input, button { width: 100%; box-sizing: border-box; padding: 6px; }
 <link rel="stylesheet" href="./theme.css">
 </head>
 <body class="page-diffdock">
+<!-- 顶部导航：在结构浏览、DiffDock、Master 表等工具页之间来回切换。 -->
 <div class="top_nav">
   <a href="./index.html">主页面</a>
   <a href="./diffdock_compare.html">DiffDock对比</a>
   <a href="./master_table.html">Master表</a>
   <a href="./fpocket.html">fpocket</a>
   <a href="./tmalign.html">TM-align</a>
+  <a href="./caver.html">CAVER</a>
+  <a href="./alphafold.html">AlphaFold</a>
   <a href="./pdbzn_workflow.html">PDB-ZN工作流</a>
 </div>
 <h2>DiffDock 对比页面</h2>
+<!-- 左侧是控制区，右侧是两个并排的 3D 视窗。 -->
 <div class="layout">
+  <!-- 控制区：选择左右 PDB/Pose，也能提交在线 DiffDock 推理任务。 -->
   <div id="controls">
     <label>搜索PDB
       <input id="search_pdb" type="text" placeholder="输入例如 1AF0">
@@ -68,10 +88,23 @@ select, input, button { width: 100%; box-sizing: border-box; padding: 6px; }
     <button id="auto_top2_btn" type="button">按ZN距离自动前2名</button>
     <button id="swap_btn" type="button">左右Pose互换</button>
     <button id="load_btn" type="button">加载对比</button>
+    <div class="filter_box">
+      <div class="filter_title">反应距离筛选</div>
+      <div class="threshold_row">
+        <label>高风险阈值（Å）
+          <input id="risk_threshold" type="number" min="0" step="0.1" value="5.0">
+        </label>
+        <button id="threshold_apply_btn" type="button">应用阈值</button>
+      </div>
+      <label>
+        <input id="threshold_filter_enabled" type="checkbox" checked>
+        默认优先只展示 `<= 阈值` 的 pose
+      </label>
+    </div>
     <div class="local_box">
       <div class="local_title">在线DiffDock推理</div>
       <label>API地址
-        <input id="api_base" type="text" value="http://127.0.0.1:8015" placeholder="例如 http://127.0.0.1:8015">
+        <input id="api_base" type="text" value="" placeholder="留空自动探测；也可填写 https://你的域名 或 http://主机:8015">
       </label>
       <label>受体文件（PDB/CIF）
         <input id="online_receptor_file" type="file" accept=".pdb,.cif">
@@ -105,16 +138,14 @@ select, input, button { width: 100%; box-sizing: border-box; padding: 6px; }
         <select id="online_pose_right"></select>
       </label>
     </div>
+    <!-- 排名区：帮助用户按“底物到 Zn 的距离”快速挑 pose。 -->
     <div class="rank_panel">
       <div class="rank_title">左侧PDB Top10（底物-ZN距离升序）</div>
       <div id="left_rank_list"></div>
     </div>
-    <div class="rank_panel">
-      <div class="rank_title">右侧PDB Top10（底物-ZN距离升序）</div>
-      <div id="right_rank_list"></div>
-    </div>
     <div id="status"></div>
   </div>
+  <!-- 视图区：左右两个 viewer 共用同一套交互逻辑，便于并排比较。 -->
   <div class="viewer_row">
     <div class="viewer_box">
       <div class="viewer_title" id="left_title">左侧</div>
@@ -127,8 +158,20 @@ select, input, button { width: 100%; box-sizing: border-box; padding: 6px; }
       <div class="viewer_notice" id="viewer_notice_right"></div>
     </div>
   </div>
+  <div id="right_sidebar">
+    <div class="side_card">
+      <div class="side_title">当前选择摘要</div>
+      <div id="summary_left" class="summary_block">左侧未加载</div>
+      <div id="summary_right" class="summary_block">右侧未加载</div>
+    </div>
+    <div class="rank_panel">
+      <div class="rank_title">右侧PDB Top10（底物-ZN距离升序）</div>
+      <div id="right_rank_list"></div>
+    </div>
+  </div>
 </div>
 <script>
+// 页面状态：同时管理左右两个 viewer、本地索引数据和在线任务状态。
 let diffdockIndex = {items:[]};
 let masterData = {items:[]};
 let vLeft;
@@ -146,6 +189,50 @@ let localDataViaApi = false;
 let onlinePollTimer = null;
 let currentOnlineProgress = 0;
 let threeDmolLoader = null;
+let poseDistanceCache = new Map();
+const HIS_RESIDUES = new Set(["HIS", "HID", "HIE", "HIP", "HSD", "HSE", "HSP"]);
+const PROTEIN_DISPLAY_RESIDUES = new Set([
+  "ALA", "ARG", "ASN", "ASP", "ASH", "CYS", "CYM", "CYX", "GLN", "GLU", "GLH",
+  "GLY", "HIS", "HID", "HIE", "HIP", "HSD", "HSE", "HSP", "ILE", "LEU", "LYS",
+  "LYN", "MET", "MSE", "PHE", "PRO", "SEC", "SER", "THR", "TRP", "TYR", "VAL",
+]);
+const PROTEIN_DONOR_ATOMS = {
+  ALA: new Set(),
+  ARG: new Set(["NE", "NH1", "NH2"]),
+  ASN: new Set(["OD1", "ND2"]),
+  ASP: new Set(["OD1", "OD2"]),
+  ASH: new Set(["OD1", "OD2"]),
+  CYS: new Set(["SG"]),
+  CYM: new Set(["SG"]),
+  CYX: new Set(["SG"]),
+  GLN: new Set(["OE1", "NE2"]),
+  GLU: new Set(["OE1", "OE2"]),
+  GLH: new Set(["OE1", "OE2"]),
+  GLY: new Set(),
+  HIS: new Set(["ND1", "NE2"]),
+  HID: new Set(["ND1", "NE2"]),
+  HIE: new Set(["ND1", "NE2"]),
+  HIP: new Set(["ND1", "NE2"]),
+  HSD: new Set(["ND1", "NE2"]),
+  HSE: new Set(["ND1", "NE2"]),
+  HSP: new Set(["ND1", "NE2"]),
+  ILE: new Set(),
+  LEU: new Set(),
+  LYS: new Set(["NZ"]),
+  LYN: new Set(["NZ"]),
+  MET: new Set(["SD"]),
+  MSE: new Set(["SE"]),
+  PHE: new Set(),
+  PRO: new Set(),
+  SEC: new Set(["SE"]),
+  SER: new Set(["OG"]),
+  THR: new Set(["OG1"]),
+  TRP: new Set(["NE1"]),
+  TYR: new Set(["OH"]),
+  VAL: new Set(),
+};
+
+// 3Dmol 没加载成功时，使用空实现兜底，这样数据部分仍可继续浏览。
 function createViewerStub() {
   return {
     __viewerStub: true,
@@ -173,6 +260,28 @@ vRight = createViewerStub();
 function setStatus(t) {
   document.getElementById("status").textContent = t;
 }
+function setStatusWarn(on) {
+  document.getElementById("status").classList.toggle("status_warn", Boolean(on));
+}
+function setSideSummary(side, payload) {
+  const el = document.getElementById(side === "left" ? "summary_left" : "summary_right");
+  if (!el) return;
+  if (!payload) {
+    el.className = "summary_block";
+    el.textContent = side === "left" ? "左侧未加载" : "右侧未加载";
+    return;
+  }
+  const lines = [];
+  if (payload.title) lines.push(payload.title);
+  if (payload.pose) lines.push(`Pose: ${payload.pose}`);
+  if (payload.znSite) lines.push(`目标Zn: ${payload.znSite}`);
+  if (payload.distanceText) lines.push(`最短距离: ${payload.distanceText}`);
+  if (payload.note) lines.push(payload.note);
+  el.className = "summary_block";
+  if (payload.tone === "warn") el.classList.add("is_warn");
+  if (payload.tone === "good") el.classList.add("is_good");
+  el.innerHTML = lines.map((line) => `<div>${line}</div>`).join("");
+}
 function viewerUnavailableMessage() {
   return "3Dmol 未加载，通常是浏览器无法访问 3Dmol CDN；页面数据仍可浏览，但三维图像无法渲染。";
 }
@@ -187,6 +296,42 @@ function clearViewerNotices() {
   setViewerNotice("left", "");
   setViewerNotice("right", "");
 }
+function getRiskThreshold() {
+  const value = Number(document.getElementById("risk_threshold").value || 5);
+  return Number.isFinite(value) && value > 0 ? value : 5;
+}
+function isThresholdFilterEnabled() {
+  return Boolean(document.getElementById("threshold_filter_enabled").checked);
+}
+function poseDistanceKey(pid, poseFile, siteLabel) {
+  return `${String(pid || "").trim().toUpperCase()}|${String(poseFile || "").trim()}|${String(siteLabel || "").trim().toUpperCase()}`;
+}
+function distanceTone(distance) {
+  if (distance == null) return "";
+  if (distance <= 3.5) return "good";
+  if (distance > getRiskThreshold()) return "warn";
+  return "";
+}
+function filterReceptorModelText(text, fmt) {
+  if (String(fmt || "").toLowerCase() !== "pdb") return text;
+  const out = [];
+  for (const line of String(text || "").split(/\r?\n/)) {
+    if (line.startsWith("ATOM")) {
+      out.push(line);
+      continue;
+    }
+    if (line.startsWith("HETATM")) {
+      const resn = line.slice(17, 20).trim().toUpperCase();
+      if (resn === "ZN" || PROTEIN_DISPLAY_RESIDUES.has(resn)) out.push(line);
+      continue;
+    }
+    if (line.startsWith("CONECT")) continue;
+    out.push(line);
+  }
+  return out.join("\n");
+}
+
+// ---------- 在线任务进度与轮询 ----------
 function setOnlineProgress(value, label, tone = "normal") {
   const pct = Math.max(0, Math.min(100, Math.round(Number(value) || 0)));
   currentOnlineProgress = pct;
@@ -249,6 +394,8 @@ function scheduleOnlinePolling() {
     pollOnlineJob({silent: true});
   }, 3000);
 }
+
+// ---------- 3Dmol 加载与 viewer 初始化 ----------
 function loadExternalScript(url) {
   return new Promise((resolve, reject) => {
     const s = document.createElement("script");
@@ -291,6 +438,8 @@ async function ensureViewersReady() {
   }
   return ok;
 }
+
+// ---------- API 与数据路径解析 ----------
 function getApiBase() {
   return (document.getElementById("api_base").value || "").trim().replace(/\/+$/, "");
 }
@@ -300,8 +449,10 @@ function appendNoCache(url) {
 function buildApiCandidates() {
   const userBase = getApiBase();
   const h = window.location.hostname || "127.0.0.1";
+  const originBase = window.location.origin && window.location.origin !== "null" ? window.location.origin : "";
   const cands = [];
   if (userBase) cands.push(userBase);
+  if (originBase) cands.push(originBase);
   cands.push(`http://${h}:8015`, `http://${h}:8021`, `http://${h}:8019`, `http://${h}:8018`, `http://${h}:8017`, `http://${h}:8016`);
   cands.push("http://127.0.0.1:8015", "http://127.0.0.1:8021", "http://127.0.0.1:8019", "http://127.0.0.1:8018", "http://127.0.0.1:8017", "http://127.0.0.1:8016");
   return [...new Set(cands.filter(Boolean))];
@@ -365,6 +516,49 @@ function dataUrlCandidates(relPath) {
   out.push(`../backend/data/${relPath}`);
   return [...new Set(out)];
 }
+function deriveMasterId(row) {
+  const rep = String(row?.Representative || row?._id || "").trim().toUpperCase();
+  if (rep) return rep;
+  const receptor = String(row?.Receptor_PDB || "").trim();
+  if (!receptor) return "";
+  return receptor.split("/").pop().split(".")[0].trim().toUpperCase();
+}
+function deriveReceptorRelPath(row, id) {
+  const receptor = String(row?.Receptor_PDB || "").trim();
+  const ext = receptor.toLowerCase().endsWith(".cif") ? ".cif" : ".pdb";
+  const rep = String(id || deriveMasterId(row)).trim().toUpperCase();
+  return rep ? `../backend/data/structures/${rep}${ext}` : "";
+}
+function normalizeMasterRow(row) {
+  const id = deriveMasterId(row);
+  return {
+    id,
+    name: row?.Protein_Name || "",
+    cluster: row?.Cluster_ID || "",
+    receptor_pdb: row?.Receptor_PDB || "",
+    receptor_rel: deriveReceptorRelPath(row, id),
+    best_sdf: row?.Best_SDF || "",
+    species: row?.Species || "",
+    monomer_seq: row?.MonomerSeq || "",
+    zn_coord_site: row?.Step5_ZN_Site || row?.Zn_CoordSite || "",
+    zn_coord_residues: row?.Step5_Residues_Within_5A || row?.Zn_CoordResidues || "",
+    nearest_distance_to_3his_zn: row?.NearestDistanceTo3HisZn || "",
+    all_zn_distances_sorted: row?.AllZnDistancesSorted || "",
+  };
+}
+function normalizeMasterPayload(payload) {
+  if (Array.isArray(payload?.items)) {
+    return {items: payload.items.map((item) => ({
+      ...item,
+      id: String(item?.id || "").trim().toUpperCase(),
+      zn_coord_site: item?.zn_coord_site || item?.step5_zn_site || "",
+    }))};
+  }
+  if (Array.isArray(payload?.rows)) {
+    return {items: payload.rows.map(normalizeMasterRow).filter((item) => item.id)};
+  }
+  return {items: []};
+}
 async function fetchFirstJson(urls) {
   let lastErr = null;
   for (const u of urls) {
@@ -376,9 +570,10 @@ async function fetchFirstJson(urls) {
   }
   throw lastErr || new Error("数据加载失败");
 }
+
+// ---------- 几何辅助：解析结构文本并计算 pose 到 Zn 的距离 ----------
 function getPoseMeta(pid, poseFile) {
-  const entry = getEntryById(pid);
-  return (entry && entry.poses ? entry.poses : []).find(p => p.file === poseFile) || null;
+  return getAvailablePoses(pid).find((p) => p.file === poseFile) || null;
 }
 function setOnlineInfo(t) {
   document.getElementById("online_job_info").textContent = t;
@@ -406,13 +601,14 @@ function parsePdbAtoms(text) {
     const resn = line.slice(17,20).trim();
     const chain = line.slice(21,22).trim();
     const resiStr = line.slice(22,26).trim();
+    const icode = line.slice(26,27).trim();
     const x = Number(line.slice(30,38).trim());
     const y = Number(line.slice(38,46).trim());
     const z = Number(line.slice(46,54).trim());
     const elemRaw = line.length >= 78 ? line.slice(76,78).trim() : "";
     const elem = (elemRaw || atom.replace(/[0-9]/g, "").slice(0,2)).toUpperCase();
     if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(z)) continue;
-    out.push({atom, resn, chain, resi: resiStr, x, y, z, elem});
+    out.push({atom, resn: resn.toUpperCase(), chain, resi: `${resiStr}${icode}`.trim(), x, y, z, elem});
   }
   return out;
 }
@@ -447,25 +643,120 @@ async function fetchText(ref) {
   }
   throw lastErr || new Error("加载失败");
 }
-function findHisCoordinatedZn(atoms) {
-  const znAtoms = atoms.filter(a => a.elem === "ZN" || (a.atom || "").toUpperCase() === "ZN");
-  if (!znAtoms.length) return null;
-  let best3 = null;
-  let bestAny = null;
-  for (const zn of znAtoms) {
-    const hisSet = new Set();
-    for (const a of atoms) {
-      if (a.resn !== "HIS") continue;
-      if (dist3(zn, a) <= 3.0) hisSet.add(`${a.chain}:${a.resi}`);
-    }
-    const hit = {zn, hisCount: hisSet.size};
-    if (!bestAny || hit.hisCount > bestAny.hisCount) bestAny = hit;
-    if (hit.hisCount >= 3 && (!best3 || hit.hisCount > best3.hisCount)) best3 = hit;
+function donorAtomAllowed(atom) {
+  const allowed = PROTEIN_DONOR_ATOMS[String(atom?.resn || "").toUpperCase()];
+  return Boolean(allowed && allowed.has(String(atom?.atom || "").toUpperCase()));
+}
+function normalizeSiteLabel(text) {
+  return String(text || "").trim().toUpperCase();
+}
+function residueLabel(atom) {
+  return `${String(atom?.resn || "").toUpperCase()}:${atom?.chain || "?"}:${atom?.resi || "?"}`;
+}
+function coordSiteSortValue(site) {
+  return [
+    -Number(site?.hisCount || 0),
+    Number(site?.nonHisCount || 1e9),
+    Number(site?.residueCount || 1e9),
+    Number(site?.distSum || 9999),
+    String(site?.site || ""),
+    Number(site?.index || 1e9),
+  ];
+}
+function compareCoordSite(a, b) {
+  const av = coordSiteSortValue(a);
+  const bv = coordSiteSortValue(b);
+  for (let i = 0; i < av.length; i++) {
+    if (av[i] < bv[i]) return -1;
+    if (av[i] > bv[i]) return 1;
   }
-  return best3 || bestAny;
+  return 0;
+}
+function compareQualifiedCoordSite(a, b) {
+  const av = [
+    Number(a?.nonHisCount || 1e9),
+    -Number(a?.hisCount || 0),
+    Number(a?.residueCount || 1e9),
+    Number(a?.distSum || 9999),
+    String(a?.site || ""),
+    Number(a?.index || 1e9),
+  ];
+  const bv = [
+    Number(b?.nonHisCount || 1e9),
+    -Number(b?.hisCount || 0),
+    Number(b?.residueCount || 1e9),
+    Number(b?.distSum || 9999),
+    String(b?.site || ""),
+    Number(b?.index || 1e9),
+  ];
+  for (let i = 0; i < av.length; i++) {
+    if (av[i] < bv[i]) return -1;
+    if (av[i] > bv[i]) return 1;
+  }
+  return 0;
+}
+function collectCoordSites(atoms) {
+  const znAtoms = atoms.filter(a => a.elem === "ZN" || String(a.atom || "").toUpperCase() === "ZN");
+  const donorAtoms = atoms.filter(donorAtomAllowed);
+  const sites = [];
+  let idx = 1;
+  for (const zn of znAtoms) {
+    const nearest = new Map();
+    for (const atom of donorAtoms) {
+      const d = dist3(zn, atom);
+      if (d > 3.2) continue;
+      const key = `${atom.chain || ""}|${atom.resi || ""}|${atom.resn || ""}`;
+      const old = nearest.get(key);
+      if (!old || d < old.distance) nearest.set(key, {atom, distance: d});
+    }
+    const nearestItems = Array.from(nearest.values());
+    const hisCount = nearestItems.filter((item) => HIS_RESIDUES.has(String(item.atom?.resn || "").toUpperCase())).length;
+    const residueCount = nearestItems.length;
+    const nonHisCount = Math.max(0, residueCount - hisCount);
+    const distSum = nearestItems.length
+      ? nearestItems.map((item) => item.distance).sort((a, b) => a - b).slice(0, 3).reduce((sum, value) => sum + value, 0)
+      : 9999;
+    sites.push({
+      index: idx++,
+      zn,
+      hisCount,
+      residueCount,
+      nonHisCount,
+      distSum,
+      site: `${zn.chain || "?"}:${zn.resi || "?"}`,
+      residuesText: nearestItems
+        .sort((a, b) => a.distance - b.distance || residueLabel(a.atom).localeCompare(residueLabel(b.atom), "zh-Hans-CN", {numeric:true, sensitivity:"base"}))
+        .map((item) => `${residueLabel(item.atom)}:${item.distance.toFixed(3)}`)
+        .join("; "),
+    });
+  }
+  return sites.sort(compareCoordSite);
+}
+function findHisCoordinatedZn(atoms, preferredSite) {
+  const sites = collectCoordSites(atoms);
+  if (!sites.length) return null;
+  const siteLabel = normalizeSiteLabel(preferredSite);
+  if (siteLabel) {
+    const matched = sites.find((site) => normalizeSiteLabel(site.site) === siteLabel);
+    if (matched) return matched;
+  }
+  if (sites.length > 1) {
+    const qualified = sites.filter((site) => Number(site.hisCount || 0) >= 3).sort(compareQualifiedCoordSite);
+    if (qualified.length) return qualified[0];
+  }
+  return sites[0];
+}
+function znFocusSelectionFromInfo(info) {
+  const zn = info && info.znInfo ? info.znInfo.zn : null;
+  if (!zn) return {within:{distance:5.0, sel:{elem:"ZN"}}, byres:true};
+  if (zn.chain || zn.resi) {
+    return {within:{distance:5.0, sel:{chain: zn.chain, resi: zn.resi}}, byres:true};
+  }
+  return {within:{distance:5.0, sel:{elem:"ZN"}}, byres:true};
 }
 async function getReceptorInfo(pid) {
   if (receptorInfoCache.has(pid)) return receptorInfoCache.get(pid);
+  const master = getMasterItem(pid) || {};
   const cands = structureCandidates(pid);
   let text = "";
   let used = "";
@@ -478,39 +769,76 @@ async function getReceptorInfo(pid) {
     } catch (_) {}
   }
   const atoms = parsePdbAtoms(text);
-  const znInfo = findHisCoordinatedZn(atoms);
+  const znInfo = findHisCoordinatedZn(atoms, master.zn_coord_site);
   const info = {atoms, znInfo, source: used};
   receptorInfoCache.set(pid, info);
   return info;
 }
 async function computeZnDistanceRanking(pid, topN) {
-  const entry = getEntryById(pid);
-  if (!entry) return [];
+  const poses = getAvailablePoses(pid).filter((p) => p.rank != null);
+  if (!poses.length) return [];
   const receptor = await getReceptorInfo(pid);
   const zn = receptor && receptor.znInfo ? receptor.znInfo.zn : null;
-  const poses = (entry.poses || []).filter(p => p.rank != null).sort((a,b)=>a.rank-b.rank).slice(0, topN);
+  const siteLabel = receptor && receptor.znInfo ? receptor.znInfo.site : "";
   const rows = [];
   for (const p of poses) {
-    let d = Number.POSITIVE_INFINITY;
-    try {
-      const sdf = await fetchText(p.file);
-      const ligAtoms = parseSdfAtoms(sdf).filter(a => a.elem !== "H");
-      if (zn && ligAtoms.length) {
-        for (const a of ligAtoms) {
-          const dd = dist3(a, zn);
-          if (dd < d) d = dd;
+    const cacheKey = poseDistanceKey(pid, p.file, siteLabel);
+    let d = poseDistanceCache.get(cacheKey);
+    if (d === undefined) {
+      d = Number.POSITIVE_INFINITY;
+      try {
+        const sdf = await fetchText(p.file);
+        const ligAtoms = parseSdfAtoms(sdf).filter(a => a.elem !== "H");
+        if (zn && ligAtoms.length) {
+          for (const a of ligAtoms) {
+            const dd = dist3(a, zn);
+            if (dd < d) d = dd;
+          }
         }
-      }
-    } catch (_) {}
+      } catch (_) {}
+      d = Number.isFinite(d) ? d : null;
+      poseDistanceCache.set(cacheKey, d);
+    }
     rows.push({...p, zn_distance: Number.isFinite(d) ? d : null, his_count: receptor && receptor.znInfo ? receptor.znInfo.hisCount : 0});
   }
   rows.sort((a,b)=>{
     const da = a.zn_distance == null ? Number.POSITIVE_INFINITY : a.zn_distance;
     const db = b.zn_distance == null ? Number.POSITIVE_INFINITY : b.zn_distance;
-    return da - db;
+    if (da !== db) return da - db;
+    const ar = a.rank == null ? Number.POSITIVE_INFINITY : a.rank;
+    const br = b.rank == null ? Number.POSITIVE_INFINITY : b.rank;
+    return ar - br;
   });
-  return rows;
+  if (isThresholdFilterEnabled()) {
+    const thr = getRiskThreshold();
+    const filtered = rows.filter((row) => row.zn_distance != null && row.zn_distance <= thr);
+    if (filtered.length) return filtered.slice(0, topN);
+  }
+  return rows.slice(0, topN);
 }
+async function computePoseZnDistance(pid, poseFile, receptorInfo) {
+  const info = receptorInfo || await getReceptorInfo(pid);
+  const zn = info && info.znInfo ? info.znInfo.zn : null;
+  if (!zn || !poseFile) return null;
+  const cacheKey = poseDistanceKey(pid, poseFile, info && info.znInfo ? info.znInfo.site : "");
+  if (poseDistanceCache.has(cacheKey)) return poseDistanceCache.get(cacheKey);
+  try {
+    const sdf = await fetchText(poseFile);
+    const ligAtoms = parseSdfAtoms(sdf).filter((a) => a.elem !== "H");
+    if (!ligAtoms.length) return null;
+    let best = null;
+    for (const atom of ligAtoms) {
+      const d = dist3(atom, zn);
+      if (best == null || d < best) best = d;
+    }
+    poseDistanceCache.set(cacheKey, best);
+    return best;
+  } catch (_) {
+    return null;
+  }
+}
+
+// ---------- viewer 交互：标签、测量和点击高亮 ----------
 function renderRankList(side, rows) {
   const box = document.getElementById(side === "left" ? "left_rank_list" : "right_rank_list");
   box.innerHTML = "";
@@ -521,8 +849,12 @@ function renderRankList(side, rows) {
   for (const r of rows) {
     const div = document.createElement("div");
     div.className = "rank_row";
+    const tone = distanceTone(r.zn_distance);
+    if (tone === "warn") div.classList.add("is_warn");
+    if (tone === "good") div.classList.add("is_good");
     const d = r.zn_distance == null ? "NA" : r.zn_distance.toFixed(2) + " Å";
-    div.innerHTML = `<span>rank${r.rank}</span><span>${d}</span>`;
+    const riskText = tone === "warn" ? " 高风险" : (tone === "good" ? " 较可信" : "");
+    div.innerHTML = `<span>rank${r.rank}${riskText}</span><span>${d}</span>`;
     div.title = `confidence: ${r.confidence ?? "NA"}, HIS数: ${r.his_count}`;
     div.addEventListener("click", ()=>{
       const poseSel = document.getElementById(side === "left" ? "pose_left" : "pose_right");
@@ -732,6 +1064,8 @@ function bindViewerClick(viewer) {
     setStatus(isZn ? "已定位 ZN 的5Å邻域" : `已定位 ${atom.chain || ""}:${atom.resn || ""}${atom.resi || ""} 的5Å邻域`);
   });
 }
+
+// ---------- 本地数据初始化与下拉框渲染 ----------
 async function fetchJson(url) {
   const r = await fetch(appendNoCache(url));
   if (!r.ok) throw new Error(url + "加载失败");
@@ -745,9 +1079,14 @@ async function fetchJsonRaw(url) {
 async function initData() {
   await detectApiBase();
   const diffRes = await fetchFirstJson(dataUrlCandidates("diffdock_index.json"));
-  const masterRes = await fetchFirstJson(dataUrlCandidates("data.json"));
+  let masterRes;
+  try {
+    masterRes = await fetchFirstJson(dataUrlCandidates("master_full.json"));
+  } catch (_) {
+    masterRes = await fetchFirstJson(dataUrlCandidates("data.json"));
+  }
   diffdockIndex = diffRes.json;
-  masterData = masterRes.json;
+  masterData = normalizeMasterPayload(masterRes.json);
   localDataViaApi = Boolean(localApiBase) && [diffRes.url, masterRes.url].some(u => String(u || "").startsWith(`${localApiBase}/api/data/file`));
   for (const it of (diffdockIndex.items || [])) {
     for (const p of (it.poses || [])) {
@@ -762,6 +1101,62 @@ function getEntryById(id) {
 }
 function getMasterItem(id) {
   return (masterData.items || []).find(x => (x.id || "").toUpperCase() === (id || "").toUpperCase());
+}
+function parsePoseFilenameMeta(filename) {
+  const name = String(filename || "").trim();
+  const rankMatch = name.match(/rank(\d+)/i);
+  const confMatch = name.match(/confidence-([-+]?[0-9]*\.?[0-9]+)/i);
+  return {
+    rank: rankMatch ? Number(rankMatch[1]) : null,
+    confidence: confMatch ? Number(confMatch[1]) : null,
+  };
+}
+function buildMasterBestPose(pid) {
+  const master = getMasterItem(pid) || {};
+  const bestSdf = String(master.best_sdf || "").trim();
+  const rel = normalizeDataRelPath(bestSdf);
+  if (!rel) return null;
+  const filename = rel.split("/").pop() || "";
+  const meta = parsePoseFilenameMeta(filename);
+  return {
+    file: rel,
+    filename,
+    rank: meta.rank,
+    confidence: meta.confidence,
+    isMasterBest: true,
+  };
+}
+function getAvailablePoses(pid) {
+  const entry = getEntryById(pid);
+  const poses = [];
+  const seen = new Set();
+  for (const pose of (entry && entry.poses ? entry.poses : [])) {
+    const normalized = {
+      ...pose,
+      file: normalizeDataRelPath(pose.file || ""),
+      isMasterBest: false,
+    };
+    if (!normalized.file || seen.has(normalized.file)) continue;
+    seen.add(normalized.file);
+    poses.push(normalized);
+  }
+  const masterBest = buildMasterBestPose(pid);
+  if (masterBest && !seen.has(masterBest.file)) {
+    poses.push(masterBest);
+  } else if (masterBest) {
+    for (const pose of poses) {
+      if (pose.file === masterBest.file) pose.isMasterBest = true;
+    }
+  }
+  return poses.sort((a, b) => {
+    const ar = a.rank == null ? Number.POSITIVE_INFINITY : a.rank;
+    const br = b.rank == null ? Number.POSITIVE_INFINITY : b.rank;
+    if (ar !== br) return ar - br;
+    const ac = a.confidence == null ? Number.NEGATIVE_INFINITY : a.confidence;
+    const bc = b.confidence == null ? Number.NEGATIVE_INFINITY : b.confidence;
+    if (ac !== bc) return bc - ac;
+    return String(a.filename || "").localeCompare(String(b.filename || ""), "zh-Hans-CN", {numeric:true, sensitivity:"base"});
+  });
 }
 function renderPdbOptions() {
   const q = document.getElementById("search_pdb").value.trim().toUpperCase();
@@ -794,19 +1189,24 @@ function renderPdbOptions() {
     if (!rightSel.value && arr.length > 1) rightSel.value = arr[1].id;
     if (!rightSel.value && arr.length) rightSel.value = arr[0].id;
   }
-  renderPoseOptions("left");
-  renderPoseOptions("right");
-  refreshRankForSide("left");
-  refreshRankForSide("right");
+  await renderPoseOptions("left");
+  await renderPoseOptions("right");
+  await refreshRankForSide("left");
+  await refreshRankForSide("right");
 }
 function poseLabel(p) {
   const r = p.rank != null ? `rank${p.rank}` : "rank?";
   const c = p.confidence != null ? `conf ${p.confidence}` : "conf ?";
-  return `${r} | ${c}`;
+  return p && p.isMasterBest ? `${r} | ${c} | 当前表Best` : `${r} | ${c}`;
+}
+async function getPoseDistancesMap(pid) {
+  const rows = await computeZnDistanceRanking(pid, 1000);
+  const out = new Map();
+  for (const row of rows) out.set(row.file, row.zn_distance);
+  return out;
 }
 function getDefaultPoseFile(pid) {
-  const entry = getEntryById(pid);
-  const poses = entry ? (entry.poses || []) : [];
+  const poses = getAvailablePoses(pid);
   const m = getMasterItem(pid) || {};
   const best = (m.best_sdf || "").split("/").pop();
   if (best) {
@@ -815,26 +1215,41 @@ function getDefaultPoseFile(pid) {
   }
   return poses.length ? poses[0].file : "";
 }
-function renderPoseOptions(side) {
+async function renderPoseOptions(side) {
   const pid = document.getElementById(side === "left" ? "pdb_left" : "pdb_right").value;
-  const entry = getEntryById(pid);
   const poseSel = document.getElementById(side === "left" ? "pose_left" : "pose_right");
   const current = poseSel.value;
   poseSel.innerHTML = "";
-  const poses = entry ? (entry.poses || []) : [];
-  for (const p of poses) {
+  const poses = getAvailablePoses(pid);
+  const distMap = pid ? await getPoseDistancesMap(pid) : new Map();
+  const threshold = getRiskThreshold();
+  const preferred = isThresholdFilterEnabled()
+    ? poses.filter((pose) => {
+        const d = distMap.get(pose.file);
+        return d != null && d <= threshold;
+      })
+    : poses;
+  const toRender = preferred.length ? preferred : poses;
+  for (const p of toRender) {
     const op = document.createElement("option");
     op.value = p.file;
-    op.textContent = poseLabel(p);
+    const d = distMap.get(p.file);
+    const tone = distanceTone(d);
+    const riskText = tone === "warn" ? " | 高风险" : (tone === "good" ? " | 较可信" : "");
+    op.textContent = `${poseLabel(p)}${d == null ? "" : ` | ${d.toFixed(2)}Å`}${riskText}`;
+    if (tone === "warn") op.style.color = "#9f2d20";
+    if (tone === "good") op.style.color = "#215c39";
     poseSel.appendChild(op);
   }
-  if (poses.find(p => p.file === current)) {
+  if (toRender.find(p => p.file === current)) {
     poseSel.value = current;
   } else {
-    const def = getDefaultPoseFile(pid);
+    const def = toRender.length ? toRender[0].file : getDefaultPoseFile(pid);
     if (def) poseSel.value = def;
   }
 }
+
+// ---------- 结构加载：把本地或在线结果画到左右两个窗口 ----------
 function structureCandidates(id) {
   const m = getMasterItem(id) || {};
   const cands = [];
@@ -843,7 +1258,7 @@ function structureCandidates(id) {
   }
   return [...new Set(cands.filter(Boolean))];
 }
-async function tryLoadModel(viewer, candidates, fmts) {
+async function tryLoadModel(viewer, candidates, fmts, transformText) {
   const errors = [];
   for (let i = 0; i < candidates.length; i++) {
     const u = candidates[i];
@@ -853,7 +1268,8 @@ async function tryLoadModel(viewer, candidates, fmts) {
         errors.push(`${u} -> http_${r.status}`);
         continue;
       }
-      const txt = await r.text();
+      const txtRaw = await r.text();
+      const txt = typeof transformText === "function" ? transformText(txtRaw, fmts[i]) : txtRaw;
       viewer.addModel(txt, fmts[i]);
       return {url: u, errors};
     } catch (e) {
@@ -867,9 +1283,10 @@ async function loadOne(viewer, id, poseFile, ligandColor) {
   const state = getViewerState(viewer);
   clearViewerLabels(viewer, state);
   clearMeasurementForViewer(viewer, state);
+  const receptorInfo = await getReceptorInfo(id);
   const cands = structureCandidates(id);
   const fmts = cands.map(x => x.toLowerCase().endsWith(".cif") ? "cif" : "pdb");
-  const loadedRec = await tryLoadModel(viewer, cands, fmts);
+  const loadedRec = await tryLoadModel(viewer, cands, fmts, filterReceptorModelText);
   if (!loadedRec.url) throw new Error("受体结构未找到: " + id + (loadedRec.errors.length ? "；尝试: " + loadedRec.errors.join(" | ") : ""));
   const sdf = await fetchText(poseFile);
   const lig = viewer.addModel(sdf, "sdf");
@@ -878,7 +1295,7 @@ async function loadOne(viewer, id, poseFile, ligandColor) {
   applyPanelBase(viewer, state);
   lig.setStyle({}, {stick:{colorscheme:ligandColor, radius:0.24}});
   bindViewerClick(viewer);
-  state.lastSel = {within:{distance:5.0, sel:{elem:"ZN"}}, byres:true};
+  state.lastSel = znFocusSelectionFromInfo(receptorInfo);
   if (residueLabelMode) {
     labelResiduesInSelection(viewer, state, state.lastSel);
   }
@@ -891,14 +1308,17 @@ async function loadOneLocal(viewer, receptor, pose, ligandColor) {
   const state = getViewerState(viewer);
   clearViewerLabels(viewer, state);
   clearMeasurementForViewer(viewer, state);
-  viewer.addModel(receptor.text, receptor.fmt);
+  const receptorText = filterReceptorModelText(receptor.text, receptor.fmt);
+  viewer.addModel(receptorText, receptor.fmt);
+  const atoms = receptor.fmt === "pdb" ? parsePdbAtoms(receptorText) : [];
+  const receptorInfo = {atoms, znInfo: findHisCoordinatedZn(atoms)};
   const lig = viewer.addModel(pose.text, "sdf");
   state.ligModel = lig;
   state.ligColor = ligandColor;
   applyPanelBase(viewer, state);
   lig.setStyle({}, {stick:{colorscheme:ligandColor, radius:0.24}});
   bindViewerClick(viewer);
-  state.lastSel = {within:{distance:5.0, sel:{elem:"ZN"}}, byres:true};
+  state.lastSel = znFocusSelectionFromInfo(receptorInfo);
   if (residueLabelMode) labelResiduesInSelection(viewer, state, state.lastSel);
   viewer.zoomTo(state.lastSel);
   viewer.render();
@@ -1044,11 +1464,16 @@ async function loadCompareOnline() {
     await loadOneLocal(vRight, onlineResult.receptor, {name:rightName, text:rightText}, "cyanCarbon");
     document.getElementById("left_title").textContent = `左侧：在线任务 ${onlineJobId} | ${leftName}`;
     document.getElementById("right_title").textContent = `右侧：在线任务 ${onlineJobId} | ${rightName}`;
+    setSideSummary("left", {title: `左侧在线任务 ${onlineJobId}`, pose: leftName, note: "在线结果未接入Zn风险打分"});
+    setSideSummary("right", {title: `右侧在线任务 ${onlineJobId}`, pose: rightName, note: "在线结果未接入Zn风险打分"});
+    setStatusWarn(false);
     setStatus("在线DiffDock结果已加载到对比窗口");
   } catch (e) {
     const msg = "在线结果加载失败：" + (e && e.message ? e.message : "unknown");
     setViewerNotice("left", msg, "error");
     setViewerNotice("right", msg, "error");
+    setSideSummary("left", {title: "左侧加载失败", note: msg, tone: "warn"});
+    setSideSummary("right", {title: "右侧加载失败", note: msg, tone: "warn"});
     setStatus(msg);
   }
 }
@@ -1073,21 +1498,72 @@ async function loadCompare() {
     await loadOne(vRight, rightPid, rightPose, "cyanCarbon");
     const leftMeta = getPoseMeta(leftPid, leftPose);
     const rightMeta = getPoseMeta(rightPid, rightPose);
+    const leftInfo = await getReceptorInfo(leftPid);
+    const rightInfo = await getReceptorInfo(rightPid);
+    const [leftPoseDist, rightPoseDist] = await Promise.all([
+      computePoseZnDistance(leftPid, leftPose, leftInfo),
+      computePoseZnDistance(rightPid, rightPose, rightInfo),
+    ]);
     document.getElementById("left_title").textContent = `左侧：${leftPid} | ${(leftMeta && leftMeta.filename) || leftPose.split('/').pop().split('?')[0]}`;
     document.getElementById("right_title").textContent = `右侧：${rightPid} | ${(rightMeta && rightMeta.filename) || rightPose.split('/').pop().split('?')[0]}`;
-    setStatus("加载完成，可旋转/缩放对比");
+    const leftZnSite = leftInfo && leftInfo.znInfo ? (leftInfo.znInfo.site || `${leftInfo.znInfo.zn?.chain || "?"}:${leftInfo.znInfo.zn?.resi || "?"}`) : "";
+    const rightZnSite = rightInfo && rightInfo.znInfo ? (rightInfo.znInfo.site || `${rightInfo.znInfo.zn?.chain || "?"}:${rightInfo.znInfo.zn?.resi || "?"}`) : "";
+    const leftZn = leftInfo && leftInfo.znInfo && leftInfo.znInfo.zn
+      ? `${leftPid} 目标Zn ${leftZnSite} | 当前pose最短距离 ${leftPoseDist == null ? "NA" : `${leftPoseDist.toFixed(2)} Å`}`
+      : `${leftPid} 未识别到 Zn`;
+    const rightZn = rightInfo && rightInfo.znInfo && rightInfo.znInfo.zn
+      ? `${rightPid} 目标Zn ${rightZnSite} | 当前pose最短距离 ${rightPoseDist == null ? "NA" : `${rightPoseDist.toFixed(2)} Å`}`
+      : `${rightPid} 未识别到 Zn`;
+    const threshold = getRiskThreshold();
+    const risky = [leftPoseDist, rightPoseDist].some((d) => d != null && d > threshold);
+    setStatusWarn(risky);
+    setSideSummary("left", {
+      title: `左侧 ${leftPid}`,
+      pose: (leftMeta && leftMeta.filename) || leftPose.split('/').pop().split('?')[0],
+      znSite: leftZnSite || "NA",
+      distanceText: leftPoseDist == null ? "NA" : `${leftPoseDist.toFixed(2)} Å`,
+      tone: distanceTone(leftPoseDist),
+      note: leftMeta && leftMeta.isMasterBest ? "当前表Best pose" : "",
+    });
+    setSideSummary("right", {
+      title: `右侧 ${rightPid}`,
+      pose: (rightMeta && rightMeta.filename) || rightPose.split('/').pop().split('?')[0],
+      znSite: rightZnSite || "NA",
+      distanceText: rightPoseDist == null ? "NA" : `${rightPoseDist.toFixed(2)} Å`,
+      tone: distanceTone(rightPoseDist),
+      note: rightMeta && rightMeta.isMasterBest ? "当前表Best pose" : "",
+    });
+    setStatus(`加载完成，默认已按目标 Zn 位点定位。阈值 ${threshold.toFixed(1)} Å。${leftZn}；${rightZn}${risky ? "；当前存在高风险 pose" : ""}`);
   } catch (e) {
     const msg = "加载失败：" + (e && e.message ? e.message : "unknown");
     setViewerNotice("left", msg, "error");
     setViewerNotice("right", msg, "error");
+    setSideSummary("left", {title: "左侧加载失败", note: msg, tone: "warn"});
+    setSideSummary("right", {title: "右侧加载失败", note: msg, tone: "warn"});
+    setStatusWarn(true);
     setStatus(msg);
   }
 }
+
+// 事件绑定统一放在底部，先理解功能函数，再看哪些控件会触发它们。
 document.getElementById("search_pdb").addEventListener("input", renderPdbOptions);
-document.getElementById("pdb_left").addEventListener("change", async ()=>{ renderPoseOptions("left"); await refreshRankForSide("left"); await applyAutoTop2FromLeft(); });
-document.getElementById("pdb_right").addEventListener("change", async ()=>{ renderPoseOptions("right"); await refreshRankForSide("right"); loadCompare(); });
+document.getElementById("pdb_left").addEventListener("change", async ()=>{ await renderPoseOptions("left"); await refreshRankForSide("left"); await applyAutoTop2FromLeft(); });
+document.getElementById("pdb_right").addEventListener("change", async ()=>{ await renderPoseOptions("right"); await refreshRankForSide("right"); loadCompare(); });
 document.getElementById("pose_left").addEventListener("change", loadCompare);
 document.getElementById("pose_right").addEventListener("change", loadCompare);
+document.getElementById("threshold_apply_btn").addEventListener("click", async ()=>{
+  await renderPoseOptions("left");
+  await renderPoseOptions("right");
+  await refreshRankForSide("left");
+  await refreshRankForSide("right");
+  await applyAutoTop2FromLeft();
+});
+document.getElementById("threshold_filter_enabled").addEventListener("change", async ()=>{
+  await renderPoseOptions("left");
+  await renderPoseOptions("right");
+  await refreshRankForSide("left");
+  await refreshRankForSide("right");
+});
 document.getElementById("swap_btn").addEventListener("click", ()=>{
   const pl = document.getElementById("pdb_left");
   const pr = document.getElementById("pdb_right");
@@ -1095,9 +1571,11 @@ document.getElementById("swap_btn").addEventListener("click", ()=>{
   const l = document.getElementById("pose_left");
   const r = document.getElementById("pose_right");
   const t = l.value; l.value = r.value; r.value = t;
-  renderPoseOptions("left");
-  renderPoseOptions("right");
-  loadCompare();
+  Promise.resolve().then(async ()=>{
+    await renderPoseOptions("left");
+    await renderPoseOptions("right");
+    loadCompare();
+  });
 });
 document.getElementById("load_btn").addEventListener("click", loadCompare);
 document.getElementById("online_submit_btn").addEventListener("click", submitOnlineJob);
@@ -1140,12 +1618,13 @@ window.addEventListener("load", async ()=>{
     resetOnlineProgress("等待提交");
     await ensureViewersReady();
     await initData();
-    renderPoseOptions("left");
-    renderPoseOptions("right");
+    await renderPoseOptions("left");
+    await renderPoseOptions("right");
     await applyAutoTop2FromLeft();
     await refreshRankForSide("right");
     loadCompare();
   } catch (e) {
+    setStatusWarn(true);
     setStatus("初始化失败：" + (e && e.message ? e.message : "unknown"));
   }
   if (!window.$3Dmol) {

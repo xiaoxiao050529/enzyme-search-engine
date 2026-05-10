@@ -8,6 +8,7 @@
 <meta http-equiv="Expires" content="0">
 <title>TM-align 页面</title>
 <style>
+/* 页面私有样式：这里组织单任务、1 对多和矩阵三个操作区。 */
 body { font-family: system-ui, sans-serif; margin: 16px; }
 .top_nav { display: flex; gap: 8px; margin-bottom: 10px; }
 .top_nav a { display: inline-block; padding: 6px 10px; border: 1px solid #d9d9d9; background: #f6f8fa; color: #0b5394; text-decoration: none; border-radius: 6px; font-weight: 600; }
@@ -46,21 +47,26 @@ th { position: sticky; top: 0; background: #f7f9fc; z-index: 1; }
 <link rel="stylesheet" href="./theme.css">
 </head>
 <body class="page-tmalign">
+<!-- 顶部导航：在 TM-align 与其他结构分析页面之间切换。 -->
 <div class="top_nav">
   <a href="./index.html">主页面</a>
   <a href="./diffdock_compare.html">DiffDock对比</a>
   <a href="./master_table.html">Master表</a>
   <a href="./fpocket.html">fpocket</a>
   <a href="./tmalign.html">TM-align</a>
+  <a href="./caver.html">CAVER</a>
+  <a href="./alphafold.html">AlphaFold</a>
   <a href="./pdbzn_workflow.html">PDB-ZN工作流</a>
 </div>
 <h2>TM-align 页面</h2>
+<!-- 左侧是输入和任务控制，右侧是各种 TM-align 结果视图。 -->
 <div class="layout">
+  <!-- 控制区：包含单次比对、1 对多比对和多对多矩阵三种工作模式。 -->
   <div id="controls">
     <label>API地址
-      <input id="api_base" type="text" value="http://127.0.0.1:8015" placeholder="例如 http://127.0.0.1:8015">
+      <input id="api_base" type="text" value="" placeholder="留空自动探测；也可填写 https://你的域名 或 http://主机:8015">
     </label>
-    <div style="margin:-4px 0 8px 0;color:#666;font-size:12px;">请填写后端API端口（默认 8015，也支持 8017/8016），不要填写前端页面端口 8020</div>
+    <div style="margin:-4px 0 8px 0;color:#666;font-size:12px;">支持同域 /api 反代自动探测；直连时请填写后端地址，不要填写前端页面端口。</div>
     <label>结构1（PDB/ENT）
       <input id="pdb1_file" type="file" accept=".pdb,.ent">
     </label>
@@ -73,6 +79,21 @@ th { position: sticky; top: 0; background: #f7f9fc; z-index: 1; }
     <label>或从首批72蛋白中选择结构2
       <select id="pdb2_pick"></select>
     </label>
+    <label>比较模式
+      <select id="pair_chain_mode">
+        <option value="whole">整体结构比较</option>
+        <option value="auto_best">自动最佳链对</option>
+        <option value="manual">手动指定链</option>
+      </select>
+    </label>
+    <div id="pair_chain_inputs" style="display:none;">
+      <label>结构1链 ID
+        <input id="pair_chain1" type="text" placeholder="例如 B">
+      </label>
+      <label>结构2链 ID
+        <input id="pair_chain2" type="text" placeholder="例如 B">
+      </label>
+    </div>
     <button id="submit_btn" type="button">提交 TM-align 任务</button>
     <label>任务ID
       <input id="job_id" type="text" placeholder="提交后自动填入，或手工输入">
@@ -162,6 +183,7 @@ th { position: sticky; top: 0; background: #f7f9fc; z-index: 1; }
     <div id="status">待提交</div>
     <pre id="debug_error"></pre>
   </div>
+  <!-- 结果区：同一页里同时显示单任务指标、批量排序结果和矩阵数据。 -->
   <div id="result">
     <h3>任务结果</h3>
     <div id="job_meta">-</div>
@@ -217,6 +239,7 @@ th { position: sticky; top: 0; background: #f7f9fc; z-index: 1; }
   </div>
 </div>
 <script>
+// ---------- API 与单任务基础工具 ----------
 function getApiBase() {
   return (document.getElementById("api_base").value || "").trim().replace(/\/+$/, "");
 }
@@ -245,7 +268,8 @@ async function fetchJsonWithDetail(url, init, phase) {
 async function resolveApiBase() {
   const inputBase = getApiBase();
   const h = window.location.hostname || "127.0.0.1";
-  const candidates = [inputBase, `http://${h}:8015`, `http://${h}:8017`, `http://${h}:8016`, "http://127.0.0.1:8015", "http://127.0.0.1:8017", "http://127.0.0.1:8016"].filter(Boolean);
+  const originBase = window.location.origin && window.location.origin !== "null" ? window.location.origin : "";
+  const candidates = [inputBase, originBase, `http://${h}:8015`, `http://${h}:8017`, `http://${h}:8016`, "http://127.0.0.1:8015", "http://127.0.0.1:8017", "http://127.0.0.1:8016"].filter(Boolean);
   const uniq = [];
   for (const c of candidates) if (!uniq.includes(c)) uniq.push(c);
   const errors = [];
@@ -300,6 +324,8 @@ function calcSimilarity(metrics, mode) {
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+// 页面状态：分别记录批量任务是否运行、蛋白目录、缓存，以及用户当前挑选的集合。
 let batchRunning = false;
 let matrixRunning = false;
 let proteinCatalog = [];
@@ -308,6 +334,8 @@ const tmalignCache = new Map();
 let batchTargetSelected = [];
 let matrixRowSelected = [];
 let matrixColSelected = [];
+
+// ---------- 蛋白目录与集合选择 ----------
 function uniqueKeepOrder(arr) {
   const out = [];
   const seen = new Set();
@@ -414,6 +442,8 @@ async function loadProteinCatalog() {
   renderSelectedCollection("batch_target_selected", batchTargetSelected, (id) => removeFromCollection("batch", id));
   syncMatrixSelectors();
 }
+
+// ---------- 批量结果渲染与矩阵汇总 ----------
 function renderSelectedCollection(containerId, ids, onRemove, emptyText = "当前未选择") {
   const box = document.getElementById(containerId);
   box.innerHTML = "";
@@ -756,11 +786,24 @@ function renderMatrix(rowIds, colIds, cellMap, sameSet, scoreMode) {
   document.getElementById("matrix_meta").textContent =
     `行 ${rowIds.length} | 列 ${colIds.length} | 已完成 ${doneCount} | 失败 ${failedCount} | 排序依据 平均相似性 | 评分方式 ${scoreMode}`;
 }
+
+// ---------- TM-align 调度：单对、1 对多、多对多 ----------
 async function submitTmalignWithTexts(apiBase, name1, text1, name2, text2) {
+  const chainMode = document.getElementById("pair_chain_mode") ? (document.getElementById("pair_chain_mode").value || "whole") : "whole";
+  const chain1 = document.getElementById("pair_chain1") ? (document.getElementById("pair_chain1").value || "").trim() : "";
+  const chain2 = document.getElementById("pair_chain2") ? (document.getElementById("pair_chain2").value || "").trim() : "";
   const {json:j} = await fetchJsonWithDetail(apiBase + "/api/tmalign/submit", {
     method: "POST",
     headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({pdb1_name:name1, pdb1_text:text1, pdb2_name:name2, pdb2_text:text2})
+    body: JSON.stringify({
+      pdb1_name:name1,
+      pdb1_text:text1,
+      pdb2_name:name2,
+      pdb2_text:text2,
+      chain_mode: chainMode,
+      chain1,
+      chain2,
+    })
   }, "submit");
   return j.job_id || "";
 }
@@ -788,11 +831,19 @@ async function submitJob() {
     const {json:j} = await fetchJsonWithDetail(apiBase + "/api/tmalign/submit", {
       method: "POST",
       headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({pdb1_name:s1.name, pdb1_text:s1.text, pdb2_name:s2.name, pdb2_text:s2.text})
+      body: JSON.stringify({
+        pdb1_name:s1.name,
+        pdb1_text:s1.text,
+        pdb2_name:s2.name,
+        pdb2_text:s2.text,
+        chain_mode: document.getElementById("pair_chain_mode").value || "whole",
+        chain1: (document.getElementById("pair_chain1").value || "").trim(),
+        chain2: (document.getElementById("pair_chain2").value || "").trim(),
+      })
     }, phase);
     document.getElementById("job_id").value = j.job_id || "";
     setStatus(`提交成功：${j.job_id}`);
-    setDebugError(`phase=done\napi=${apiBase}\njob_id=${j.job_id}\nstruct1=${s1.name} (${s1.source})\nstruct2=${s2.name} (${s2.source})`);
+    setDebugError(`phase=done\napi=${apiBase}\njob_id=${j.job_id}\nstruct1=${s1.name} (${s1.source})\nstruct2=${s2.name} (${s2.source})\nchain_mode=${document.getElementById("pair_chain_mode").value || "whole"}\nchain1=${(document.getElementById("pair_chain1").value || "").trim() || "-"}\nchain2=${(document.getElementById("pair_chain2").value || "").trim() || "-"}`);
     await pollStatus();
   } catch (e) {
     const m = e && e.message ? e.message : "unknown";
@@ -943,9 +994,9 @@ async function pollStatus() {
     const {json:j} = await fetchJsonWithDetail(apiBase + "/api/tmalign/status/" + encodeURIComponent(id), {}, phase);
     const job = j.job || {};
     setStatus(`状态：${job.status}`);
-    document.getElementById("job_meta").textContent = `任务 ${job.id} | pdb1=${job.pdb1_name || "-"} | pdb2=${job.pdb2_name || "-"} | pid=${job.pid || "-"} | exit_code=${job.exit_code == null ? "-" : job.exit_code}`;
+    document.getElementById("job_meta").textContent = `任务 ${job.id} | pdb1=${job.pdb1_name || "-"} | pdb2=${job.pdb2_name || "-"} | mode=${job.chain_mode || "whole"} | chain1=${job.selected_chain_1 || "-"} | chain2=${job.selected_chain_2 || "-"} | pid=${job.pid || "-"} | exit_code=${job.exit_code == null ? "-" : job.exit_code}`;
     renderMetrics(job.metrics || {});
-    setDebugError(`phase=done\napi=${apiBase}\njob_id=${id}\nstatus=${job.status}\nexit_code=${job.exit_code == null ? "-" : job.exit_code}`);
+    setDebugError(`phase=done\napi=${apiBase}\njob_id=${id}\nstatus=${job.status}\nchain_mode=${job.chain_mode || "whole"}\nselected_chain_1=${job.selected_chain_1 || "-"}\nselected_chain_2=${job.selected_chain_2 || "-"}\nexit_code=${job.exit_code == null ? "-" : job.exit_code}`);
   } catch (e) {
     const m = e && e.message ? e.message : "unknown";
     setStatus("查询失败：" + m);
@@ -969,7 +1020,13 @@ async function loadLog() {
     setDebugError(`phase=${phase}\njob_id=${id}\nerror=${m}`);
   }
 }
+
+// 事件绑定统一放在底部，便于先读“能力函数”，再读“界面如何触发”。
 document.getElementById("submit_btn").addEventListener("click", submitJob);
+document.getElementById("pair_chain_mode").addEventListener("change", (e) => {
+  const mode = document.getElementById("pair_chain_mode").value || "whole";
+  document.getElementById("pair_chain_inputs").style.display = mode === "manual" ? "" : "none";
+});
 document.getElementById("poll_btn").addEventListener("click", pollStatus);
 document.getElementById("log_btn").addEventListener("click", loadLog);
 document.getElementById("batch_target_add_btn").addEventListener("click", () => addToCollection("batch"));

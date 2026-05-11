@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import csv
 import json
+import re
 from pathlib import Path
 
 
@@ -17,6 +18,12 @@ REMOVED_COLUMNS = [
     "Zn第一配位壳最近空隙_A",
     "ZN_弯曲通道半径_A",
     "ZN_弯曲通道长度_A",
+]
+DISPLAY_COLUMNS = [
+    "苯乙酮_CAVER通道判定",
+    "苯乙酮_CAVER口袋深度",
+    "苯乙酮_CAVER口袋深度判定列",
+    "苯乙酮_CAVER口袋深度判定值",
 ]
 
 
@@ -40,6 +47,25 @@ def row_id(row):
     return str(row.get("Representative") or row.get("PDB_ID") or row.get("_id") or "").strip().upper()
 
 
+def parse_depth_basis(text):
+    raw = str(text or "").strip()
+    if not raw:
+        return "", ""
+    match = re.match(r"^([A-Za-z0-9_]+)\s*=\s*(.+)$", raw)
+    if not match:
+        return "", raw
+    return match.group(1).strip(), match.group(2).strip()
+
+
+def apply_caver_display_fields(row, depth_label, depth_basis):
+    row["苯乙酮_CAVER通道判定"] = row.get("CAVER_AcetophenonePass", "")
+    row["苯乙酮_CAVER口袋深度"] = depth_label
+    basis_col, basis_value = parse_depth_basis(depth_basis)
+    row["苯乙酮_CAVER口袋深度判定列"] = basis_col
+    row["苯乙酮_CAVER口袋深度判定值"] = basis_value
+    return row
+
+
 def update_row(row, rep):
     depth_label, depth_basis = classify_depth(row)
     row["苯乙酮_综合判断"] = (
@@ -50,14 +76,6 @@ def update_row(row, rep):
     row["苯乙酮_通道瓶颈半径_A"] = rep.get("Best_bottleneck_radius_A", "")
     if str(row.get("苯乙酮_口袋最小半径_A", "") or "").strip() == "":
         row["苯乙酮_口袋最小半径_A"] = rep.get("Best_bottleneck_radius_A", "")
-    row["苯乙酮_判断说明"] = (
-        f"CAVER pocket-seed 重算：{rep.get('Caver_seed_mode','')}; "
-        f"channels={rep.get('Channel_count','')}; "
-        f"best_bottleneck={rep.get('Best_bottleneck_radius_A','')} Å; "
-        f"通道判定={rep.get('Acetophenone_size_pass_by_caver','')}; "
-        f"口袋深度={depth_label}（{depth_basis}）。"
-        + (f" 原备注：{rep.get('Existing_note','')}" if str(rep.get('Existing_note','')).strip() else "")
-    ).strip()
     row["CAVER_SeedMode"] = rep.get("Caver_seed_mode", "")
     row["CAVER_ChannelCount"] = rep.get("Channel_count", "")
     row["CAVER_BestBottleneckRadius_A"] = rep.get("Best_bottleneck_radius_A", "")
@@ -67,6 +85,12 @@ def update_row(row, rep):
     row["CAVER_JobDir"] = rep.get("Job_dir", "")
     row["CAVER_PocketDepthLabel"] = depth_label
     row["CAVER_PocketDepthBasis"] = depth_basis
+    apply_caver_display_fields(row, depth_label, depth_basis)
+    row["苯乙酮_判断说明"] = (
+        f"CAVER pocket-seed 重算：{rep.get('Caver_seed_mode','')}; "
+        f"channels={rep.get('Channel_count','')}。详细判定见专用列。"
+        + (f" 原备注：{rep.get('Existing_note','')}" if str(rep.get('Existing_note','')).strip() else "")
+    ).strip()
     for col in REMOVED_COLUMNS:
         row.pop(col, None)
     return row
@@ -139,6 +163,7 @@ def backfill_table(table_id: str, report_by_pid):
         "CAVER_PocketDepthBasis",
         "CAVER_SeedXYZ",
         "CAVER_JobDir",
+        *DISPLAY_COLUMNS,
     ]
     for col in extra_cols:
         if col not in header:

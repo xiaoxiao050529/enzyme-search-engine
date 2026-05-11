@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>DiffDock 对比页面</title>
-<script src="https://unpkg.com/3dmol/build/3Dmol-min.js"></script>
+<script src="./vendor/3Dmol-min.js"></script>
 <style>
 /* 页面私有样式：这里负责左右对比布局，统一主题仍然由 theme.css 提供。 */
 body { font-family: system-ui, sans-serif; margin: 16px; }
@@ -411,6 +411,7 @@ async function ensure3DmolLoaded() {
   if (!threeDmolLoader) {
     threeDmolLoader = (async () => {
       const urls = [
+        "./vendor/3Dmol-min.js",
         "https://unpkg.com/3dmol/build/3Dmol-min.js",
         "https://cdn.jsdelivr.net/npm/3dmol/build/3Dmol-min.js",
       ];

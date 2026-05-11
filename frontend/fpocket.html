@@ -5,8 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>fpocket 页面</title>
-<script src="https://unpkg.com/3dmol/build/3Dmol-min.js"></script>
+<script src="./vendor/3Dmol-min.js"></script>
 <style>
+/* 页面私有样式：这里只补 fpocket 页特有的左右布局和结果区域。 */
 body { font-family: system-ui, sans-serif; margin: 16px; }
 .top_nav { display: flex; gap: 8px; margin-bottom: 10px; }
 .top_nav a { display: inline-block; padding: 6px 10px; border: 1px solid #d9d9d9; background: #f6f8fa; color: #0b5394; text-decoration: none; border-radius: 6px; font-weight: 600; }
@@ -42,21 +43,26 @@ pre { white-space: pre-wrap; word-break: break-word; background: #f8f8f8; border
 <link rel="stylesheet" href="./theme.css">
 </head>
 <body class="page-fpocket">
+<!-- 顶部导航：在结构页、DiffDock、TM-align 等工具页之间切换。 -->
 <div class="top_nav">
   <a href="./index.html">主页面</a>
   <a href="./diffdock_compare.html">DiffDock对比</a>
   <a href="./master_table.html">Master表</a>
   <a href="./fpocket.html">fpocket</a>
   <a href="./tmalign.html">TM-align</a>
+  <a href="./caver.html">CAVER</a>
+  <a href="./alphafold.html">AlphaFold</a>
   <a href="./pdbzn_workflow.html">PDB-ZN工作流</a>
 </div>
 <h2>fpocket 页面</h2>
+<!-- 左侧负责提交和轮询任务，右侧负责展示 pocket 结果和 3D 视图。 -->
 <div class="layout">
+  <!-- 控制区：准备输入结构、提交任务、查询状态和查看日志。 -->
   <div id="controls">
     <label>API地址
-      <input id="api_base" type="text" value="http://127.0.0.1:8015" placeholder="例如 http://127.0.0.1:8015">
+      <input id="api_base" type="text" value="" placeholder="留空自动探测；也可填写 https://你的域名 或 http://主机:8015">
     </label>
-    <div class="muted">支持自动探测 8015/8021/8019/8018/8017/8016；不要填写前端页面端口（如 8020）</div>
+    <div class="muted">支持同域 /api 反代和 8015/8021/8019/8018/8017/8016 自动探测；不要填写前端页面端口。</div>
     <label>PDB文件（可上传本地结构）
       <input id="pdb_file" type="file" accept=".pdb,.ent">
     </label>
@@ -78,6 +84,7 @@ pre { white-space: pre-wrap; word-break: break-word; background: #f8f8f8; border
     </div>
     <pre id="debug_error">phase=idle</pre>
   </div>
+  <!-- 结果区：上半部分是 pocket 三维可视化，下半部分是表格、文件和日志。 -->
   <div id="result">
     <div id="viewer_panel">
       <h3>口袋可视化（右侧）</h3>
@@ -98,6 +105,7 @@ pre { white-space: pre-wrap; word-break: break-word; background: #f8f8f8; border
   </div>
 </div>
 <script>
+// 页面状态：既记录任务轮询信息，也记录 3D 视图里已经创建的模型和覆盖物。
 let pollTimer = null;
 let pollCount = 0;
 let viewer = null;
@@ -112,11 +120,13 @@ let pickedLabel = null;
 let proteinCatalog = [];
 let proteinLookup = new Map();
 let currentProgressValue = 0;
+
+// ---------- API、进度条与静态数据读取 ----------
 function getApiBase() {
   return (document.getElementById("api_base").value || "").trim().replace(/\/+$/, "");
 }
 function viewerUnavailableMessage() {
-  return "3Dmol 未加载，通常是浏览器无法访问 https://unpkg.com/3dmol/build/3Dmol-min.js；fpocket 任务和参数表仍可查看，但图像无法渲染。";
+  return "3Dmol 未加载；fpocket 任务和参数表仍可查看，但图像无法渲染。";
 }
 function appendNoCache(url) {
   return url + (url.includes("?") ? "&" : "?") + "t=" + Date.now();
@@ -254,6 +264,8 @@ async function loadSelectedProteinStructure(apiBase) {
   if (!text || text.trim().length < 50) throw new Error(`库内蛋白 ${entry.id} 结构为空或过短`);
   return {entry, text};
 }
+
+// ---------- viewer 生命周期与基础状态 ----------
 function setStatus(t) {
   document.getElementById("status").textContent = t;
 }
@@ -332,7 +344,8 @@ async function detectApiBase() {
   const cands = [];
   if (userBase) cands.push(userBase);
   const h = window.location.hostname || "127.0.0.1";
-  cands.push(`http://${h}:8015`, `http://${h}:8021`, `http://${h}:8019`, `http://${h}:8018`, `http://${h}:8017`, `http://${h}:8016`, "http://127.0.0.1:8015", "http://127.0.0.1:8021", "http://127.0.0.1:8019", "http://127.0.0.1:8018", "http://127.0.0.1:8017", "http://127.0.0.1:8016");
+  const originBase = window.location.origin && window.location.origin !== "null" ? window.location.origin : "";
+  cands.push(originBase, `http://${h}:8015`, `http://${h}:8021`, `http://${h}:8019`, `http://${h}:8018`, `http://${h}:8017`, `http://${h}:8016`, "http://127.0.0.1:8015", "http://127.0.0.1:8021", "http://127.0.0.1:8019", "http://127.0.0.1:8018", "http://127.0.0.1:8017", "http://127.0.0.1:8016");
   const uniq = [];
   for (const c of cands) if (!uniq.includes(c)) uniq.push(c);
   let lastErr = "";
@@ -349,7 +362,7 @@ async function detectApiBase() {
       lastErr = e && e.message ? e.message : String(e || "");
     }
   }
-  throw new Error("无法连接fpocket API。请确认后端已启动并监听 8015/8021/8019/8018/8017/8016。最后错误：" + lastErr);
+  throw new Error("无法连接fpocket API。请确认同域 /api 反代可用，或后端已启动并监听 8015/8021/8019/8018/8017/8016。最后错误：" + lastErr);
 }
 function readFileText(file) {
   return new Promise((resolve, reject)=>{
@@ -359,6 +372,8 @@ function readFileText(file) {
     fr.readAsText(file);
   });
 }
+
+// ---------- 结果面板渲染：输出文件、参数表和 pocket 列表 ----------
 function renderOutputs(apiBase, outputs) {
   const box = document.getElementById("outputs");
   box.innerHTML = "";
@@ -436,6 +451,8 @@ function renderParamTable(columns, rows) {
   html += "</tbody>";
   table.innerHTML = html;
 }
+
+// ---------- Zn 邻域与 pocket 交互：让 pocket 结果能和金属位点一起观察 ----------
 const METAL_ELEMENTS = new Set(["ZN","FE","MG","MN","CA","CU","CO","NI","NA","K","CD","HG","AL","CR","V","MO","W"]);
 function collectMetalAtoms(model) {
   if (!model || !model.selectedAtoms) return [];
@@ -806,6 +823,8 @@ function bindViewerClick() {
     focusResidueNeighborhood(atom);
   });
 }
+
+// ---------- 3D 渲染与 pocket 数据加载 ----------
 function parsePdbMetals(structureText) {
   const out = [];
   if (!structureText) return out;
@@ -928,6 +947,8 @@ async function loadPocketData() {
     setDebugError(`phase=pockets_error\njob_id=${id}\nerror=${msg}`);
   }
 }
+
+// ---------- 任务提交、状态轮询与日志读取 ----------
 async function submitJob() {
   let apiBase = getApiBase();
   const file = (document.getElementById("pdb_file").files || [])[0];
@@ -1058,6 +1079,8 @@ async function loadLog() {
     setDebugError(`phase=log_error\njob_id=${id}\nerror=${msg}`);
   }
 }
+
+// 事件绑定放在底部，先看功能函数，再回来看页面上哪些控件会触发它们。
 window.addEventListener("load", async ()=>{
   resetProgress("等待提交");
   try {

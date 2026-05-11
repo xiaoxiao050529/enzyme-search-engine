@@ -1,0 +1,15 @@
+[Unit]
+Description=Enzyme Search Engine Backend (User)
+After=default.target
+
+[Service]
+Type=simple
+WorkingDirectory=__ROOT_DIR__
+Environment=DIFFDOCK_API_HOST=0.0.0.0
+Environment=DIFFDOCK_API_PORT=8017
+ExecStart=/usr/bin/python3 __ROOT_DIR__/backend/diffdock_api_server.py
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=default.target

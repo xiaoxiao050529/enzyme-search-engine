@@ -1,3 +1,4 @@
+/* 设计令牌：这里集中定义颜色、圆角、阴影和字体，页面里的样式大多只是在复用这些变量。 */
 :root {
   --ui-font: "Avenir Next", "Segoe UI Variable", "Segoe UI", "Trebuchet MS", sans-serif;
   --heading-font: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
@@ -24,6 +25,14 @@
   --radius-lg: 22px;
   --radius-md: 16px;
   --radius-pill: 999px;
+  --content-max-width: 1240px;
+  --panel-border: var(--line-strong);
+  --text-main: var(--ink);
+  --text-muted: var(--muted);
+  --accent-strong: var(--brand-deep);
+  --table-head: rgba(247, 249, 252, 0.96);
+  --table-stripe: rgba(252, 252, 252, 0.92);
+  --table-hover: rgba(238, 246, 255, 0.92);
 }
 
 * {
@@ -31,6 +40,7 @@
 }
 
 html {
+  /* 整个站点的背景氛围在 html/body 两层完成：html 负责大面积渐变，body 负责内容排版。 */
   min-height: 100%;
   background:
     radial-gradient(circle at top left, rgba(239, 192, 123, 0.34), transparent 36%),
@@ -81,6 +91,7 @@ a {
   color: var(--brand);
 }
 
+/* 统一导航条：所有页面共用同一套导航外观，并通过 body 上的 page-* 类高亮当前页。 */
 .top_nav {
   position: sticky;
   top: 16px;
@@ -126,12 +137,15 @@ a {
 .page-master .top_nav a[href$="master_table.html"],
 .page-fpocket .top_nav a[href$="fpocket.html"],
 .page-tmalign .top_nav a[href$="tmalign.html"],
+.page-caver .top_nav a[href$="caver.html"],
+.page-alphafold .top_nav a[href$="alphafold.html"],
 .page-workflow .top_nav a[href$="pdbzn_workflow.html"] {
   background: linear-gradient(135deg, var(--brand-deep) 0%, var(--brand) 62%, var(--accent) 100%);
   color: #fff;
   box-shadow: 0 12px 24px rgba(30, 88, 104, 0.22);
 }
 
+/* 共享标题和信息卡片：状态框、说明框、结果框都沿用这套“卡片式”视觉语言。 */
 body > h2,
 .page_head h2 {
   margin: 0 0 18px;
@@ -235,6 +249,7 @@ noscript,
   align-items: start;
 }
 
+/* 面板与 3D 容器：这些选择器把“控制区 / 结果区 / 视图区”统一包装成卡片。 */
 #controls,
 .panel,
 #result,
@@ -313,6 +328,7 @@ noscript,
   padding: 8px 10px;
 }
 
+/* 可滚动内容区：列表、日志、参数表等都用同一种浅色滚动容器，读起来更统一。 */
 .list,
 #pocket_list,
 #params_wrap,
@@ -364,6 +380,7 @@ pre,
   flex: 1 1 170px;
 }
 
+/* 表单控件：标签负责语义分组，input/select/textarea/button 负责统一交互手感。 */
 label {
   display: block;
   margin-bottom: 12px;
@@ -495,6 +512,7 @@ button + button {
   background: rgba(30, 88, 104, 0.12);
 }
 
+/* 表格系统：结果表、参数表、矩阵表都共享这里的网格、悬停和 sticky 表头。 */
 table {
   width: max-content;
   min-width: 100%;
@@ -540,6 +558,7 @@ tbody tr:hover {
   border-top-color: rgba(30, 88, 104, 0.16);
 }
 
+/* 响应式断点：先让双栏在中等屏幕折成单栏，再针对手机收紧间距和高度。 */
 @media (max-width: 1120px) {
   .row,
   .layout,

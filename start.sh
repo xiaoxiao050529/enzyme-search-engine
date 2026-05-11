@@ -9,9 +9,18 @@ cd "$ROOT_DIR" || exit 1
 PYTHON_BIN="${PYTHON_BIN:-python3}"
 CURL_BIN="${CURL_BIN:-curl}"
 
+PUBLIC_MODE="${PUBLIC_MODE:-0}"
 LOCAL_HOST="127.0.0.1"
-BACKEND_BIND_HOST="${DIFFDOCK_API_HOST:-127.0.0.1}"
-FRONTEND_BIND_HOST="${FRONTEND_BIND_HOST:-127.0.0.1}"
+if [[ "$PUBLIC_MODE" == "1" ]]; then
+  DEFAULT_BIND_HOST="0.0.0.0"
+else
+  DEFAULT_BIND_HOST="127.0.0.1"
+fi
+BACKEND_BIND_HOST="${DIFFDOCK_API_HOST:-$DEFAULT_BIND_HOST}"
+FRONTEND_BIND_HOST="${FRONTEND_BIND_HOST:-$DEFAULT_BIND_HOST}"
+PUBLIC_HOST="${PUBLIC_HOST:-}"
+REQUESTED_BACKEND_PORT="${DIFFDOCK_API_PORT:-8015}"
+REQUESTED_FRONTEND_PORT="${FRONTEND_PORT:-8020}"
 
 LOG_DIR="$ROOT_DIR/backend/runtime/logs"
 PID_DIR="$ROOT_DIR/backend/runtime/pids"
@@ -90,11 +99,11 @@ start_backend() {
   local port endpoint log_path pid_path pid
   local candidates=()
 
-  unique_ports candidates "${DIFFDOCK_API_PORT:-8015}" 8015 8017 8016
+  unique_ports candidates "$REQUESTED_BACKEND_PORT" 8015 8017 8016
 
   for port in "${candidates[@]}"; do
     endpoint="http://${LOCAL_HOST}:${port}/api/pdbzn/workflow/config"
-    if http_ok "$endpoint"; then
+    if [[ "$PUBLIC_MODE" != "1" ]] && http_ok "$endpoint"; then
       BACKEND_PORT="$port"
       BACKEND_URL="http://${LOCAL_HOST}:${port}"
       BACKEND_STATE="reused"
@@ -136,11 +145,11 @@ start_frontend() {
   local port page_url log_path pid_path pid
   local candidates=()
 
-  unique_ports candidates "${FRONTEND_PORT:-8020}" 8020 8030 8031
+  unique_ports candidates "$REQUESTED_FRONTEND_PORT" 8020 8030 8031
 
   for port in "${candidates[@]}"; do
-    page_url="http://${LOCAL_HOST}:${port}/frontend/pdbzn_workflow.html"
-    if http_ok "$page_url"; then
+    page_url="http://${LOCAL_HOST}:${port}/frontend/master_table.html"
+    if [[ "$PUBLIC_MODE" != "1" ]] && http_ok "$page_url"; then
       FRONTEND_PORT="$port"
       FRONTEND_URL="http://${LOCAL_HOST}:${port}"
       FRONTEND_STATE="reused"
@@ -181,6 +190,12 @@ start_frontend() {
 require_cmd "$PYTHON_BIN"
 require_cmd "$CURL_BIN"
 
+if [[ -z "$PUBLIC_HOST" && "$BACKEND_BIND_HOST" != "127.0.0.1" ]]; then
+  if command -v hostname >/dev/null 2>&1; then
+    PUBLIC_HOST="$(hostname -I 2>/dev/null | awk '{print $1}')"
+  fi
+fi
+
 BACKEND_PORT=""
 BACKEND_URL=""
 BACKEND_STATE=""
@@ -199,7 +214,10 @@ start_frontend || die "unable to start or reuse frontend static server"
 printf '\n'
 printf 'Services ready.\n'
 printf 'Backend API: %s\n' "$BACKEND_URL"
-printf 'Frontend:    %s/frontend/pdbzn_workflow.html\n' "$FRONTEND_URL"
+printf 'Frontend:    %s/frontend/master_table.html\n' "$FRONTEND_URL"
+printf 'Workflow:    %s/frontend/pdbzn_workflow.html\n' "$FRONTEND_URL"
+printf 'CAVER:       %s/frontend/caver.html\n' "$FRONTEND_URL"
+printf 'AlphaFold:   %s/frontend/alphafold.html\n' "$FRONTEND_URL"
 printf 'Home:        %s/frontend/index.html\n' "$FRONTEND_URL"
 printf 'Master:      %s/frontend/master_table.html\n' "$FRONTEND_URL"
 printf '\n'
@@ -220,4 +238,13 @@ if [[ "$BACKEND_PORT" != "8015" ]]; then
   printf '\n'
   printf 'Note: backend is running on %s instead of 8015.\n' "$BACKEND_PORT"
   printf 'If a page does not auto-detect it, set API base to %s\n' "$BACKEND_URL"
+fi
+
+if [[ "$BACKEND_BIND_HOST" != "127.0.0.1" || "$FRONTEND_BIND_HOST" != "127.0.0.1" ]]; then
+  public_name="${PUBLIC_HOST:-<server-ip-or-domain>}"
+  printf '\n'
+  printf 'Public mode hints:\n'
+  printf '  Frontend: http://%s:%s/frontend/master_table.html\n' "$public_name" "$FRONTEND_PORT"
+  printf '  Workflow: http://%s:%s/frontend/pdbzn_workflow.html\n' "$public_name" "$FRONTEND_PORT"
+  printf '  API:      http://%s:%s/api/pdbzn/workflow/config\n' "$public_name" "$BACKEND_PORT"
 fi

@@ -5,152 +5,176 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Master Table</title>
 <style>
-body { font-family: system-ui, sans-serif; margin: 16px; }
-.top_nav { display: flex; gap: 8px; margin-bottom: 10px; }
-.top_nav a { display: inline-block; padding: 6px 10px; border: 1px solid #d9d9d9; background: #f6f8fa; color: #0b5394; text-decoration: none; border-radius: 6px; font-weight: 600; }
-.top_nav a:hover { background: #eaf2ff; }
-.column_legend { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 12px; align-items: center; }
-.legend_chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12px; border: 1px solid transparent; background: #f4f6f8; color: #2f3d4a; }
-.legend_note { font-size: 12px; color: #556; }
-.toolbar { display: grid; gap: 10px; margin-bottom: 10px; }
-.control_block { border: 1px solid #ddd; border-radius: 8px; background: #fafafa; padding: 10px; }
+/* 页面私有样式：这里主要组织工具栏和大表格，通用主题和视觉语言在 theme.css。 */
+body { font-family: system-ui, sans-serif; margin: 16px auto; max-width: var(--content-max-width); }
+.top_nav { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+.top_nav a { display: inline-block; padding: 6px 10px; border: 1px solid var(--panel-border); background: rgba(255, 255, 248, 0.88); color: var(--accent); text-decoration: none; border-radius: 8px; font-weight: 600; }
+.top_nav a:hover { background: var(--accent-soft); }
+.toolbar_shell { display: grid; gap: 10px; margin-bottom: 10px; }
+.toolbar_tabs { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 10px; border: 1px solid var(--panel-border); border-radius: 12px; background: var(--table-head); }
+.toolbar_tab { padding: 7px 12px; border: 1px solid var(--panel-border); border-radius: 999px; background: rgba(255, 255, 248, 0.98); color: var(--accent); cursor: pointer; font-weight: 600; }
+.toolbar_tab.is_active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.toolbar { display: grid; gap: 10px; }
+.toolbar_panel { display: none; }
+.toolbar_panel.is_active { display: block; }
+.control_block { border: 1px solid var(--panel-border); border-radius: 12px; background: rgba(255, 255, 246, 0.9); padding: 10px; }
 .block_title { font-weight: 700; margin-bottom: 8px; }
-.block_hint { font-size: 12px; color: #556; line-height: 1.5; white-space: pre-wrap; }
+.block_hint { font-size: 12px; color: var(--text-muted); line-height: 1.5; white-space: pre-wrap; }
 .control_row { display: grid; gap: 8px; align-items: end; }
-.data_row { grid-template-columns: minmax(220px, 1.5fr) auto auto; }
-.search_row { grid-template-columns: minmax(220px, 1fr) minmax(280px, 1.4fr) auto; }
-.sort_row { grid-template-columns: minmax(220px, 1.2fr) minmax(120px, 0.6fr) auto auto; }
-.display_row { grid-template-columns: minmax(260px, 1fr) auto; }
-.rowkeep_row { grid-template-columns: minmax(320px, 1fr) auto; }
-.edit_row { grid-template-columns: minmax(220px, 1.1fr) minmax(160px, 0.9fr) auto auto; }
-.fill_row { grid-template-columns: minmax(220px, 1fr) minmax(180px, 0.8fr) minmax(220px, 1fr) auto; }
-label { display: block; font-size: 13px; color: #333; }
-input, select, button, textarea { padding: 6px; box-sizing: border-box; width: 100%; margin-top: 4px; }
+.data_row { grid-template-columns: minmax(220px, 1.4fr) auto auto auto; }
+.merge_row { grid-template-columns: minmax(260px, 1fr) minmax(220px, 1fr) auto auto; }
+.display_row { grid-template-columns: minmax(220px, 260px) minmax(260px, 1fr) auto; }
+.save_row { grid-template-columns: minmax(220px, 1fr) minmax(260px, 1.3fr) auto auto; }
+.edit_row { grid-template-columns: auto minmax(320px, 1fr) auto; }
+.edit_add_row { grid-template-columns: minmax(180px, 220px) minmax(220px, 1fr) auto; }
+.edit_add_col { grid-template-columns: minmax(180px, 220px) minmax(220px, 1fr) auto; }
+.picker_grid { display: grid; gap: 8px; }
+.picker_row { display: grid; grid-template-columns: minmax(220px, 1fr) minmax(260px, 1.2fr) auto auto; gap: 8px; align-items: end; }
+.search_picker_row { grid-template-columns: minmax(180px, 220px) minmax(220px, 1fr) minmax(280px, 1.3fr) auto auto; }
+.picker_actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.picker_actions button { width: auto; }
+.multi_pick { min-height: 160px; }
+.selected_box { min-height: 44px; padding: 8px; border: 1px dashed var(--panel-border); border-radius: 12px; background: rgba(255,255,255,0.72); }
+.selected_list { display: flex; flex-wrap: wrap; gap: 6px; }
+.selected_item { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 999px; background: #eef4f7; border: 1px solid #d0d9e2; font-size: 12px; }
+.selected_item button { width: auto; min-width: 0; margin: 0; padding: 2px 6px; border-radius: 999px; box-shadow: none; font-size: 11px; }
+.selected_empty { color: #666; font-size: 12px; }
+label { display: block; font-size: 13px; color: var(--text-main); }
+input, select, button, textarea { padding: 6px; box-sizing: border-box; width: 100%; margin-top: 4px; border: 1px solid var(--panel-border); border-radius: 10px; background: rgba(255, 255, 249, 0.98); color: var(--text-main); }
 button { width: auto; white-space: nowrap; }
 textarea { min-height: 96px; resize: vertical; }
 .btn_stack { display: grid; gap: 8px; align-self: stretch; }
-#status { margin-bottom: 8px; color: #333; }
-.table_wrap { border: 1px solid #ddd; overflow: auto; max-height: 76vh; }
+#status { margin-bottom: 8px; color: var(--text-main); white-space: pre-wrap; overflow-wrap: anywhere; }
+.status_dirty { color: #9c2f00; font-weight: 700; }
+.table_wrap { border: 1px solid var(--panel-border); border-radius: 12px; overflow: auto; max-height: 76vh; background: rgba(255, 255, 246, 0.86); }
 table { border-collapse: collapse; width: max-content; min-width: 100%; font-size: 13px; }
-th, td { border: 1px solid #e5e5e5; padding: 6px 8px; text-align: left; white-space: nowrap; }
-th { position: sticky; top: 0; background: #f7f9fc; cursor: pointer; z-index: 2; vertical-align: bottom; }
-tbody tr:nth-child(even) { background: #fcfcfc; }
-tbody tr:hover { background: #eef6ff; }
-.editable_cell { cursor: cell; }
-.editable_cell:hover { background: rgba(255, 208, 102, 0.18); }
-.edited_cell { background: rgba(255, 236, 184, 0.72); }
-.col_label { font-weight: 700; line-height: 1.2; }
-.col_badge { display: inline-block; margin-top: 4px; padding: 2px 8px; border-radius: 999px; font-size: 11px; line-height: 1.2; border: 1px solid transparent; }
-.group_core .col_badge, .legend_core { background: #edf2f7; border-color: #d5dee8; color: #334155; }
-.group_diffdock .col_badge, .legend_diffdock { background: #e8f1ff; border-color: #bfd5ff; color: #124e96; }
-.group_fpocket .col_badge, .legend_fpocket { background: #ebf8ef; border-color: #b7e2c2; color: #1d6f42; }
-.group_geometry .col_badge, .legend_geometry { background: #fff4e5; border-color: #f1cf9c; color: #9a5a00; }
-.group_workflow .col_badge, .legend_workflow { background: #fcefee; border-color: #efc4bf; color: #9f3d2e; }
-.group_text .col_badge, .legend_text { background: #f3f4f6; border-color: #d6dae0; color: #4b5563; }
-th.group_core { background: #f7f9fc; box-shadow: inset 0 3px 0 #b9c4d0; }
-th.group_diffdock { background: #f2f7ff; box-shadow: inset 0 3px 0 #4c89d9; }
-th.group_fpocket { background: #f1fbf4; box-shadow: inset 0 3px 0 #54a26d; }
-th.group_geometry { background: #fff8ef; box-shadow: inset 0 3px 0 #d29b43; }
-th.group_workflow { background: #fff5f3; box-shadow: inset 0 3px 0 #cc7764; }
-th.group_text { background: #f8f9fb; box-shadow: inset 0 3px 0 #98a2ad; }
-td.group_core { box-shadow: inset 3px 0 0 rgba(185, 196, 208, 0.45); }
-td.group_diffdock { box-shadow: inset 3px 0 0 rgba(76, 137, 217, 0.45); }
-td.group_fpocket { box-shadow: inset 3px 0 0 rgba(84, 162, 109, 0.45); }
-td.group_geometry { box-shadow: inset 3px 0 0 rgba(210, 155, 67, 0.45); }
-td.group_workflow { box-shadow: inset 3px 0 0 rgba(204, 119, 100, 0.45); }
-td.group_text { box-shadow: inset 3px 0 0 rgba(152, 162, 173, 0.45); }
-th.priority_column { background: #fff8dd; box-shadow: inset 0 4px 0 #d4a200; }
-td.priority_column { background: rgba(255, 244, 204, 0.65); box-shadow: inset 4px 0 0 #d4a200; font-weight: 700; }
-td.text_heavy { max-width: 360px; }
-.cell_text { display: block; }
-td.text_heavy .cell_text { max-width: 340px; overflow: hidden; text-overflow: ellipsis; }
+th, td { border: 1px solid #dfe6bd; padding: 6px 8px; text-align: left; white-space: nowrap; vertical-align: top; }
+th { position: sticky; top: 0; background: var(--table-head); cursor: pointer; z-index: 2; }
+tbody tr:nth-child(even) { background: var(--table-stripe); }
+tbody tr:hover { background: var(--table-hover); }
+td.cell_dirty { background: #fff2d8; }
+td.cell_editing { outline: 2px solid var(--accent); outline-offset: -2px; }
+td input.inline_edit { width: 100%; margin: 0; border: 0; background: transparent; padding: 0; font: inherit; color: inherit; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-strong); font-size: 12px; margin-left: 8px; }
+.col_frozen { position: sticky; left: 0; z-index: 1; background: inherit; }
+th.col_frozen { z-index: 4; background: var(--table-head); box-shadow: 2px 0 0 #d7dfb3; }
+td.col_frozen { box-shadow: 2px 0 0 #e7ecc9; }
+button.is_active { background: var(--accent); border-color: var(--accent); color: #fff; }
+td.cell_edit_ready { cursor: text; }
+.th_main { font-weight: 700; line-height: 1.2; }
+.th_sub { margin-top: 4px; font-size: 11px; line-height: 1.2; color: var(--text-muted); font-weight: 600; }
+.hint_popup { position: fixed; z-index: 20; max-width: 320px; padding: 10px 12px; border: 1px solid var(--panel-border); border-radius: 12px; background: rgba(255,255,248,0.98); box-shadow: 0 10px 24px rgba(30, 88, 104, 0.18); color: var(--text-main); font-size: 12px; line-height: 1.45; pointer-events: none; display: none; white-space: pre-wrap; }
+.column_legend { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 8px; }
+.legend_chip { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 999px; border: 1px solid transparent; font-size: 12px; font-weight: 700; }
+.col_group_judgement { background: #fff3cf; }
+.col_group_channel { background: #e6f4ff; }
+.col_group_depth { background: #e9f6ea; }
+.col_group_basis { background: #f1ebff; }
+.col_group_distance { background: #ffe7ef; }
+th.col_group_judgement { background: #ffe39f; }
+th.col_group_channel { background: #cfe8ff; }
+th.col_group_depth { background: #d8efd9; }
+th.col_group_basis { background: #e4d9ff; }
+th.col_group_distance { background: #ffd5e3; }
+.legend_chip.col_group_judgement { border-color: #d8bb63; color: #6c4a00; }
+.legend_chip.col_group_channel { border-color: #84b8df; color: #124c74; }
+.legend_chip.col_group_depth { border-color: #8eb890; color: #27592a; }
+.legend_chip.col_group_basis { border-color: #b19be0; color: #53348d; }
+.legend_chip.col_group_distance { border-color: #d89ab1; color: #8e244b; }
 </style>
 <link rel="stylesheet" href="./theme.css">
 </head>
 <body class="page-master">
+<!-- 顶部导航：方便在“结构详情 / Master 表 / 其他工具页”之间来回切换。 -->
 <div class="top_nav">
-  <a href="./index.html">主页面</a>
+  <a href="./index.html">结构详情</a>
   <a href="./diffdock_compare.html">DiffDock对比</a>
-  <a href="./master_table.html">Master表</a>
+  <a href="./master_table.html" aria-current="page">Master表</a>
   <a href="./fpocket.html">fpocket</a>
   <a href="./tmalign.html">TM-align</a>
+  <a href="./caver.html">CAVER</a>
+  <a href="./alphafold.html">AlphaFold</a>
   <a href="./pdbzn_workflow.html">PDB-ZN工作流</a>
 </div>
-<h2>Master Table</h2>
-<div class="column_legend">
-  <span class="legend_chip legend_core">基础列</span>
-  <span class="legend_chip legend_diffdock">DiffDock</span>
-  <span class="legend_chip legend_fpocket">fpocket</span>
-  <span class="legend_chip legend_geometry">Zn/几何</span>
-  <span class="legend_chip legend_workflow">流程/TM-align</span>
-  <span class="legend_chip legend_text">文本信息</span>
-  <span class="legend_note">默认把名称、序列、路径等长文本列放到后面；悬停单元格可看完整内容。</span>
-</div>
-<div class="toolbar">
-  <div class="control_block">
+<h2>Master Table <span id="dirty_badge" class="badge" hidden>未保存修改</span></h2>
+<!-- 工具栏：把常用操作拆成多个标签页，避免把所有控件堆在一个面板里。 -->
+<div class="toolbar_shell">
+  <div class="toolbar_tabs" id="toolbar_tabs">
+    <button type="button" class="toolbar_tab is_active" data-panel="panel-data">数据</button>
+    <button type="button" class="toolbar_tab" data-panel="panel-edit">编辑</button>
+    <button type="button" class="toolbar_tab" data-panel="panel-search">查找</button>
+    <button type="button" class="toolbar_tab" data-panel="panel-view">显示</button>
+    <button type="button" class="toolbar_tab" data-panel="panel-merge">合并</button>
+    <button type="button" class="toolbar_tab" data-panel="panel-save">保存</button>
+  </div>
+  <div class="toolbar">
+  <div class="toolbar_panel is_active" id="panel-data">
+    <div class="control_block">
     <div class="block_title">数据表</div>
     <div class="control_row data_row">
       <label>选择表
         <select id="table_select"></select>
       </label>
+      <button id="save_btn" type="button">保存当前表</button>
       <button id="export_btn" type="button">导出Excel</button>
-      <button id="clear_btn" type="button">清空全部</button>
+      <button id="clear_btn" type="button">重置视图</button>
     </div>
     <div id="table_meta" class="block_hint">-</div>
   </div>
-  <div class="control_block">
-    <div class="block_title">查找</div>
-    <div class="control_row search_row">
-      <label>查找列
-        <select id="search_col"></select>
-      </label>
-      <label>查找值
-        <input id="search_value" type="text" placeholder="输入关键词；不选列时会搜索全部列">
-      </label>
-      <button id="search_clear_btn" type="button">清空查找</button>
-    </div>
   </div>
-  <div class="control_block">
-    <div class="block_title">排序</div>
-    <div class="control_row sort_row">
-      <label>排序列
-        <select id="sort_col"></select>
+  <div class="toolbar_panel" id="panel-merge">
+    <div class="control_block">
+    <div class="block_title">合并表</div>
+    <div class="control_row merge_row">
+      <label>主表
+        <select id="merge_base_select"></select>
       </label>
-      <label>顺序
-        <select id="sort_order">
-          <option value="desc">降序</option>
-          <option value="asc">升序</option>
-        </select>
+      <label>追加表
+        <select id="merge_extra_select"></select>
       </label>
-      <button id="sort_apply_btn" type="button">应用排序</button>
-      <button id="sort_clear_btn" type="button">清空排序</button>
+      <button id="merge_btn" type="button">合并到当前工作区</button>
+      <button id="reload_btn" type="button">放弃修改并重载</button>
     </div>
+    <div class="block_hint">合并按 `Representative/_id/Receptor_PDB` 推断的 PDB 编号去重。合并、单元格编辑、筛选保留行后，离开页面会要求先保存。</div>
   </div>
-  <div class="control_block">
-    <div class="block_title">显示控制</div>
-    <div class="control_row display_row">
-      <label>保留列
-        <select id="visible_cols" multiple size="10"></select>
-      </label>
-      <div class="btn_stack">
-        <button id="apply_cols_btn" type="button">只显示所选列</button>
-        <button id="show_all_cols_btn" type="button">恢复全部列</button>
-      </div>
-    </div>
-    <div class="control_row rowkeep_row">
-      <label>保留行（输入 PDB 或 Representative，逗号、空格或换行分隔）
-        <textarea id="row_keep_input" placeholder="例如&#10;3MWM&#10;7U5Q&#10;1TXL"></textarea>
-      </label>
-      <div class="btn_stack">
-        <button id="apply_rows_btn" type="button">只保留这些行</button>
-        <button id="clear_rows_btn" type="button">恢复全部行</button>
-      </div>
-    </div>
   </div>
-  <div class="control_block">
+  <div class="toolbar_panel" id="panel-save">
+    <div class="control_block">
+    <div class="block_title">保存设置</div>
+    <div class="control_row save_row">
+      <label>保存名称
+        <input id="save_label" type="text" placeholder="例如 Table 4 merged and curated">
+      </label>
+      <label>说明
+        <input id="save_description" type="text" placeholder="例如 合并 table1 + table3，并补充手工修订">
+      </label>
+      <button id="save_as_btn" type="button">另存为新表</button>
+      <button id="save_overwrite_btn" type="button">覆盖当前选中表</button>
+    </div>
+    <div class="picker_actions">
+      <button id="delete_table_btn" type="button">删除当前表</button>
+    </div>
+    <div id="save_mode_hint" class="block_hint">-</div>
+  </div>
+  </div>
+  <div class="toolbar_panel" id="panel-edit">
+    <div class="control_block">
     <div class="block_title">编辑</div>
-    <div class="block_hint">支持新增自定义列、给当前表批量填写数字，或双击单元格直接修改。编辑结果保存在当前浏览器，可继续导出 Excel。</div>
     <div class="control_row edit_row">
+      <button id="edit_mode_btn" type="button">开启编辑模式</button>
+      <div id="edit_mode_status" class="block_hint">当前为浏览模式。开启后可单击单元格编辑；关闭后恢复为浏览/跳转。</div>
+      <button id="discard_edits_btn" type="button">撤销未保存修改</button>
+    </div>
+    <div class="control_row edit_add_row">
+      <label>新增行 ID
+        <input id="new_row_id" type="text" placeholder="例如 9XYZ">
+      </label>
+      <label>新增行名称
+        <input id="new_row_name" type="text" placeholder="例如 New enzyme candidate">
+      </label>
+      <button id="add_row_btn" type="button">新增行</button>
+    </div>
+    <div class="control_row edit_add_col">
       <label>新增列名
         <input id="new_col_name" type="text" placeholder="例如 ManualScore">
       </label>
@@ -158,119 +182,207 @@ td.text_heavy .cell_text { max-width: 340px; overflow: hidden; text-overflow: el
         <input id="new_col_default" type="text" placeholder="可留空">
       </label>
       <button id="add_col_btn" type="button">新增列</button>
-      <button id="clear_draft_btn" type="button">清空本地编辑</button>
-    </div>
-    <div class="control_row fill_row">
-      <label>填写列
-        <select id="edit_col"></select>
-      </label>
-      <label>填写范围
-        <select id="edit_scope">
-          <option value="filtered">当前筛选结果</option>
-          <option value="kept">保留行</option>
-          <option value="all">整张表</option>
-        </select>
-      </label>
-      <label>填写值
-        <input id="edit_value" type="text" placeholder="例如 1.25">
-      </label>
-      <button id="apply_edit_btn" type="button">批量填写</button>
     </div>
   </div>
+  </div>
+  <div class="toolbar_panel" id="panel-search">
+    <div class="control_block">
+    <div class="block_title">查找</div>
+    <div class="block_hint">查找改为和隐藏功能一致的“先筛可选值，再选择并添加”方式；同一列内可添加多个值，不同列之间会同时生效。</div>
+    <div class="picker_grid">
+      <div class="picker_row search_picker_row">
+        <label>查找列
+          <select id="search_col"></select>
+        </label>
+        <label>关键字筛选可选值
+          <input id="search_query" type="text" placeholder="先选列，再输入关键字缩小可选值">
+        </label>
+        <label>可选值
+          <select id="search_pick" multiple size="8" class="multi_pick"></select>
+        </label>
+        <button id="search_add_btn" type="button">添加选中</button>
+        <button id="search_add_all_btn" type="button">添加筛选结果</button>
+      </div>
+      <div class="selected_box">
+        <div id="search_selected" class="selected_list"></div>
+      </div>
+      <div class="picker_actions">
+        <button id="search_clear_btn" type="button">清空查找</button>
+      </div>
+    </div>
+    <div class="picker_grid">
+      <div class="picker_row">
+        <label>筛选行关键字
+          <input id="filter_row_query" type="text" placeholder="按 PDB / 名称筛选">
+        </label>
+        <label>可选行
+          <select id="filter_row_pick" multiple size="8" class="multi_pick"></select>
+        </label>
+        <button id="filter_row_add_btn" type="button">添加选中</button>
+        <button id="filter_row_add_all_btn" type="button">添加筛选结果</button>
+      </div>
+      <div class="selected_box">
+        <div id="filter_row_selected" class="selected_list"></div>
+      </div>
+      <div class="picker_actions">
+        <button id="filter_row_clear_btn" type="button">清空行筛选</button>
+      </div>
+    </div>
+  </div>
+  </div>
+  <div class="toolbar_panel" id="panel-view">
+    <div class="control_block">
+    <div class="block_title">显示与隐藏</div>
+    <div class="control_row display_row">
+      <label>列名查找
+        <input id="column_query" type="text" placeholder="例如 depth / pocket / species">
+      </label>
+      <label>列选择
+        <select id="visible_cols" multiple size="10"></select>
+      </label>
+      <div class="btn_stack">
+        <button id="keep_cols_btn" type="button">仅显示选中列</button>
+        <button id="hide_cols_btn" type="button">隐藏选中列</button>
+        <button id="show_all_cols_btn" type="button">显示全部列</button>
+      </div>
+    </div>
+    <div class="selected_box">
+      <div id="hidden_col_selected" class="selected_list"></div>
+    </div>
+    <div class="picker_grid">
+      <div class="picker_row">
+        <label>隐藏行关键字
+          <input id="hide_row_query" type="text" placeholder="按 PDB / 名称筛选">
+        </label>
+        <label>可隐藏行
+          <select id="hide_row_pick" multiple size="8" class="multi_pick"></select>
+        </label>
+        <button id="hide_row_add_btn" type="button">隐藏选中</button>
+        <button id="hide_row_add_all_btn" type="button">隐藏筛选结果</button>
+      </label>
+      </div>
+      <div class="selected_box">
+        <div id="hidden_row_selected" class="selected_list"></div>
+      </div>
+      <div class="picker_actions">
+        <button id="hide_row_clear_btn" type="button">显示全部行</button>
+      </div>
+    </div>
+  </div>
+  </div>
+</div>
 </div>
 <div id="status">正在加载数据...</div>
+<div class="column_legend" aria-label="列关系颜色示意">
+  <span class="legend_chip col_group_judgement">综合判定链</span>
+  <span class="legend_chip col_group_channel">通道 / 瓶颈</span>
+  <span class="legend_chip col_group_depth">口袋深度结论</span>
+  <span class="legend_chip col_group_basis">深度判定依据</span>
+  <span class="legend_chip col_group_distance">Zn 对接距离</span>
+</div>
+<!-- 表格主视图：表头和表体都由脚本按当前工作区状态动态生成。 -->
 <div class="table_wrap">
   <table id="tbl">
     <thead id="thead"></thead>
     <tbody id="tbody"></tbody>
   </table>
 </div>
+<div id="hint_popup" class="hint_popup"></div>
 <script>
+// 工作区状态：保存原始数据、当前可见列、筛选结果、脏状态和编辑模式。
 let fullHeader = [];
 let visibleHeader = [];
 let fullRows = [];
 let filteredRows = [];
+let baseHeader = [];
+let baseRows = [];
 let sortState = {key: "", asc: true};
 let localApiBase = "";
 let localDataViaApi = false;
 let masterSourceLabel = "未知";
 let tableRegistry = [];
 let currentTable = null;
-let keptRowSet = null;
-let baseHeader = [];
-let draftState = {addedColumns: [], editedCells: {}};
-const DRAFT_PREFIX = "master_table_draft::";
-const FRONT_PRIORITY_COLUMNS = [
-  "Representative",
-  "_id",
-  "Best_Confidence",
-  "Step5_FinalScore",
-  "Similarity_Score",
-  "Best_Rank",
-  "Protein_Category",
-  "Cluster_ID",
-  "Length;Oligomer;Monomer",
-  "NearestDistanceTo3HisZn",
-  "ZN_Depth",
-  "ZN_Depth_Rounded",
-  "ZN_SASA",
-  "TriHisSatisfied",
-  "TriHisCountMax",
-  "BestPocket_Score",
-  "BestPocket_Druggability",
-  "BestPocket_Volume",
-  "BestPocket_ID",
-  "BestPocket_ZnMatch",
-  "BestPocket_MinDistToZn",
-  "BestPocket_HisCount",
-  "BestPocket_ZnCount",
-  "BestPocket_SelectRule",
-  "Zn_CoordResidueCount",
-  "Zn_CoordHisCount",
-  "Zn_CoordNonHisCount",
-  "Zn_CoordSite",
-  "Step5_Source",
-  "Step5_FPocket_Status",
-  "Step5_FPocket_BestScore",
-  "Step5_FPocket_BestVolume",
-  "Step5_TriHis_Recheck_Pass",
-  "Step5_Symmetry_Spatial_Filter_Pass",
-  "Step5_TriHis_Count"
-];
-const TEXT_HEAVY_COLUMNS = new Set([
-  "Protein_Name",
-  "Species",
-  "MonomerSeq",
-  "Details",
-  "Neighbor_List",
-  "AllZnDistancesSorted",
-  "Receptor_PDB",
-  "Best_SDF",
-  "Zn_CoordResidues",
-  "Zn_CoordNote",
-  "Step5_Cluster_Members",
-  "Step5_TriHis_Residues",
-  "Step5_ZN_Site",
-  "Step5_His_ZN_Bond_Lengths_A",
-  "Step5_His_ZN_Bond_Angles_Deg",
-  "Step5_Residues_Within_5A",
-  "Step5_Validation_Reasons"
+let rowFilterSet = null;
+let hiddenRowSet = new Set();
+let hiddenColumnSet = new Set();
+let searchFilterMap = new Map();
+let dirty = false;
+let dirtyReasons = new Set();
+let mergedSourceIds = [];
+let rowOriginalMap = new Map();
+let saveInFlight = false;
+let editMode = false;
+const MASTER_FIXED_COL = "Representative";
+let activeToolbarPanel = "panel-data";
+const REMOVED_MASTER_COLUMNS = new Set([
+  "苯乙酮_活性口袋命中Zn",
+  "Zn第一配位壳最近空隙_A",
+  "ZN_弯曲通道半径_A",
+  "ZN_弯曲通道长度_A",
 ]);
-const DISPLAY_LABELS = {
-  "Representative": "PDB / Representative",
-  "Best_Confidence": "活性 / Best_Confidence",
-  "Step5_FinalScore": "综合分 / Step5_FinalScore",
-  "Similarity_Score": "相似度 / Similarity_Score",
-  "Protein_Name": "名称 / Protein_Name",
-  "Species": "物种 / Species",
-  "MonomerSeq": "序列 / MonomerSeq",
-  "BestPocket_Score": "口袋分 / BestPocket_Score",
-  "Receptor_PDB": "受体路径 / Receptor_PDB",
-  "Best_SDF": "对接结果 / Best_SDF"
-};
+const CAVER_SPLIT_COLUMNS = [
+  "苯乙酮_CAVER通道判定",
+  "苯乙酮_CAVER口袋深度",
+  "苯乙酮_CAVER口袋深度判定列",
+  "苯乙酮_CAVER口袋深度判定值",
+];
 
-function uniqueColumns(columns) {
-  return [...new Set(columns)];
+// ---------- 列与基础工具 ----------
+function sanitizeHeaderList(header) {
+  const out = [];
+  for (const name of Array.isArray(header) ? header : []) {
+    const key = asText(name).trim();
+    if (!key || REMOVED_MASTER_COLUMNS.has(key)) continue;
+    out.push(key);
+  }
+  return out;
+}
+
+function normalizeColumnOrder(header) {
+  const list = sanitizeHeaderList(header);
+  const front = [
+    MASTER_FIXED_COL,
+    "苯乙酮_综合判断",
+    "苯乙酮_尺寸可进入",
+    "苯乙酮_通道瓶颈半径_A",
+    "苯乙酮_CAVER通道判定",
+    "苯乙酮_CAVER口袋深度",
+    "苯乙酮_CAVER口袋深度判定列",
+    "苯乙酮_CAVER口袋深度判定值",
+    "苯乙酮_口袋最小半径_A",
+    "ZN_Surface_Distance",
+    "ZN_Depth",
+    "ZN_Depth_Rounded",
+    "ZN_全蛋白最短直线表面距离_A",
+    "ZN_全蛋白P10深度_A",
+    "ZN_全蛋白中位深度_A",
+    "苯乙酮_O到Zn最短距离_A",
+    "苯乙酮_任意原子到Zn最短距离_A",
+    "苯乙酮_判断说明",
+    "Zn_CoordResidueCount",
+    "Zn_CoordHisCount",
+    "Zn_CoordNonHisCount",
+    "Zn_CoordSite",
+    "Zn_CoordResidues",
+    "ZN_Depth",
+    "ZN_Depth_Rounded",
+    "ZN_SASA",
+  ];
+  const seen = new Set();
+  const out = [];
+  for (const name of [...front, ...list]) {
+    const key = asText(name).trim();
+    if (!key || seen.has(key) || !list.includes(key)) continue;
+    seen.add(key);
+    out.push(key);
+  }
+  return out;
+}
+
+function normalizeVisibleHeader(header) {
+  const ordered = normalizeColumnOrder(header);
+  if (!ordered.includes(MASTER_FIXED_COL)) return ordered;
+  return [MASTER_FIXED_COL, ...ordered.filter((name) => name !== MASTER_FIXED_COL)];
 }
 
 function asText(v) {
@@ -278,13 +390,126 @@ function asText(v) {
   return String(v);
 }
 
+function uniqueKeepOrder(arr) {
+  const out = [];
+  const seen = new Set();
+  for (const value of arr || []) {
+    const key = asText(value).trim();
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    out.push(key);
+  }
+  return out;
+}
+
+function parseDepthBasisText(text) {
+  const raw = asText(text).trim();
+  if (!raw) return {field: "", value: ""};
+  const match = raw.match(/^([A-Za-z0-9_]+)\s*=\s*(.+)$/);
+  if (!match) return {field: "", value: raw};
+  return {
+    field: asText(match[1]).trim(),
+    value: asText(match[2]).trim(),
+  };
+}
+
+function parseCaverNoteFields(note) {
+  const text = asText(note).trim();
+  if (!text) {
+    return {
+      bestBottleneck: "",
+      channelJudge: "",
+      depthLabel: "",
+      depthBasis: "",
+    };
+  }
+  const bestMatch = text.match(/best_bottleneck=([^;；。]+)/);
+  const channelMatch = text.match(/通道判定=([^;；。]+)/);
+  const depthMatch = text.match(/口袋深度=([^（(；;。]+)[（(]([^）)]+)[）)]/);
+  return {
+    bestBottleneck: bestMatch ? asText(bestMatch[1]).replace(/Å/g, "").trim() : "",
+    channelJudge: channelMatch ? asText(channelMatch[1]).trim() : "",
+    depthLabel: depthMatch ? asText(depthMatch[1]).trim() : "",
+    depthBasis: depthMatch ? asText(depthMatch[2]).trim() : "",
+  };
+}
+
+function enrichAcetophenonePayload(payload) {
+  const header = sanitizeHeaderList(payload?.header || []);
+  const rows = cloneRows(payload?.rows || []);
+  const needed = new Set();
+  for (const row of rows) {
+    const parsed = parseCaverNoteFields(row["苯乙酮_判断说明"]);
+    const bottleneck = asText(row["苯乙酮_通道瓶颈半径_A"]).trim()
+      || asText(row["CAVER_BestBottleneckRadius_A"]).replace(/Å/g, "").trim()
+      || parsed.bestBottleneck;
+    if (bottleneck) {
+      row["苯乙酮_通道瓶颈半径_A"] = bottleneck;
+      needed.add("苯乙酮_通道瓶颈半径_A");
+    }
+    const channelJudge = asText(row["苯乙酮_CAVER通道判定"]).trim()
+      || asText(row["CAVER_AcetophenonePass"]).trim()
+      || parsed.channelJudge;
+    if (channelJudge) {
+      row["苯乙酮_CAVER通道判定"] = channelJudge;
+      needed.add("苯乙酮_CAVER通道判定");
+    }
+    const depthLabel = asText(row["苯乙酮_CAVER口袋深度"]).trim()
+      || asText(row["CAVER_PocketDepthLabel"]).trim()
+      || parsed.depthLabel;
+    if (depthLabel) {
+      row["苯乙酮_CAVER口袋深度"] = depthLabel;
+      needed.add("苯乙酮_CAVER口袋深度");
+    }
+    const basisText = asText(row["CAVER_PocketDepthBasis"]).trim() || parsed.depthBasis;
+    const basisInfo = parseDepthBasisText(basisText);
+    if (basisInfo.field) {
+      row["苯乙酮_CAVER口袋深度判定列"] = basisInfo.field;
+      needed.add("苯乙酮_CAVER口袋深度判定列");
+    }
+    if (basisInfo.value) {
+      row["苯乙酮_CAVER口袋深度判定值"] = basisInfo.value;
+      needed.add("苯乙酮_CAVER口袋深度判定值");
+    }
+  }
+  for (const col of CAVER_SPLIT_COLUMNS) {
+    if (needed.has(col) && !header.includes(col)) header.push(col);
+  }
+  if (needed.has("苯乙酮_通道瓶颈半径_A") && !header.includes("苯乙酮_通道瓶颈半径_A")) {
+    header.push("苯乙酮_通道瓶颈半径_A");
+  }
+  return {
+    header,
+    rows,
+    source: payload?.source || "",
+  };
+}
+
+function syncVisibleHeader() {
+  const visible = fullHeader.filter((name) => !hiddenColumnSet.has(name));
+  visibleHeader = normalizeVisibleHeader(visible);
+}
+
+function setToolbarPanel(panelId) {
+  activeToolbarPanel = panelId || "panel-data";
+  document.querySelectorAll(".toolbar_tab").forEach((btn) => {
+    btn.classList.toggle("is_active", btn.dataset.panel === activeToolbarPanel);
+  });
+  document.querySelectorAll(".toolbar_panel").forEach((panel) => {
+    panel.classList.toggle("is_active", panel.id === activeToolbarPanel);
+  });
+}
+
+// ---------- API 与数据加载 ----------
 function appendNoCache(url) {
   return url + (url.includes("?") ? "&" : "?") + "t=" + Date.now();
 }
 
 function getApiBaseCandidates() {
   const h = window.location.hostname || "127.0.0.1";
+  const originBase = window.location.origin && window.location.origin !== "null" ? window.location.origin : "";
   return [...new Set([
+    originBase,
     `http://${h}:8015`,
     `http://${h}:8021`,
     `http://${h}:8019`,
@@ -300,9 +525,16 @@ function getApiBaseCandidates() {
   ])];
 }
 
-async function fetchJson(url) {
-  const res = await fetch(appendNoCache(url));
-  if (!res.ok) throw new Error(`${url} 不可用`);
+async function fetchJson(url, options) {
+  const res = await fetch(appendNoCache(url), options);
+  if (!res.ok) {
+    let msg = `${url} 不可用`;
+    try {
+      const j = await res.json();
+      if (j && j.error) msg = j.error;
+    } catch (_) {}
+    throw new Error(msg);
+  }
   return await res.json();
 }
 
@@ -310,14 +542,24 @@ async function detectApiBase() {
   if (localApiBase) return localApiBase;
   for (const b of getApiBaseCandidates()) {
     try {
-      const j = await fetchJson(b + "/api/diffdock/ping");
-      if (j && j.ok) {
+      const ping = await fetchJson(b + "/api/diffdock/ping");
+      if (!ping || !ping.ok) continue;
+      const workflow = await fetchJson(b + "/api/pdbzn/workflow/config");
+      if (workflow && workflow.ok) {
         localApiBase = b;
         return b;
       }
     } catch (_) {}
   }
   return "";
+}
+
+function canOverwriteCurrentTable() {
+  return Boolean(currentTable && currentTable.id && currentTable.id !== "table1");
+}
+
+function canDeleteCurrentTable() {
+  return Boolean(currentTable && currentTable.id && currentTable.id !== "table1");
 }
 
 function dataUrlCandidates(relPath) {
@@ -339,6 +581,7 @@ async function fetchFirstJson(urls) {
   throw lastErr || new Error("数据加载失败");
 }
 
+// ---------- 行标识、克隆与脏状态 ----------
 function cmp(a, b) {
   const na = Number(a);
   const nb = Number(b);
@@ -346,43 +589,107 @@ function cmp(a, b) {
   return asText(a).localeCompare(asText(b), "zh-Hans-CN", {numeric: true, sensitivity: "base"});
 }
 
-function orderColumns(columns) {
-  const unique = uniqueColumns(columns);
-  const front = FRONT_PRIORITY_COLUMNS.filter((col) => unique.includes(col));
-  const middle = unique.filter((col) => !front.includes(col) && !TEXT_HEAVY_COLUMNS.has(col));
-  const tail = unique.filter((col) => !front.includes(col) && TEXT_HEAVY_COLUMNS.has(col));
-  return [...front, ...middle, ...tail];
+const COLUMN_ZH = {
+  "Representative": "PDB编号",
+  "苯乙酮_综合判断": "综合判断",
+  "苯乙酮_尺寸可进入": "尺寸可进入",
+  "ZN_全蛋白最短直线表面距离_A": "全蛋白最短直线表面距离(Å)",
+  "ZN_全蛋白P10深度_A": "全蛋白P10深度(Å)",
+  "ZN_全蛋白中位深度_A": "全蛋白中位深度(Å)",
+  "苯乙酮_O到Zn最短距离_A": "O到Zn最短距离(Å)",
+  "苯乙酮_任意原子到Zn最短距离_A": "任意原子到Zn最短距离(Å)",
+  "苯乙酮_判断说明": "判断说明",
+  "Zn_CoordResidueCount": "Zn配位残基总数",
+  "Zn_CoordHisCount": "Zn配位His数",
+  "Zn_CoordNonHisCount": "Zn配位非His数",
+  "Zn_CoordSite": "Zn配位位点",
+  "Zn_CoordResidues": "Zn配位残基明细",
+  "ZN_Depth": "Zn埋藏深度",
+  "ZN_Depth_Rounded": "Zn埋藏深度(分箱)",
+  "ZN_SASA": "Zn溶剂可及面积",
+  "ZN_Surface_Distance": "Zn到表面最短直线逃逸距离",
+  "ZN_5A_ResidueCount": "Zn 5Å邻域残基数",
+  "ZN_5A_Residues": "Zn 5Å邻域残基明细",
+  "BestPocket_ID": "最佳口袋编号",
+  "BestPocket_Druggability": "最佳口袋可成药性",
+  "BestPocket_Volume": "最佳口袋体积",
+  "BestPocket_AlphaSpheres": "最佳口袋alpha球数",
+  "BestPocket_MinDistToZn": "最佳口袋到Zn最短距离",
+  "BestPocket_ZnMatch": "最佳口袋是否命中Zn",
+  "BestPocket_SelectRule": "最佳口袋选取规则",
+  "BestPocket_Score": "最佳口袋评分",
+  "BestPocket_TotalSASA": "最佳口袋总SASA",
+  "BestPocket_PolarSASA": "最佳口袋极性SASA",
+  "BestPocket_ApolarSASA": "最佳口袋非极性SASA",
+  "BestPocket_HisCount": "最佳口袋His数",
+  "BestPocket_ZnCount": "最佳口袋Zn数",
+  "Similarity_Score": "相似性评分",
+  "Best_Confidence": "最佳对接置信分",
+  "Best_Rank": "最佳对接排名",
+  "NearestDistanceTo3HisZn": "到3His-Zn最近距离",
+  "Length;Oligomer;Monomer": "长度/聚体数/单体长度",
+  "Protein_Name": "蛋白名称",
+  "Protein_Category": "蛋白类别",
+  "Cluster_ID": "聚类编号",
+  "Details": "几何细节",
+  "Neighbor_Count": "邻域残基数",
+  "Neighbor_Profile_Similarity": "邻域相似性",
+  "Neighbor_List": "邻域明细",
+  "AllZnDistancesSorted": "到全部Zn距离排序",
+  "TriHisSatisfied": "是否满足3His",
+  "TriHisCountMax": "最大His配位数",
+  "Receptor_PDB": "受体结构文件",
+  "Best_SDF": "最佳配体SDF",
+  "Species": "物种",
+  "MonomerSeq": "单体序列",
+  "TriHis_SameChain": "3His是否同链",
+  "Zn_Binding_MonomerResidueCount": "Zn结合单体残基数"
+};
+
+const COLUMN_HINTS = {
+  "苯乙酮_综合判断": "基于活性 pocket 半径与现有苯乙酮 docking pose 的综合结论。可以 / 大概率可以 / 边缘 / 不顺利 / 偏不支持。",
+  "苯乙酮_尺寸可进入": "只看活性位点 pocket 的几何尺寸时，苯乙酮是否有望穿过入口并进入 Zn 邻域。yes 表示瓶颈半径不小于约 2.9 Å。",
+  "ZN_全蛋白最短直线表面距离_A": "以整个蛋白链为遮挡体，沿所有方向扫射后得到的最短直线表面距离。它表示是否存在某个方向很快就能接触到表面。",
+  "ZN_全蛋白P10深度_A": "所有方向直线表面距离分布的第 10 百分位。它比最小值稳，能更好反映“整体偏表面还是偏埋藏”。",
+  "ZN_全蛋白中位深度_A": "所有方向直线表面距离分布的中位数。它更像总体埋藏深度，数值越大通常表示位点更埋。",
+  "苯乙酮_O到Zn最短距离_A": "现有苯乙酮 docking pose 中，羰基氧到 Zn 的最短距离，单位 Å。通常 <= 4 Å 才更像能形成有效活性中心接近。",
+  "苯乙酮_任意原子到Zn最短距离_A": "现有苯乙酮 docking pose 中，任意一个原子到 Zn 的最短距离，单位 Å。它说明底物主体是否至少进入了 Zn 邻域。",
+  "苯乙酮_判断说明": "对综合判断的简短文字解释，说明是尺寸受限、朝向不对，还是 best pocket 本身没有命中 Zn。",
+  "ZN_Depth": "Zn 位点平均埋藏深度。越大通常表示位点更埋藏。",
+  "ZN_Surface_Distance": "旧口径：沿一条直线方向，从 Zn 中心逃逸到原子表面外侧的最短距离。它不是弯曲通路长度，当前更适合作为历史参考列。",
+  "ZN_SASA": "Zn 位点溶剂可及表面积。越大通常表示位点更暴露。",
+  "ZN_5A_ResidueCount": "以当前主 Zn 位点为中心，5 Å 邻域内命中的蛋白残基数量。",
+  "ZN_5A_Residues": "Zn 位点 5 Å 邻域残基明细，通常带有残基标签和最近距离。",
+  "BestPocket_ID": "当前选中的最佳 pocket 编号。注意它不一定总是 Zn 活性 pocket。",
+  "BestPocket_Druggability": "fpocket 给出的可成药性评分，偏向一般小分子口袋，不等于对金属底物一定友好。",
+  "BestPocket_Volume": "最佳 pocket 的近似体积，单位 Å^3。体积大不代表入口一定通畅。",
+  "BestPocket_AlphaSpheres": "构成该 pocket 的 alpha-sphere 数量。通常越多表示 pocket 更大或更复杂。",
+  "BestPocket_MinDistToZn": "最佳 pocket 到最近 Zn 的距离，单位 Å。越小越像真正贴近活性位点。",
+  "BestPocket_ZnMatch": "最佳 pocket 是否命中 Zn 活性位点。1 表示命中，0 表示当前 best pocket 更可能是别处的大口袋。",
+  "BestPocket_SelectRule": "该 pocket 被选中的规则。zn_priority 表示优先贴近 Zn；largest_volume 表示主要因为体积最大被选中。"
+};
+
+function showHintPopup(text, x, y) {
+  const box = document.getElementById("hint_popup");
+  if (!text) {
+    box.style.display = "none";
+    return;
+  }
+  box.textContent = text;
+  box.style.display = "block";
+  const pad = 14;
+  const width = box.offsetWidth || 280;
+  const height = box.offsetHeight || 80;
+  let left = x + 14;
+  let top = y + 14;
+  if (left + width > window.innerWidth - pad) left = Math.max(pad, x - width - 14);
+  if (top + height > window.innerHeight - pad) top = Math.max(pad, y - height - 14);
+  box.style.left = `${left}px`;
+  box.style.top = `${top}px`;
 }
 
-function getColumnLabel(col) {
-  return DISPLAY_LABELS[col] || col;
-}
-
-function isTextHeavyColumn(col) {
-  return TEXT_HEAVY_COLUMNS.has(col);
-}
-
-function isPriorityColumn(col) {
-  return col === "Best_Confidence" || col === "Step5_FinalScore";
-}
-
-function getColumnGroup(col) {
-  if (col.startsWith("BestPocket_") || col.startsWith("Step5_FPocket_")) return "fpocket";
-  if (col === "Best_Confidence" || col === "Best_Rank" || col === "Best_SDF") return "diffdock";
-  if (col === "Similarity_Score" || col === "Cluster_ID" || col.startsWith("Step5_Cluster_") || col === "Step5_TMAlign_Threshold" || col === "Step5_Source" || col === "Step5_FinalScore") return "workflow";
-  if (col.startsWith("Zn_Coord") || col.startsWith("ZN_") || col.startsWith("TriHis") || col === "NearestDistanceTo3HisZn" || col === "Neighbor_Count" || col === "Neighbor_Profile_Similarity" || col === "Neighbor_List" || col === "AllZnDistancesSorted" || col === "Details" || col === "Step5_TriHis_Recheck_Pass" || col === "Step5_Symmetry_Spatial_Filter_Pass" || col === "Step5_TriHis_Count" || col === "Step5_TriHis_Residues" || col === "Step5_ZN_Site" || col === "Step5_His_ZN_Bond_Lengths_A" || col === "Step5_His_ZN_Bond_Angles_Deg" || col === "Step5_Residues_Within_5A_Count" || col === "Step5_Residues_Within_5A" || col === "Step5_Validation_Reasons") return "geometry";
-  if (isTextHeavyColumn(col)) return "text";
-  return "core";
-}
-
-function getColumnGroupLabel(col) {
-  const group = getColumnGroup(col);
-  if (group === "diffdock") return "DiffDock";
-  if (group === "fpocket") return "fpocket";
-  if (group === "geometry") return "Zn/几何";
-  if (group === "workflow") return "流程/TM-align";
-  if (group === "text") return "文本";
-  return "基础";
+function hideHintPopup() {
+  document.getElementById("hint_popup").style.display = "none";
 }
 
 function getRowJumpId(r) {
@@ -392,27 +699,342 @@ function getRowJumpId(r) {
   return (idVal || repVal || pdbFromPath).toUpperCase();
 }
 
-function getRowKey(r, idx = 0) {
-  return asText(r && r.__rowKey ? r.__rowKey : (getRowJumpId(r) || `ROW_${idx + 1}`)).trim().toUpperCase();
+function getAllRowIds(rows) {
+  return uniqueKeepOrder((rows || []).map((row) => getRowJumpId(row)).filter(Boolean));
 }
 
-function parseKeepTokens(text) {
-  return [...new Set(
-    asText(text)
-      .split(/[\s,;]+/)
-      .map((x) => x.trim().toUpperCase())
-      .filter(Boolean)
-  )];
+function getRowById(rowId) {
+  const key = asText(rowId).trim().toUpperCase();
+  return fullRows.find((row) => getRowJumpId(row) === key) || null;
+}
+
+function formatRowSelectionLabel(rowId) {
+  const key = asText(rowId).trim().toUpperCase();
+  const row = getRowById(key);
+  if (!row) return key;
+  const name = asText(row["Protein_Name"]).trim();
+  return name ? `${key} | ${name}` : key;
+}
+
+function rowMatchesPickerQuery(row, query) {
+  const q = asText(query).trim().toUpperCase();
+  if (!q) return true;
+  const fields = [
+    getRowJumpId(row),
+    row["Representative"],
+    row["Protein_Name"],
+    row["Species"],
+    row["Cluster_ID"],
+  ];
+  return fields.some((value) => asText(value).toUpperCase().includes(q));
+}
+
+function renderSelectedCollection(containerId, values, onRemove, formatValue, emptyText) {
+  const box = document.getElementById(containerId);
+  box.innerHTML = "";
+  const items = uniqueKeepOrder(values);
+  if (!items.length) {
+    const empty = document.createElement("div");
+    empty.className = "selected_empty";
+    empty.textContent = emptyText || "当前未选择";
+    box.appendChild(empty);
+    return;
+  }
+  for (const value of items) {
+    const chip = document.createElement("div");
+    chip.className = "selected_item";
+    const label = document.createElement("span");
+    label.textContent = typeof formatValue === "function" ? formatValue(value) : value;
+    chip.appendChild(label);
+    if (typeof onRemove === "function") {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = "移除";
+      btn.addEventListener("click", () => onRemove(value));
+      chip.appendChild(btn);
+    }
+    box.appendChild(chip);
+  }
+}
+
+function makeSearchFilterKey(column, value) {
+  return `${asText(column)}\t${asText(value)}`;
+}
+
+function parseSearchFilterKey(key) {
+  const raw = asText(key);
+  const idx = raw.indexOf("\t");
+  if (idx < 0) return {column: "", value: raw};
+  return {
+    column: raw.slice(0, idx),
+    value: raw.slice(idx + 1)
+  };
+}
+
+function getSearchFilterEntries() {
+  const out = [];
+  for (const [column, values] of searchFilterMap.entries()) {
+    for (const value of values) out.push(makeSearchFilterKey(column, value));
+  }
+  return out;
+}
+
+function getSearchFilterCount() {
+  let count = 0;
+  for (const values of searchFilterMap.values()) count += values.size;
+  return count;
+}
+
+function formatSearchFilterLabel(key) {
+  const parsed = typeof key === "string" ? parseSearchFilterKey(key) : (key || {});
+  const column = asText(parsed.column).trim();
+  const value = asText(parsed.value).trim();
+  return column ? `${column} | ${value}` : value;
+}
+
+function pruneSearchFilters() {
+  const allowed = new Set(visibleHeader);
+  const nextMap = new Map();
+  for (const [column, values] of searchFilterMap.entries()) {
+    if (!allowed.has(column)) continue;
+    const kept = uniqueKeepOrder(Array.from(values || []).map((value) => asText(value).trim()).filter(Boolean));
+    if (kept.length) nextMap.set(column, new Set(kept));
+  }
+  searchFilterMap = nextMap;
+}
+
+function getSearchScopeColumns() {
+  const col = asText(document.getElementById("search_col").value).trim();
+  if (col && visibleHeader.includes(col)) return [col];
+  return visibleHeader.slice();
+}
+
+function getSearchBaseRows() {
+  return fullRows.filter((row) => {
+    const rowId = getRowJumpId(row);
+    if (!rowId) return false;
+    if (hiddenRowSet.has(rowId)) return false;
+    if (rowFilterSet && !rowFilterSet.has(rowId)) return false;
+    return true;
+  });
+}
+
+function rowMatchesSearchFilters(row, skipColumn) {
+  for (const [column, values] of searchFilterMap.entries()) {
+    if (column === skipColumn) continue;
+    const cellValue = asText(row[column]).trim();
+    if (!values.has(cellValue)) return false;
+  }
+  return true;
+}
+
+function getSearchCandidates() {
+  const query = asText(document.getElementById("search_query").value).trim().toLowerCase();
+  const activeColumn = asText(document.getElementById("search_col").value).trim();
+  const columns = getSearchScopeColumns();
+  const candidateMap = new Map();
+  for (const row of getSearchBaseRows()) {
+    for (const column of columns) {
+      if (!rowMatchesSearchFilters(row, column)) continue;
+      const value = asText(row[column]).trim();
+      if (!value) continue;
+      const key = makeSearchFilterKey(column, value);
+      const haystack = `${column}\n${value}`.toLowerCase();
+      if (query && !haystack.includes(query)) continue;
+      const item = candidateMap.get(key) || {column, value, count: 0};
+      item.count += 1;
+      candidateMap.set(key, item);
+    }
+  }
+  return Array.from(candidateMap.values()).sort((a, b) => {
+    const colCmp = activeColumn ? 0 : cmp(a.column, b.column);
+    if (colCmp) return colCmp;
+    const countCmp = b.count - a.count;
+    if (countCmp) return countCmp;
+    return cmp(a.value, b.value);
+  });
+}
+
+function renderSearchSelection() {
+  renderSelectedCollection(
+    "search_selected",
+    getSearchFilterEntries(),
+    (key) => removeSearchFilter(key),
+    formatSearchFilterLabel,
+    "当前没有查找条件"
+  );
+}
+
+function refreshSearchPicker() {
+  const select = document.getElementById("search_pick");
+  const currentSelected = new Set(Array.from(select.selectedOptions || []).map((op) => asText(op.value)));
+  const activeColumn = asText(document.getElementById("search_col").value).trim();
+  select.innerHTML = "";
+  for (const item of getSearchCandidates()) {
+    const key = makeSearchFilterKey(item.column, item.value);
+    const op = document.createElement("option");
+    op.value = key;
+    op.textContent = activeColumn
+      ? `${item.value} (${item.count})`
+      : `${item.column} | ${item.value} (${item.count})`;
+    op.selected = currentSelected.has(key);
+    select.appendChild(op);
+  }
+}
+
+function renderRowPicker(selectId, queryInputId, excludeIds) {
+  const select = document.getElementById(selectId);
+  const query = document.getElementById(queryInputId).value || "";
+  const excluded = new Set(uniqueKeepOrder(excludeIds));
+  const currentSelected = new Set(Array.from(select.selectedOptions || []).map((op) => asText(op.value).trim().toUpperCase()));
+  select.innerHTML = "";
+  for (const row of fullRows) {
+    const rowId = getRowJumpId(row);
+    if (!rowId || excluded.has(rowId) || !rowMatchesPickerQuery(row, query)) continue;
+    const op = document.createElement("option");
+    op.value = rowId;
+    op.textContent = formatRowSelectionLabel(rowId);
+    op.selected = currentSelected.has(rowId);
+    select.appendChild(op);
+  }
+}
+
+function refreshRowPickers() {
+  renderRowPicker("filter_row_pick", "filter_row_query", hiddenRowSet);
+  renderRowPicker("hide_row_pick", "hide_row_query", hiddenRowSet);
+}
+
+function renderRowFilterSelection() {
+  renderSelectedCollection(
+    "filter_row_selected",
+    rowFilterSet ? Array.from(rowFilterSet) : [],
+    (rowId) => removeRowFilter(rowId),
+    formatRowSelectionLabel,
+    "当前没有行筛选"
+  );
+}
+
+function renderHiddenRowSelection() {
+  renderSelectedCollection(
+    "hidden_row_selected",
+    Array.from(hiddenRowSet),
+    (rowId) => unhideRow(rowId),
+    formatRowSelectionLabel,
+    "当前没有隐藏行"
+  );
+}
+
+function renderHiddenColumnSelection() {
+  renderSelectedCollection(
+    "hidden_col_selected",
+    Array.from(hiddenColumnSet),
+    (col) => unhideColumn(col),
+    (col) => col,
+    "当前没有隐藏列"
+  );
+}
+
+function escapeHtml(s) {
+  return asText(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;");
+}
+
+function cloneRows(rows) {
+  return (rows || []).map((row) => ({...(row || {})}));
+}
+
+function rememberOriginalRows(rows) {
+  rowOriginalMap = new Map();
+  for (const row of rows || []) {
+    rowOriginalMap.set(getRowJumpId(row), JSON.stringify(row || {}));
+  }
+}
+
+function rowIsDirty(row) {
+  const key = getRowJumpId(row);
+  if (!key) return true;
+  if (!rowOriginalMap.has(key)) return true;
+  return rowOriginalMap.get(key) !== JSON.stringify(row || {});
+}
+
+function setDirty(flag, reason) {
+  if (flag) {
+    dirty = true;
+    if (reason) dirtyReasons.add(reason);
+  } else {
+    dirty = false;
+    dirtyReasons = new Set();
+  }
+  renderDirtyState();
+}
+
+function renderDirtyState() {
+  const badge = document.getElementById("dirty_badge");
+  badge.hidden = !dirty;
+  document.getElementById("status").classList.toggle("status_dirty", dirty);
+}
+
+function setEditMode(flag) {
+  editMode = Boolean(flag);
+  const btn = document.getElementById("edit_mode_btn");
+  const status = document.getElementById("edit_mode_status");
+  btn.textContent = editMode ? "关闭编辑模式" : "开启编辑模式";
+  btn.classList.toggle("is_active", editMode);
+  status.textContent = editMode
+    ? "编辑模式已开启。单击任意单元格即可编辑；Enter 保存当前单元格，Esc 取消。"
+    : "当前为浏览模式。链接列可跳转详情；如需修改，请开启编辑模式。";
+  renderTable();
+}
+
+// 保存提示会跟着当前表是否可覆盖而变化，所以单独抽成一个函数维护。
+function renderSaveControls() {
+  const saveBtn = document.getElementById("save_btn");
+  const overwriteBtn = document.getElementById("save_overwrite_btn");
+  const deleteBtn = document.getElementById("delete_table_btn");
+  const hint = document.getElementById("save_mode_hint");
+  if (canOverwriteCurrentTable()) {
+    saveBtn.textContent = "保存到当前表";
+    overwriteBtn.disabled = false;
+    overwriteBtn.title = "";
+    deleteBtn.disabled = false;
+    deleteBtn.title = "";
+    hint.textContent = `当前选中 ${currentTable.label}（${currentTable.id}）。“覆盖当前选中表”会直接写回这个非主表；“另存为新表”会生成新的 tableN。`;
+    return;
+  }
+  saveBtn.textContent = "保存为新表";
+  overwriteBtn.disabled = true;
+  overwriteBtn.title = "table1 主表快照不允许覆盖";
+  deleteBtn.disabled = true;
+  deleteBtn.title = "table1 主表快照不允许删除";
+  if (currentTable && currentTable.id === "table1") {
+    hint.textContent = "当前选中的是 table1 主表快照。它是只读基表，只允许“另存为新表”，不允许覆盖原表。";
+    return;
+  }
+  hint.textContent = "当前工作区还没有绑定可覆盖的数据表。请使用“另存为新表”，或切换到某个已有非主表后再覆盖保存。";
+}
+
+// ---------- 视图渲染：筛选、排序、表头和表体 ----------
+function composeStatus(extra) {
+  const tableLabel = currentTable ? currentTable.label : "-";
+  const keepInfo = rowFilterSet ? ` | 行筛选 ${rowFilterSet.size}` : "";
+  const searchInfo = getSearchFilterCount() ? ` | 查找条件 ${getSearchFilterCount()}` : "";
+  const hideInfo = hiddenRowSet.size || hiddenColumnSet.size
+    ? ` | 隐藏行 ${hiddenRowSet.size} | 隐藏列 ${hiddenColumnSet.size}`
+    : "";
+  const dirtyInfo = dirty ? ` | 未保存修改 ${Array.from(dirtyReasons).join("、") || "是"}` : "";
+  return `数据表 ${tableLabel} | 数据源 ${masterSourceLabel} | 总行数 ${fullRows.length} | 当前显示 ${filteredRows.length} | 可见列 ${visibleHeader.length}${keepInfo}${searchInfo}${hideInfo}${dirtyInfo}${extra ? `\n${extra}` : ""}`;
 }
 
 function applyFilters() {
-  const q = document.getElementById("search_value").value.trim().toLowerCase();
-  const col = document.getElementById("search_col").value;
   filteredRows = fullRows.filter((r) => {
-    if (keptRowSet && !keptRowSet.has(getRowJumpId(r))) return false;
-    if (!q) return true;
-    if (col) return asText(r[col]).toLowerCase().includes(q);
-    return visibleHeader.some((h) => asText(r[h]).toLowerCase().includes(q));
+    const rowId = getRowJumpId(r);
+    if (!rowId) return false;
+    if (hiddenRowSet.has(rowId)) return false;
+    if (rowFilterSet && !rowFilterSet.has(rowId)) return false;
+    return rowMatchesSearchFilters(r, "");
   });
   applySort();
   renderTable();
@@ -433,18 +1055,21 @@ function renderHeader() {
   const tr = document.createElement("tr");
   for (const h of visibleHeader) {
     const th = document.createElement("th");
-    const group = getColumnGroup(h);
+    if (h === MASTER_FIXED_COL) th.classList.add("col_frozen");
     const mark = sortState.key === h ? (sortState.asc ? " ▲" : " ▼") : "";
-    th.classList.add(`group_${group}`);
-    if (isPriorityColumn(h)) th.classList.add("priority_column");
-    const title = document.createElement("div");
-    title.className = "col_label";
-    title.textContent = getColumnLabel(h) + mark;
-    const badge = document.createElement("span");
-    badge.className = "col_badge";
-    badge.textContent = getColumnGroupLabel(h);
-    th.appendChild(title);
-    th.appendChild(badge);
+    const main = document.createElement("div");
+    main.className = "th_main";
+    main.textContent = h + mark;
+    th.appendChild(main);
+    const sub = document.createElement("div");
+    sub.className = "th_sub";
+    sub.textContent = COLUMN_ZH[h] || "";
+    if (sub.textContent) th.appendChild(sub);
+    if (COLUMN_HINTS[h]) {
+      th.addEventListener("mouseenter", (e) => showHintPopup(COLUMN_HINTS[h], e.clientX, e.clientY));
+      th.addEventListener("mousemove", (e) => showHintPopup(COLUMN_HINTS[h], e.clientX, e.clientY));
+      th.addEventListener("mouseleave", hideHintPopup);
+    }
     th.addEventListener("click", () => {
       if (sortState.key === h) sortState.asc = !sortState.asc;
       else {
@@ -460,6 +1085,44 @@ function renderHeader() {
   thead.appendChild(tr);
 }
 
+// 单元格编辑只在编辑模式下开启，这样浏览模式仍然可以保留“点击跳转”的默认行为。
+function startCellEdit(td, row, col) {
+  if (td.querySelector("input.inline_edit")) return;
+  td.classList.add("cell_editing");
+  const oldVal = asText(row[col]);
+  td.innerHTML = "";
+  const input = document.createElement("input");
+  input.className = "inline_edit";
+  input.value = oldVal;
+  td.appendChild(input);
+  input.focus();
+  input.select();
+  const finish = (commit) => {
+    td.classList.remove("cell_editing");
+    const nextVal = commit ? input.value : oldVal;
+    if (commit && nextVal !== oldVal) {
+      row[col] = nextVal;
+      setDirty(true, "单元格编辑");
+      refreshRowPickers();
+      refreshSearchPicker();
+      applyFilters();
+      renderHeader();
+      return;
+    }
+    renderTable();
+  };
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      finish(true);
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      finish(false);
+    }
+  });
+  input.addEventListener("blur", () => finish(true), {once: true});
+}
+
 function renderTable() {
   const tbody = document.getElementById("tbody");
   tbody.innerHTML = "";
@@ -468,56 +1131,45 @@ function renderTable() {
     const jumpId = getRowJumpId(r);
     for (const h of visibleHeader) {
       const td = document.createElement("td");
+      const isLinkColumn = h === "_id" || h === "Representative" || h === "Receptor_PDB";
+      if (h === MASTER_FIXED_COL) td.classList.add("col_frozen");
       const val = asText(r[h]);
-      const group = getColumnGroup(h);
-      const isLinkCell = (h === "_id" || h === "Representative" || h === "Receptor_PDB") && jumpId;
-      const rowKey = getRowKey(r);
-      td.classList.add(`group_${group}`);
-      if (isPriorityColumn(h)) td.classList.add("priority_column");
-      if (isTextHeavyColumn(h)) {
-        td.classList.add("text_heavy");
-        td.title = val;
-      }
-      if ((draftState.editedCells[rowKey] || {})[h] !== undefined) td.classList.add("edited_cell");
-      if ((h === "_id" || h === "Representative" || h === "Receptor_PDB") && jumpId) {
+      if (rowIsDirty(r)) td.classList.add("cell_dirty");
+      if (!editMode && isLinkColumn && jumpId) {
         const a = document.createElement("a");
         const ds = currentTable && currentTable.id ? `&dataset=${encodeURIComponent(currentTable.id)}` : "";
         a.href = `./index.html?pdb=${encodeURIComponent(jumpId)}${ds}`;
-        a.textContent = val;
+        a.textContent = val || jumpId;
         a.style.color = "#0b5394";
-        if (isTextHeavyColumn(h)) {
-          a.className = "cell_text";
-          a.title = val;
-        }
+        a.addEventListener("click", async (e) => {
+          const ok = await ensureSavedBeforeLeave();
+          if (!ok) e.preventDefault();
+        });
         td.appendChild(a);
       } else {
-        const span = document.createElement("span");
-        span.className = "cell_text";
-        span.textContent = val;
-        td.appendChild(span);
+        td.textContent = val || (isLinkColumn ? jumpId : "");
       }
-      if (!isLinkCell) {
-        td.classList.add("editable_cell");
-        td.title = isTextHeavyColumn(h) ? val : "双击编辑";
-        td.addEventListener("dblclick", (ev) => {
-          ev.preventDefault();
-          ev.stopPropagation();
-          editCellValue(r, h);
+      td.title = editMode ? "单击编辑" : "开启编辑模式后可编辑";
+      if (editMode) {
+        td.classList.add("cell_edit_ready");
+        td.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          startCellEdit(td, r, h);
         });
       }
       tr.appendChild(td);
     }
     tbody.appendChild(tr);
   }
-  const tableLabel = currentTable ? currentTable.label : "-";
-  const keepInfo = keptRowSet ? ` | 保留行 ${keptRowSet.size}` : "";
-  document.getElementById("status").textContent = `数据表 ${tableLabel} | 数据源 ${masterSourceLabel} | 总行数 ${fullRows.length} | 当前显示 ${filteredRows.length} | 可见列 ${visibleHeader.length}${keepInfo}`;
+  document.getElementById("status").textContent = composeStatus();
 }
 
 function renderTableMeta() {
   const box = document.getElementById("table_meta");
   if (!currentTable) {
     box.textContent = "-";
+    renderSaveControls();
     return;
   }
   const parts = [];
@@ -527,62 +1179,46 @@ function renderTableMeta() {
   if (currentTable.updated_at_text) parts.push(`更新时间: ${currentTable.updated_at_text}`);
   if (currentTable.description) parts.push(`说明: ${currentTable.description}`);
   box.textContent = parts.join("\n");
+  renderSaveControls();
 }
 
 function initColumnSelectors() {
   const searchSel = document.getElementById("search_col");
-  const sortSel = document.getElementById("sort_col");
   const prevSearch = searchSel.value;
-  const prevSort = sortSel.value;
   searchSel.innerHTML = "";
-  sortSel.innerHTML = "";
   const all = document.createElement("option");
   all.value = "";
-  all.textContent = "全部列（全局搜索）";
+  all.textContent = "全部可见列";
   searchSel.appendChild(all);
-  const sortEmpty = document.createElement("option");
-  sortEmpty.value = "";
-  sortEmpty.textContent = "不排序";
-  sortSel.appendChild(sortEmpty);
   for (const h of visibleHeader) {
     const opSearch = document.createElement("option");
     opSearch.value = h;
-    opSearch.textContent = getColumnLabel(h);
+    opSearch.textContent = h;
     searchSel.appendChild(opSearch);
-    const opSort = document.createElement("option");
-    opSort.value = h;
-    opSort.textContent = getColumnLabel(h);
-    sortSel.appendChild(opSort);
   }
   if (visibleHeader.includes(prevSearch)) searchSel.value = prevSearch;
-  if (visibleHeader.includes(prevSort)) sortSel.value = prevSort;
-  else if (sortState.key && !visibleHeader.includes(sortState.key)) sortState = {key: "", asc: true};
+  else if (visibleHeader.includes(MASTER_FIXED_COL)) searchSel.value = MASTER_FIXED_COL;
+  else searchSel.value = visibleHeader[0] || "";
+  pruneSearchFilters();
+  renderSearchSelection();
+  refreshSearchPicker();
+  if (sortState.key && !visibleHeader.includes(sortState.key)) sortState = {key: "", asc: true};
 }
 
 function renderVisibleColumnOptions() {
   const sel = document.getElementById("visible_cols");
   const selected = new Set(visibleHeader);
+  const query = asText(document.getElementById("column_query").value).trim().toLowerCase();
   sel.innerHTML = "";
   for (const h of fullHeader) {
+    if (query && !asText(h).toLowerCase().includes(query)) continue;
     const op = document.createElement("option");
     op.value = h;
-    op.textContent = getColumnLabel(h);
+    op.textContent = h;
     op.selected = selected.has(h);
+    if (h === MASTER_FIXED_COL) op.disabled = true;
     sel.appendChild(op);
   }
-}
-
-function renderEditColumnOptions() {
-  const sel = document.getElementById("edit_col");
-  const prev = sel.value;
-  sel.innerHTML = "";
-  for (const h of fullHeader) {
-    const op = document.createElement("option");
-    op.value = h;
-    op.textContent = getColumnLabel(h);
-    sel.appendChild(op);
-  }
-  if (fullHeader.includes(prev)) sel.value = prev;
 }
 
 function renderTableOptions() {
@@ -595,13 +1231,33 @@ function renderTableOptions() {
     op.textContent = t.label;
     sel.appendChild(op);
   }
-  if (tableRegistry.find((t) => t.id === current)) {
-    sel.value = current;
-  } else if (tableRegistry.length) {
-    sel.value = tableRegistry[0].id;
+  if (tableRegistry.find((t) => t.id === current)) sel.value = current;
+  else if (tableRegistry.length) sel.value = tableRegistry[0].id;
+}
+
+function renderMergeOptions() {
+  const ids = ["merge_base_select", "merge_extra_select"];
+  for (const id of ids) {
+    const sel = document.getElementById(id);
+    const current = sel.value;
+    sel.innerHTML = "";
+    for (const t of tableRegistry) {
+      const op = document.createElement("option");
+      op.value = t.id;
+      op.textContent = t.label;
+      sel.appendChild(op);
+    }
+    if (tableRegistry.find((t) => t.id === current)) sel.value = current;
+  }
+  if (!document.getElementById("merge_base_select").value && tableRegistry[0]) {
+    document.getElementById("merge_base_select").value = tableRegistry[0].id;
+  }
+  if (!document.getElementById("merge_extra_select").value && tableRegistry[1]) {
+    document.getElementById("merge_extra_select").value = tableRegistry[1].id;
   }
 }
 
+// ---------- 数据表切换与工作副本初始化 ----------
 async function loadTableRegistry() {
   await detectApiBase();
   try {
@@ -622,6 +1278,7 @@ async function loadTableRegistry() {
     }];
   }
   renderTableOptions();
+  renderMergeOptions();
 }
 
 function getSelectedTable() {
@@ -629,41 +1286,87 @@ function getSelectedTable() {
   return tableRegistry.find((t) => t.id === id) || tableRegistry[0] || null;
 }
 
-async function loadCurrentTable() {
-  currentTable = getSelectedTable();
-  if (!currentTable) throw new Error("没有可用数据表");
-  const ret = await fetchFirstJson(dataUrlCandidates(currentTable.full || "master_full.json"));
+async function fetchTablePayload(tableEntry) {
+  const ret = await fetchFirstJson(dataUrlCandidates(tableEntry.full || "master_full.json"));
   const j = ret.json;
-  localDataViaApi = Boolean(localApiBase) && String(ret.url || "").startsWith(`${localApiBase}/api/data/file`);
-  masterSourceLabel = localDataViaApi ? `${localApiBase}/api/data/file` : `静态 backend/data/${currentTable.full || "master_full.json"}`;
-  baseHeader = Array.isArray(j.header) ? j.header.slice() : [];
-  fullHeader = orderColumns(baseHeader.slice());
-  fullRows = Array.isArray(j.rows) ? j.rows.map((row, idx) => ({...row, __rowKey: getRowKey(row, idx)})) : [];
-  draftState = loadDraftState();
-  applyDraftState();
-  fullHeader = orderColumns(fullHeader);
-  visibleHeader = fullHeader.slice();
-  keptRowSet = null;
-  document.getElementById("row_keep_input").value = "";
+  return {
+    header: Array.isArray(j.header) ? j.header : [],
+    rows: Array.isArray(j.rows) ? j.rows : [],
+    source: Boolean(localApiBase) && String(ret.url || "").startsWith(`${localApiBase}/api/data/file`)
+      ? `${localApiBase}/api/data/file`
+      : `静态 backend/data/${tableEntry.full || "master_full.json"}`
+  };
+}
+
+function setWorkingTable(header, rows, sourceLabel) {
+  fullHeader = normalizeColumnOrder(header);
+  rowFilterSet = null;
+  hiddenRowSet = new Set();
+  hiddenColumnSet = new Set();
+  searchFilterMap = new Map();
+  syncVisibleHeader();
+  fullRows = cloneRows(rows);
   filteredRows = fullRows.slice();
+  masterSourceLabel = sourceLabel;
+  document.getElementById("search_query").value = "";
+  document.getElementById("filter_row_query").value = "";
+  document.getElementById("hide_row_query").value = "";
+  document.getElementById("column_query").value = "";
   initColumnSelectors();
   renderVisibleColumnOptions();
-  renderEditColumnOptions();
+  refreshRowPickers();
+  renderSearchSelection();
+  renderRowFilterSelection();
+  renderHiddenRowSelection();
+  renderHiddenColumnSelection();
   renderTableMeta();
+  rememberOriginalRows(fullRows);
   applyFilters();
   renderHeader();
   renderTable();
 }
 
+async function loadCurrentTable(force) {
+  const prevTableId = currentTable && currentTable.id ? currentTable.id : (tableRegistry[0] && tableRegistry[0].id ? tableRegistry[0].id : "");
+  if (!force) {
+    const ok = await ensureSavedBeforeLeave();
+    if (!ok) {
+      if (prevTableId) document.getElementById("table_select").value = prevTableId;
+      return false;
+    }
+  }
+  const nextTable = getSelectedTable();
+  if (!nextTable) throw new Error("没有可用数据表");
+  let payload;
+  try {
+    payload = await fetchTablePayload(nextTable);
+  } catch (e) {
+    if (prevTableId) document.getElementById("table_select").value = prevTableId;
+    throw e;
+  }
+  currentTable = nextTable;
+  localDataViaApi = Boolean(localApiBase);
+  baseHeader = payload.header.slice();
+  baseRows = cloneRows(payload.rows);
+  mergedSourceIds = [currentTable.id];
+  setWorkingTable(payload.header, payload.rows, payload.source);
+  setDirty(false);
+  document.getElementById("table_select").value = currentTable.id || "";
+  document.getElementById("save_label").value = `${currentTable.label} edited`;
+  document.getElementById("save_description").value = "";
+  return true;
+}
+
+// ---------- 导出、列显隐与保留行 ----------
 function clearSearch() {
-  document.getElementById("search_col").value = "";
-  document.getElementById("search_value").value = "";
+  searchFilterMap = new Map();
+  document.getElementById("search_query").value = "";
+  renderSearchSelection();
+  refreshSearchPicker();
   applyFilters();
 }
 
 function clearSort() {
-  document.getElementById("sort_col").value = "";
-  document.getElementById("sort_order").value = "desc";
   sortState = {key: "", asc: true};
   applyFilters();
   renderHeader();
@@ -672,27 +1375,54 @@ function clearSort() {
 function clearAll() {
   clearSearch();
   clearSort();
-  keptRowSet = null;
-  document.getElementById("row_keep_input").value = "";
-  visibleHeader = fullHeader.slice();
+  rowFilterSet = null;
+  hiddenRowSet = new Set();
+  hiddenColumnSet = new Set();
+  document.getElementById("search_query").value = "";
+  document.getElementById("filter_row_query").value = "";
+  document.getElementById("hide_row_query").value = "";
+  syncVisibleHeader();
   initColumnSelectors();
   renderVisibleColumnOptions();
-  renderEditColumnOptions();
+  refreshRowPickers();
+  renderSearchSelection();
+  renderRowFilterSelection();
+  renderHiddenRowSelection();
+  renderHiddenColumnSelection();
   applyFilters();
   renderHeader();
 }
 
-function escapeHtml(s) {
-  return asText(s)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\"/g, "&quot;");
+function resetWorkingCopy() {
+  fullHeader = normalizeColumnOrder(baseHeader);
+  fullRows = cloneRows(baseRows);
+  filteredRows = fullRows.slice();
+  rowFilterSet = null;
+  hiddenRowSet = new Set();
+  hiddenColumnSet = new Set();
+  searchFilterMap = new Map();
+  mergedSourceIds = currentTable ? [currentTable.id] : [];
+  document.getElementById("search_query").value = "";
+  document.getElementById("filter_row_query").value = "";
+  document.getElementById("hide_row_query").value = "";
+  document.getElementById("column_query").value = "";
+  syncVisibleHeader();
+  rememberOriginalRows(fullRows);
+  initColumnSelectors();
+  renderVisibleColumnOptions();
+  refreshRowPickers();
+  renderSearchSelection();
+  renderRowFilterSelection();
+  renderHiddenRowSelection();
+  renderHiddenColumnSelection();
+  applyFilters();
+  renderHeader();
+  setDirty(false);
 }
 
 function exportCurrentTable() {
   if (!filteredRows.length) {
-    document.getElementById("status").textContent = "没有可导出的数据";
+    document.getElementById("status").textContent = composeStatus("没有可导出的数据");
     return;
   }
   const cols = visibleHeader;
@@ -720,210 +1450,511 @@ function exportCurrentTable() {
   }, 0);
 }
 
-function applyVisibleColumns() {
+function hideSelectedColumns() {
   const selected = Array.from(document.getElementById("visible_cols").selectedOptions).map((op) => op.value);
-  if (!selected.length) {
-    document.getElementById("status").textContent = "至少保留一列";
+  const hideTargets = selected.filter((col) => col && col !== MASTER_FIXED_COL);
+  if (!hideTargets.length) {
+    document.getElementById("status").textContent = composeStatus("请先选择至少一列");
     return;
   }
-  visibleHeader = fullHeader.filter((h) => selected.includes(h));
+  for (const col of hideTargets) hiddenColumnSet.add(col);
+  syncVisibleHeader();
+  if (!visibleHeader.length) {
+    for (const col of hideTargets) hiddenColumnSet.delete(col);
+    syncVisibleHeader();
+    document.getElementById("status").textContent = composeStatus("至少保留一列可见");
+    return;
+  }
   initColumnSelectors();
-  renderEditColumnOptions();
+  renderVisibleColumnOptions();
+  renderHiddenColumnSelection();
+  applyFilters();
+  renderHeader();
+}
+
+function keepOnlySelectedColumns() {
+  const selected = Array.from(document.getElementById("visible_cols").selectedOptions).map((op) => op.value);
+  const keepTargets = new Set(selected.filter((col) => col));
+  keepTargets.add(MASTER_FIXED_COL);
+  if (keepTargets.size <= 1) {
+    document.getElementById("status").textContent = composeStatus("请先选择至少一列");
+    return;
+  }
+  hiddenColumnSet = new Set(fullHeader.filter((col) => col && !keepTargets.has(col)));
+  syncVisibleHeader();
+  initColumnSelectors();
+  renderVisibleColumnOptions();
+  renderHiddenColumnSelection();
   applyFilters();
   renderHeader();
 }
 
 function showAllColumns() {
-  visibleHeader = fullHeader.slice();
+  hiddenColumnSet = new Set();
+  syncVisibleHeader();
   initColumnSelectors();
   renderVisibleColumnOptions();
-  renderEditColumnOptions();
+  renderHiddenColumnSelection();
   applyFilters();
   renderHeader();
 }
 
-function applyKeptRows() {
-  const tokens = parseKeepTokens(document.getElementById("row_keep_input").value);
-  keptRowSet = tokens.length ? new Set(tokens) : null;
+function addRowsToFilter(mode) {
+  const select = document.getElementById("filter_row_pick");
+  const ids = mode === "all"
+    ? Array.from(select.options || []).map((op) => asText(op.value).trim().toUpperCase()).filter(Boolean)
+    : Array.from(select.selectedOptions || []).map((op) => asText(op.value).trim().toUpperCase()).filter(Boolean);
+  if (!ids.length) {
+    document.getElementById("status").textContent = composeStatus("请先选择至少一行");
+    return;
+  }
+  rowFilterSet = new Set(uniqueKeepOrder([...(rowFilterSet ? Array.from(rowFilterSet) : []), ...ids]));
+  refreshSearchPicker();
+  renderRowFilterSelection();
   applyFilters();
 }
 
-function clearKeptRows() {
-  keptRowSet = null;
-  document.getElementById("row_keep_input").value = "";
+function removeRowFilter(rowId) {
+  if (!rowFilterSet) return;
+  rowFilterSet.delete(asText(rowId).trim().toUpperCase());
+  if (!rowFilterSet.size) rowFilterSet = null;
+  refreshSearchPicker();
+  renderRowFilterSelection();
   applyFilters();
 }
 
-function currentDraftStorageKey() {
-  return `${DRAFT_PREFIX}${currentTable && currentTable.id ? currentTable.id : "table1"}`;
+function clearRowFilter() {
+  rowFilterSet = null;
+  refreshSearchPicker();
+  renderRowFilterSelection();
+  applyFilters();
 }
 
-function loadDraftState() {
-  try {
-    const raw = localStorage.getItem(currentDraftStorageKey());
-    if (!raw) return {addedColumns: [], editedCells: {}};
-    const j = JSON.parse(raw);
-    return {
-      addedColumns: Array.isArray(j.addedColumns) ? j.addedColumns.map((x) => asText(x).trim()).filter(Boolean) : [],
-      editedCells: j && typeof j.editedCells === "object" && j.editedCells ? j.editedCells : {}
-    };
-  } catch (_) {
-    return {addedColumns: [], editedCells: {}};
+function addSearchFilters(mode) {
+  const select = document.getElementById("search_pick");
+  const keys = mode === "all"
+    ? Array.from(select.options || []).map((op) => asText(op.value)).filter(Boolean)
+    : Array.from(select.selectedOptions || []).map((op) => asText(op.value)).filter(Boolean);
+  if (!keys.length) {
+    document.getElementById("status").textContent = composeStatus("请先选择至少一个查找值");
+    return;
   }
-}
-
-function saveDraftState() {
-  try {
-    localStorage.setItem(currentDraftStorageKey(), JSON.stringify(draftState));
-  } catch (_) {}
-}
-
-function applyDraftState() {
-  for (const c of draftState.addedColumns) {
-    if (!fullHeader.includes(c)) fullHeader.push(c);
+  for (const key of keys) {
+    const {column, value} = parseSearchFilterKey(key);
+    if (!column || !value) continue;
+    if (!searchFilterMap.has(column)) searchFilterMap.set(column, new Set());
+    searchFilterMap.get(column).add(value);
   }
-  for (const row of fullRows) {
-    for (const c of draftState.addedColumns) {
-      if (!(c in row)) row[c] = "";
-    }
-    const rowDraft = draftState.editedCells[getRowKey(row)] || {};
-    for (const [col, value] of Object.entries(rowDraft)) {
-      if (!fullHeader.includes(col)) fullHeader.push(col);
-      row[col] = value;
-    }
+  renderSearchSelection();
+  refreshSearchPicker();
+  applyFilters();
+}
+
+function removeSearchFilter(key) {
+  const {column, value} = parseSearchFilterKey(key);
+  if (!searchFilterMap.has(column)) return;
+  const values = searchFilterMap.get(column);
+  values.delete(value);
+  if (!values.size) searchFilterMap.delete(column);
+  renderSearchSelection();
+  refreshSearchPicker();
+  applyFilters();
+}
+
+function hideRows(mode) {
+  const select = document.getElementById("hide_row_pick");
+  const ids = mode === "all"
+    ? Array.from(select.options || []).map((op) => asText(op.value).trim().toUpperCase()).filter(Boolean)
+    : Array.from(select.selectedOptions || []).map((op) => asText(op.value).trim().toUpperCase()).filter(Boolean);
+  if (!ids.length) {
+    document.getElementById("status").textContent = composeStatus("请先选择至少一行");
+    return;
   }
-}
-
-function ensureColumnExists(colName, defaultValue = "") {
-  const col = asText(colName).trim();
-  if (!col) throw new Error("列名不能为空");
-  if (!fullHeader.includes(col)) fullHeader.push(col);
-  fullHeader = orderColumns(fullHeader);
-  if (!baseHeader.includes(col) && !draftState.addedColumns.includes(col)) draftState.addedColumns.push(col);
-  for (const row of fullRows) {
-    if (!(col in row)) row[col] = defaultValue;
+  for (const rowId of ids) hiddenRowSet.add(rowId);
+  if (rowFilterSet) {
+    for (const rowId of ids) rowFilterSet.delete(rowId);
+    if (!rowFilterSet.size) rowFilterSet = null;
   }
+  refreshRowPickers();
+  refreshSearchPicker();
+  renderRowFilterSelection();
+  renderHiddenRowSelection();
+  applyFilters();
 }
 
-function setDraftCell(rowKey, col, value) {
-  const key = asText(rowKey).trim().toUpperCase();
-  if (!key) return;
-  if (!draftState.editedCells[key]) draftState.editedCells[key] = {};
-  draftState.editedCells[key][col] = value;
+function unhideRow(rowId) {
+  hiddenRowSet.delete(asText(rowId).trim().toUpperCase());
+  refreshRowPickers();
+  refreshSearchPicker();
+  renderHiddenRowSelection();
+  applyFilters();
 }
 
-function editCellValue(row, col) {
-  const current = asText(row[col]);
-  const rowKey = getRowKey(row);
-  const next = window.prompt(`编辑 ${rowKey} / ${col}`, current);
-  if (next === null) return;
-  row[col] = next;
-  setDraftCell(rowKey, col, next);
-  saveDraftState();
+function clearHiddenRows() {
+  hiddenRowSet = new Set();
+  refreshRowPickers();
+  refreshSearchPicker();
+  renderHiddenRowSelection();
+  applyFilters();
+}
+
+function unhideColumn(col) {
+  hiddenColumnSet.delete(col);
+  syncVisibleHeader();
+  initColumnSelectors();
+  renderVisibleColumnOptions();
+  renderHiddenColumnSelection();
+  applyFilters();
+  renderHeader();
+}
+
+function addRow() {
+  const rowId = asText(document.getElementById("new_row_id").value).trim().toUpperCase();
+  const rowName = asText(document.getElementById("new_row_name").value).trim();
+  if (!rowId) {
+    document.getElementById("status").textContent = composeStatus("请先填写新增行 ID");
+    return;
+  }
+  if (getAllRowIds(fullRows).includes(rowId)) {
+    document.getElementById("status").textContent = composeStatus(`行 ${rowId} 已存在`);
+    return;
+  }
+  const row = {};
+  for (const col of fullHeader) row[col] = "";
+  if (fullHeader.includes(MASTER_FIXED_COL)) row[MASTER_FIXED_COL] = rowId;
+  if (fullHeader.includes("Protein_Name") && rowName) row["Protein_Name"] = rowName;
+  row._id = rowId;
+  fullRows.unshift(row);
+  if (currentTable) currentTable.row_count = fullRows.length;
+  refreshRowPickers();
+  refreshSearchPicker();
+  renderTableMeta();
   applyFilters();
   renderHeader();
   renderTable();
-  document.getElementById("status").textContent = `已更新 ${rowKey} / ${col}`;
+  setDirty(true, "新增行");
+  document.getElementById("new_row_id").value = "";
+  document.getElementById("new_row_name").value = "";
 }
 
-function addCustomColumn() {
+function addColumn() {
+  const name = asText(document.getElementById("new_col_name").value).trim();
+  const defaultValue = asText(document.getElementById("new_col_default").value);
+  if (!name) {
+    document.getElementById("status").textContent = composeStatus("请先填写新增列名");
+    return;
+  }
+  if (REMOVED_MASTER_COLUMNS.has(name)) {
+    document.getElementById("status").textContent = composeStatus(`列 ${name} 已停用，不允许重新加入`);
+    return;
+  }
+  if (name === "_id" || fullHeader.includes(name)) {
+    document.getElementById("status").textContent = composeStatus(`列 ${name} 已存在或不可新增`);
+    return;
+  }
+  fullHeader.push(name);
+  fullHeader = normalizeColumnOrder(fullHeader);
+  for (const row of fullRows) row[name] = defaultValue;
+  hiddenColumnSet.delete(name);
+  syncVisibleHeader();
+  initColumnSelectors();
+  renderVisibleColumnOptions();
+  renderHiddenColumnSelection();
+  applyFilters();
+  renderHeader();
+  setDirty(true, "新增列");
+  document.getElementById("new_col_name").value = "";
+  document.getElementById("new_col_default").value = "";
+}
+
+// ---------- 合并与保存 ----------
+function normalizeHeaderUnion(a, b) {
+  const out = [];
+  const seen = new Set();
+  for (const x of [...a, ...b]) {
+    const raw = asText(x).trim();
+    if (!raw || raw === "_id" || seen.has(raw)) continue;
+    seen.add(raw);
+    out.push(raw);
+  }
+  return out;
+}
+
+async function mergeTables() {
+  const baseId = document.getElementById("merge_base_select").value;
+  const extraId = document.getElementById("merge_extra_select").value;
+  if (!baseId || !extraId || baseId === extraId) {
+    document.getElementById("status").textContent = composeStatus("请选择两个不同的数据表进行合并");
+    return;
+  }
+  const baseTable = tableRegistry.find((t) => t.id === baseId);
+  const extraTable = tableRegistry.find((t) => t.id === extraId);
+  if (!baseTable || !extraTable) return;
+  const basePayload = await fetchTablePayload(baseTable);
+  const extraPayload = await fetchTablePayload(extraTable);
+  const header = normalizeColumnOrder(normalizeHeaderUnion(basePayload.header, extraPayload.header));
+  const outMap = new Map();
+  const pushRows = (rows) => {
+    for (const src of rows || []) {
+      const key = getRowJumpId(src);
+      if (!key) continue;
+      const row = {};
+      for (const col of header) row[col] = src[col] == null ? "" : src[col];
+      row["_id"] = src["_id"] || key;
+      if (!outMap.has(key)) {
+        outMap.set(key, row);
+      } else {
+        const prev = outMap.get(key);
+        for (const col of header) {
+          if (asText(prev[col]).trim() === "" && asText(row[col]).trim() !== "") prev[col] = row[col];
+        }
+      }
+    }
+  };
+  pushRows(basePayload.rows);
+  pushRows(extraPayload.rows);
+  currentTable = {
+    id: "",
+    label: `${baseTable.label} + ${extraTable.label}`,
+    row_count: outMap.size,
+    description: "未保存的合并结果"
+  };
+  baseHeader = header.slice();
+  baseRows = Array.from(outMap.values()).map((row) => ({...row}));
+  mergedSourceIds = [baseId, extraId];
+  setWorkingTable(header, baseRows, `合并 ${baseId} + ${extraId}`);
+  setDirty(true, "合并表");
+  document.getElementById("save_label").value = `${baseTable.label} + ${extraTable.label}`;
+  document.getElementById("save_description").value = `合并 ${baseId} 与 ${extraId}`;
+}
+
+function getVisibleRowsForSave() {
+  return filteredRows.slice();
+}
+
+function getVisibleHeaderForSave() {
+  return visibleHeader.filter((col) => col && col !== "_id");
+}
+
+async function saveTable(options) {
+  const label = document.getElementById("save_label").value.trim() || `${currentTable?.label || "Master Table"} saved`;
+  const description = document.getElementById("save_description").value.trim();
+  const header = getVisibleHeaderForSave();
+  const rows = getVisibleRowsForSave().map((row) => {
+    const out = {};
+    for (const col of header) out[col] = row[col] == null ? "" : row[col];
+    if (row._id != null) out._id = row._id;
+    return out;
+  });
+  const body = {
+    table_id: currentTable?.id || "",
+    overwrite: Boolean(options && options.overwrite),
+    label,
+    description,
+    stage: "master_table_edit",
+    source_table_ids: mergedSourceIds.slice(),
+    header: header.slice(),
+    rows
+  };
+  saveInFlight = true;
   try {
-    const col = document.getElementById("new_col_name").value.trim();
-    const defaultValue = document.getElementById("new_col_default").value;
-    ensureColumnExists(col, defaultValue);
-    saveDraftState();
-    document.getElementById("new_col_name").value = "";
-    initColumnSelectors();
-    renderVisibleColumnOptions();
-    renderEditColumnOptions();
-    applyFilters();
-    renderHeader();
-    renderTable();
-    document.getElementById("edit_col").value = col;
-    document.getElementById("status").textContent = `已新增列 ${col}`;
+    let result = null;
+    let lastErr = null;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      if (attempt) localApiBase = "";
+      const apiBase = await detectApiBase();
+      if (!apiBase) break;
+      try {
+        result = await fetchJson(`${apiBase}/api/master_table/save`, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify(body)
+        });
+        break;
+      } catch (e) {
+        lastErr = e;
+        const msg = asText(e && e.message).toLowerCase();
+        if (attempt === 0 && msg.includes("not found")) continue;
+        throw e;
+      }
+    }
+    if (!result) {
+      throw lastErr || new Error("未检测到支持 Master Table 保存的后端 API，无法保存");
+    }
+    if (!result || !result.ok || !result.entry) throw new Error((result && result.error) || "保存失败");
+    await loadTableRegistry();
+    currentTable = result.entry;
+    baseHeader = fullHeader.slice();
+    baseRows = cloneRows(fullRows);
+    mergedSourceIds = [result.entry.id];
+    rememberOriginalRows(fullRows);
+    setDirty(false);
+    document.getElementById("table_select").value = result.entry.id;
+    renderTableMeta();
+    document.getElementById("status").textContent = composeStatus(`已永久保存到 ${result.entry.id}，共 ${result.saved_row_count || rows.length} 行`);
+    return result;
+  } finally {
+    saveInFlight = false;
+  }
+}
+
+async function deleteCurrentTable() {
+  if (!currentTable || !currentTable.id || currentTable.id === "table1") {
+    document.getElementById("status").textContent = composeStatus("当前主表快照不允许删除");
+    return;
+  }
+  const ok = window.confirm(`确定删除当前数据表 ${currentTable.label}（${currentTable.id}）吗？\n这会删除对应的 json/csv/ids 文件，且不可恢复。`);
+  if (!ok) return;
+  const apiBase = await detectApiBase();
+  if (!apiBase) throw new Error("未检测到可用后端 API，无法删除");
+  const result = await fetchJson(`${apiBase}/api/master_table/delete`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({table_id: currentTable.id})
+  });
+  if (!result || !result.ok) throw new Error((result && result.error) || "删除失败");
+  const deletedId = currentTable.id;
+  await loadTableRegistry();
+  const nextTable = tableRegistry.find((t) => t.id !== deletedId) || tableRegistry[0] || null;
+  if (nextTable) document.getElementById("table_select").value = nextTable.id;
+  await loadCurrentTable(true);
+  document.getElementById("status").textContent = composeStatus(`已删除数据表 ${deletedId}`);
+}
+
+async function ensureSavedBeforeLeave() {
+  if (!dirty || saveInFlight) return true;
+  const shouldSave = window.confirm("当前 Master Table 有未保存修改。是否先保存后再离开此页面？\n选择“确定”将尝试保存，选择“取消”则留在当前页面。");
+  if (!shouldSave) return false;
+  try {
+    await saveTable({overwrite: currentTable && currentTable.id && currentTable.id !== "table1"});
+    return true;
   } catch (e) {
-    document.getElementById("status").textContent = e && e.message ? e.message : "新增列失败";
+    document.getElementById("status").textContent = composeStatus(`保存失败：${e && e.message ? e.message : "unknown"}`);
+    return false;
   }
 }
 
-function getEditTargetRows(scope) {
-  if (scope === "all") return fullRows;
-  if (scope === "kept") return keptRowSet ? fullRows.filter((r) => keptRowSet.has(getRowKey(r))) : [];
-  return filteredRows;
-}
+// ---------- 离开保护、事件绑定与页面启动 ----------
+window.addEventListener("beforeunload", (e) => {
+  if (!dirty || saveInFlight) return;
+  e.preventDefault();
+  e.returnValue = "";
+});
 
-function applyBatchEdit() {
-  const col = document.getElementById("edit_col").value;
-  const value = document.getElementById("edit_value").value;
-  const scope = document.getElementById("edit_scope").value;
-  if (!col) {
-    document.getElementById("status").textContent = "请选择要填写的列";
-    return;
-  }
-  ensureColumnExists(col, "");
-  const targets = getEditTargetRows(scope);
-  if (!targets.length) {
-    document.getElementById("status").textContent = "当前范围内没有可填写的行";
-    return;
-  }
-  for (const row of targets) {
-    row[col] = value;
-    setDraftCell(getRowKey(row), col, value);
-  }
-  saveDraftState();
-  applyFilters();
-  renderHeader();
-  renderTable();
-  document.getElementById("status").textContent = `已对 ${targets.length} 行填写 ${col}=${value}`;
-}
+document.addEventListener("click", async (e) => {
+  const anchor = e.target.closest("a[href]");
+  if (!anchor) return;
+  const href = anchor.getAttribute("href") || "";
+  if (href.startsWith("javascript:")) return;
+  const ok = await ensureSavedBeforeLeave();
+  if (!ok) e.preventDefault();
+});
 
-async function clearDraftEdits() {
-  draftState = {addedColumns: [], editedCells: {}};
-  try { localStorage.removeItem(currentDraftStorageKey()); } catch (_) {}
-  await loadCurrentTable();
-  document.getElementById("status").textContent = "已清空本地编辑";
-}
+document.querySelectorAll(".toolbar_tab").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const panelId = btn.dataset.panel || "panel-data";
+    if (activeToolbarPanel === panelId) {
+      setToolbarPanel("panel-data");
+      return;
+    }
+    setToolbarPanel(panelId);
+  });
+});
 
 document.getElementById("table_select").addEventListener("change", async () => {
   try {
-    await loadCurrentTable();
+    await loadCurrentTable(false);
   } catch (e) {
-    document.getElementById("status").textContent = "切换数据表失败：" + (e && e.message ? e.message : "unknown");
+    document.getElementById("status").textContent = composeStatus("切换数据表失败：" + (e && e.message ? e.message : "unknown"));
   }
 });
-document.getElementById("search_col").addEventListener("change", applyFilters);
-document.getElementById("search_value").addEventListener("input", applyFilters);
-document.getElementById("sort_apply_btn").addEventListener("click", () => {
-  sortState.key = document.getElementById("sort_col").value;
-  sortState.asc = document.getElementById("sort_order").value === "asc";
-  applySort();
-  renderHeader();
-  renderTable();
-});
+document.getElementById("search_col").addEventListener("change", refreshSearchPicker);
+document.getElementById("search_query").addEventListener("input", refreshSearchPicker);
+document.getElementById("search_add_btn").addEventListener("click", () => addSearchFilters("selected"));
+document.getElementById("search_add_all_btn").addEventListener("click", () => addSearchFilters("all"));
 document.getElementById("search_clear_btn").addEventListener("click", clearSearch);
-document.getElementById("sort_clear_btn").addEventListener("click", clearSort);
 document.getElementById("clear_btn").addEventListener("click", clearAll);
 document.getElementById("export_btn").addEventListener("click", exportCurrentTable);
-document.getElementById("apply_cols_btn").addEventListener("click", applyVisibleColumns);
+document.getElementById("column_query").addEventListener("input", renderVisibleColumnOptions);
+document.getElementById("keep_cols_btn").addEventListener("click", keepOnlySelectedColumns);
+document.getElementById("hide_cols_btn").addEventListener("click", hideSelectedColumns);
 document.getElementById("show_all_cols_btn").addEventListener("click", showAllColumns);
-document.getElementById("apply_rows_btn").addEventListener("click", applyKeptRows);
-document.getElementById("clear_rows_btn").addEventListener("click", clearKeptRows);
-document.getElementById("add_col_btn").addEventListener("click", addCustomColumn);
-document.getElementById("apply_edit_btn").addEventListener("click", applyBatchEdit);
-document.getElementById("clear_draft_btn").addEventListener("click", async () => {
+document.getElementById("filter_row_query").addEventListener("input", refreshRowPickers);
+document.getElementById("hide_row_query").addEventListener("input", refreshRowPickers);
+document.getElementById("filter_row_add_btn").addEventListener("click", () => addRowsToFilter("selected"));
+document.getElementById("filter_row_add_all_btn").addEventListener("click", () => addRowsToFilter("all"));
+document.getElementById("filter_row_clear_btn").addEventListener("click", clearRowFilter);
+document.getElementById("hide_row_add_btn").addEventListener("click", () => hideRows("selected"));
+document.getElementById("hide_row_add_all_btn").addEventListener("click", () => hideRows("all"));
+document.getElementById("hide_row_clear_btn").addEventListener("click", clearHiddenRows);
+document.getElementById("merge_btn").addEventListener("click", async () => {
   try {
-    await clearDraftEdits();
+    await mergeTables();
   } catch (e) {
-    document.getElementById("status").textContent = "清空本地编辑失败：" + (e && e.message ? e.message : "unknown");
+    document.getElementById("status").textContent = composeStatus("合并失败：" + (e && e.message ? e.message : "unknown"));
+  }
+});
+document.getElementById("reload_btn").addEventListener("click", async () => {
+  const ok = dirty ? window.confirm("这会丢弃当前未保存修改，是否继续？") : true;
+  if (!ok) return;
+  try {
+    await loadCurrentTable(true);
+  } catch (e) {
+    document.getElementById("status").textContent = composeStatus("重载失败：" + (e && e.message ? e.message : "unknown"));
+  }
+});
+document.getElementById("edit_mode_btn").addEventListener("click", () => {
+  setEditMode(!editMode);
+});
+document.getElementById("discard_edits_btn").addEventListener("click", () => {
+  const ok = dirty ? window.confirm("这会丢弃当前未保存修改，是否继续？") : true;
+  if (!ok) return;
+  resetWorkingCopy();
+  document.getElementById("status").textContent = composeStatus("已撤销未保存修改");
+});
+document.getElementById("add_row_btn").addEventListener("click", addRow);
+document.getElementById("add_col_btn").addEventListener("click", addColumn);
+document.getElementById("save_btn").addEventListener("click", async () => {
+  try {
+    await saveTable({overwrite: currentTable && currentTable.id && currentTable.id !== "table1"});
+  } catch (e) {
+    document.getElementById("status").textContent = composeStatus("保存失败：" + (e && e.message ? e.message : "unknown"));
+  }
+});
+document.getElementById("save_as_btn").addEventListener("click", async () => {
+  try {
+    await saveTable({overwrite: false});
+  } catch (e) {
+    document.getElementById("status").textContent = composeStatus("另存失败：" + (e && e.message ? e.message : "unknown"));
+  }
+});
+document.getElementById("delete_table_btn").addEventListener("click", async () => {
+  try {
+    await deleteCurrentTable();
+  } catch (e) {
+    document.getElementById("status").textContent = composeStatus("删除失败：" + (e && e.message ? e.message : "unknown"));
+  }
+});
+document.getElementById("save_overwrite_btn").addEventListener("click", async () => {
+  if (!currentTable || !currentTable.id || currentTable.id === "table1") {
+    document.getElementById("status").textContent = composeStatus("当前主表快照不允许覆盖，请使用“另存为新表”");
+    return;
+  }
+  try {
+    await saveTable({overwrite: true});
+  } catch (e) {
+    document.getElementById("status").textContent = composeStatus("覆盖保存失败：" + (e && e.message ? e.message : "unknown"));
   }
 });
 
 window.addEventListener("load", async () => {
   try {
+    setToolbarPanel("panel-data");
+    renderSaveControls();
     await loadTableRegistry();
-    await loadCurrentTable();
+    await loadCurrentTable(true);
   } catch (e) {
-    document.getElementById("status").textContent = "加载失败：" + (e && e.message ? e.message : "unknown") + "；建议启动后端 8015，并从仓库根目录启动 8020 静态服务后访问 /frontend/master_table.html";
+    document.getElementById("status").textContent = "加载失败：" + (e && e.message ? e.message : "unknown") + "；建议确认 /api 反代已生效，或后端已启动在当前主机的 8015 端口。";
   }
 });
 </script>

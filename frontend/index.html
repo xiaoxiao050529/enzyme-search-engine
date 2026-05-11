@@ -4,8 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Zn 金属酶筛选平台</title>
-<script src="https://unpkg.com/3dmol/build/3Dmol-min.js"></script>
+<script src="./vendor/3Dmol-min.js"></script>
 <style>
+/* 页面私有样式：这里只处理主页面自己的布局和局部组件，统一主题放在 theme.css。 */
 body { font-family: system-ui, sans-serif; margin: 16px; }
 .top_nav { display: flex; gap: 8px; margin-bottom: 10px; }
 .top_nav a { display: inline-block; padding: 6px 10px; border: 1px solid #d9d9d9; background: #f6f8fa; color: #0b5394; text-decoration: none; border-radius: 6px; font-weight: 600; }
@@ -33,6 +34,24 @@ select, input, button { width: 100%; padding: 6px; box-sizing: border-box; }
 .tool_hint { margin: 10px 0 8px; font-size: 12px; color: #52636d; }
 .tool_actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0 14px; }
 .tool_actions button { margin: 0; }
+.tool_link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 6px;
+  box-sizing: border-box;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  background: #f6f8fa;
+  color: #0b5394;
+  text-decoration: none;
+  font-weight: 600;
+}
+.tool_link.is_disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}
 .legend_box { margin: 0 0 14px; padding: 10px 12px; border: 1px solid #d9e0e6; border-radius: 12px; background: rgba(255,255,255,0.82); }
 .legend_title { font-size: 12px; color: #52636d; margin-bottom: 8px; font-weight: 700; }
 .legend_items { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -52,17 +71,22 @@ select, input, button { width: 100%; padding: 6px; box-sizing: border-box; }
 <link rel="stylesheet" href="./theme.css">
 </head>
 <body class="page-index">
+<!-- 顶部导航：在不同功能页之间切换。 -->
 <div class="top_nav">
   <a href="./index.html">主页面</a>
   <a href="./diffdock_compare.html">DiffDock对比</a>
   <a href="./master_table.html">Master表</a>
   <a href="./fpocket.html">fpocket</a>
   <a href="./tmalign.html">TM-align</a>
+  <a href="./caver.html">CAVER</a>
+  <a href="./alphafold.html">AlphaFold</a>
   <a href="./pdbzn_workflow.html">PDB-ZN工作流</a>
 </div>
 <h2>Zn 金属酶筛选平台</h2>
 <noscript>请启用浏览器的JavaScript以显示内容</noscript>
+<!-- 主体布局：左侧是控制区，右侧是序列和 3D 视图区。 -->
 <div class="row">
+  <!-- 控制区：切换数据源、筛选条目、打开各种可视化工具。 -->
   <div id="controls">
     <label>数据源
       <select id="dataset">
@@ -91,9 +115,11 @@ select, input, button { width: 100%; padding: 6px; box-sizing: border-box; }
     <div class="tool_actions">
       <button id="zn_mode_btn" type="button">ZN邻域模式：关</button>
       <button id="res_label_btn" type="button">残基标签：关</button>
+      <button id="fivea_mode_btn" type="button">5Å相互作用+标签：关</button>
+      <button id="pocket_mode_btn" type="button">口袋包锌可视化：开</button>
       <button id="measure_mode_btn" type="button">测量模式：关</button>
       <button id="measure_clear_btn" type="button">清空测量</button>
-
+      <a id="open_caver_link" class="tool_link is_disabled" href="./caver.html">用当前蛋白打开 CAVER</a>
     </div>
     <div class="legend_box">
       <div class="legend_title">Zn 相互作用配色</div>
@@ -106,6 +132,7 @@ select, input, button { width: 100%; padding: 6px; box-sizing: border-box; }
     </div>
     <div class="list" id="list"></div>
   </div>
+  <!-- 结果区：上方是序列映射，下方是结构模型与悬停提示。 -->
   <div id="viewer_col">
     <div id="seq_panel">
       <div id="seq_title">序列</div>
@@ -117,12 +144,14 @@ select, input, button { width: 100%; padding: 6px; box-sizing: border-box; }
     </div>
   </div>
   </div>
+<!-- 补充信息区：状态、报错、当前选中残基和详情表都放在这里。 -->
 <div id="status"></div>
 <pre id="zn_error">Zn显示：待检测</pre>
 <pre id="debug_error"></pre>
 <div id="picked">当前残基：未选择</div>
 <div id="detail"></div>
 <script>
+// 页面运行时状态：既记录当前选中的数据，也记录 3D 视图上已经画过的标签、线条和覆盖物。
 let db = null;
 let viewer;
 let pickedLabel = null;
@@ -161,6 +190,8 @@ let routeHandled = false;
 let tableRegistry = [];
 let currentDatasetEntry = null;
 let detectedApiBase = "";
+
+// 先尝试创建真正的 3Dmol 视图；如果外部脚本没加载成功，就退化成空对象，避免整页报错。
 try {
   if (window.$3Dmol) {
     viewer = $3Dmol.createViewer("viewer", {backgroundColor:"white"});
@@ -170,13 +201,17 @@ try {
 } catch (e) {
   viewer = { clear(){}, addModel(){ return { setStyle(){}, }; }, setStyle(){}, zoomTo(){}, render(){} };
 }
+
+// ---------- 数据源与 API 探测 ----------
 function datasetPath(entry, key) {
   const file = entry && entry[key] ? String(entry[key]) : "";
   return file ? `../backend/data/${file}` : "";
 }
 function getApiBaseCandidates() {
   const h = window.location.hostname || "127.0.0.1";
+  const originBase = window.location.origin && window.location.origin !== "null" ? window.location.origin : "";
   return [...new Set([
+    originBase,
     `http://${h}:8015`,
     `http://${h}:8017`,
     `http://${h}:8016`,
@@ -189,7 +224,8 @@ async function detectApiBase() {
   if (detectedApiBase) return detectedApiBase;
   for (const base of getApiBaseCandidates()) {
     try {
-      const res = await fetch(base + "/api/pdbzn/workflow/config?t=" + Date.now());
+      const apiUrl = (base || "") + "/api/pdbzn/workflow/config?t=" + Date.now();
+      const res = await fetch(apiUrl);
       if (!res.ok) continue;
       const obj = await res.json();
       if (obj && obj.ok) {
@@ -203,6 +239,25 @@ async function detectApiBase() {
 function getSelectedDatasetEntry() {
   const id = String(document.getElementById("dataset").value || "").trim();
   return tableRegistry.find((t) => String(t.id || "") === id) || tableRegistry[0] || null;
+}
+function updateCaverLink() {
+  const link = document.getElementById("open_caver_link");
+  const pid = String((currentItem && currentItem.id) || selectedId || "").trim().toUpperCase();
+  const datasetId = String((currentDatasetEntry && currentDatasetEntry.id) || document.getElementById("dataset").value || "").trim();
+  if (!pid) {
+    link.href = "./caver.html";
+    link.classList.add("is_disabled");
+    return;
+  }
+  const params = new URLSearchParams();
+  params.set("pdb", pid);
+  if (datasetId) params.set("dataset", datasetId);
+  link.href = `./caver.html?${params.toString()}`;
+  link.classList.remove("is_disabled");
+}
+function setTextIfExists(id, text) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = text;
 }
 function populateDatasetOptions() {
   const sel = document.getElementById("dataset");
@@ -218,6 +273,7 @@ function populateDatasetOptions() {
   } else if (tableRegistry.some((t) => String(t.id || "") === "table1")) {
     sel.value = "table1";
   }
+  updateCaverLink();
 }
 async function loadDatasetRegistry() {
   try {
@@ -241,6 +297,8 @@ async function loadDatasetRegistry() {
   }
   populateDatasetOptions();
 }
+
+// 主页面的数据入口：载入当前数据表，刷新左侧列表，并在需要时自动响应 URL 参数。
 function loadData() {
   currentDatasetEntry = getSelectedDatasetEntry();
   const src = datasetPath(currentDatasetEntry, "data") || datasetPath(currentDatasetEntry, "full") || "../backend/data/data.json";
@@ -249,6 +307,7 @@ function loadData() {
   status.textContent = "正在加载数据源：" + label;
   const url = src + "?t=" + Date.now();
   masterFull = null;
+  updateCaverLink();
   fetch(url).then(r=>{
     if(!r.ok) throw new Error("数据源不可用");
     return r.json();
@@ -273,6 +332,8 @@ function loadData() {
     }).catch((ee)=>{ status.textContent = "加载失败，请稍后重试或检查数据文件；错误：" + (ee && ee.message ? ee.message : "unknown"); });
   });
 }
+
+// ---------- 调试输出与结构文本解析 ----------
 function setDebugError(text) {
   const box = document.getElementById("debug_error");
   box.textContent = text || "";
@@ -355,6 +416,8 @@ function normalizePdbElementColumns(text) {
   }
   return out.join("\n");
 }
+
+// ---------- 列表、详情和路由参数 ----------
 function tryOpenRoutePdb() {
   if (routeHandled || !routePdb) return;
   routeHandled = true;
@@ -425,6 +488,8 @@ function renderDetailTable(target, header) {
   box.innerHTML = "";
   box.appendChild(table);
 }
+
+// ---------- 序列面板：把结构里的残基映射成可点击的文本 ----------
 function residueKey(chain, resi) {
   return `${chain || ""}:${String(resi ?? "")}`;
 }
@@ -618,6 +683,8 @@ function clearSequenceHover() {
   seqState.hoverKey = "";
   highlightSequenceResidues();
 }
+
+// ---------- 3D 交互：点击残基或 Zn 后，联动标签、邻域和测量 ----------
 function clearPickedLabel() {
   if (pickedLabel && viewer.removeLabel) {
     try { viewer.removeLabel(pickedLabel); } catch (_) {}
@@ -737,6 +804,8 @@ function focusResidueBySequenceKey(key) {
   }
   focusResidueNeighborhood(info.atom, "sequence");
 }
+
+// ---------- 结构与配体加载：把文件真正画进 3Dmol ----------
 async function syncDetailById(id) {
   if (!id) return;
   const box = document.getElementById("detail");
@@ -868,6 +937,8 @@ async function loadLigandForItem(it) {
   status.textContent = `已加载：${it.id || ""}（未找到可用配体SDF）`;
   return false;
 }
+
+// ---------- Zn / 口袋覆盖物：在主结构上叠加解释性的辅助图层 ----------
 function applyBaseStyles() {
   if (structureModelRef && structureModelRef.setStyle) {
     structureModelRef.setStyle({}, {cartoon:{color:"#7f97af", opacity:0.78}});
@@ -1468,10 +1539,13 @@ function handleMeasureClick(atom) {
   }
   viewer.render();
 }
+
+// 主渲染入口：无论从列表点击还是从查询跳转，最后都会走这里更新整页状态。
 function show(it) {
   selectedId = it.id || "";
   document.getElementById("find_pdb").value = selectedId;
   currentItem = it;
+  updateCaverLink();
   structureModelRef = null;
   ligandModelRef = null;
   setZnError("Zn显示：加载中");
@@ -1527,6 +1601,8 @@ function show(it) {
     viewer.render();
   });
 }
+
+// 查询入口：把用户输入的 PDB 同步到列表、详情和 3D 视图。
 function find() {
   const q = document.getElementById("find_pdb").value.trim();
   if(!q){ return; }
@@ -1554,11 +1630,14 @@ function find() {
     document.getElementById("search").value = rid;
     document.getElementById("cluster").value = "";
     selectedId = rid;
+    updateCaverLink();
     loadList();
     show(showItem);
     renderDetailTable(target, j.header);
   }).catch(()=>{ box.textContent = "查询失败"; });
 }
+
+// 事件绑定统一放在底部，读代码时可以先理解功能函数，再回来看“谁在触发它们”。
 window.addEventListener("load", async () => {
   await loadDatasetRegistry();
   loadData();
@@ -1570,32 +1649,35 @@ document.getElementById("find_btn").addEventListener("click", find);
 document.getElementById("find_pdb").addEventListener("keydown", (e)=>{ if(e.key==='Enter') find(); });
 document.getElementById("zn_mode_btn").addEventListener("click", ()=>{
   znMode = !znMode;
-  document.getElementById("zn_mode_btn").textContent = "ZN邻域模式：" + (znMode ? "开" : "关");
+  setTextIfExists("zn_mode_btn", "ZN邻域模式：" + (znMode ? "开" : "关"));
   fiveAMode = znMode && residueLabelMode;
-  document.getElementById("fivea_mode_btn").textContent = "5Å相互作用+标签：" + (fiveAMode ? "开" : "关");
+  setTextIfExists("fivea_mode_btn", "5Å相互作用+标签：" + (fiveAMode ? "开" : "关"));
   if (currentItem) show(currentItem);
 });
 document.getElementById("res_label_btn").addEventListener("click", ()=>{
   residueLabelMode = !residueLabelMode;
-  document.getElementById("res_label_btn").textContent = "残基标签：" + (residueLabelMode ? "开" : "关");
+  setTextIfExists("res_label_btn", "残基标签：" + (residueLabelMode ? "开" : "关"));
   fiveAMode = znMode && residueLabelMode;
-  document.getElementById("fivea_mode_btn").textContent = "5Å相互作用+标签：" + (fiveAMode ? "开" : "关");
+  setTextIfExists("fivea_mode_btn", "5Å相互作用+标签：" + (fiveAMode ? "开" : "关"));
   if (currentItem) show(currentItem);
   if (!residueLabelMode) document.getElementById("status").textContent = "已关闭残基标签";
 });
-document.getElementById("fivea_mode_btn").addEventListener("click", ()=>{
-  fiveAMode = !fiveAMode;
-  znMode = fiveAMode;
-  residueLabelMode = fiveAMode;
-  document.getElementById("fivea_mode_btn").textContent = "5Å相互作用+标签：" + (fiveAMode ? "开" : "关");
-  document.getElementById("zn_mode_btn").textContent = "ZN邻域模式：" + (znMode ? "开" : "关");
-  document.getElementById("res_label_btn").textContent = "残基标签：" + (residueLabelMode ? "开" : "关");
-  if (currentItem) show(currentItem);
-  if (!fiveAMode) document.getElementById("status").textContent = "已关闭5Å相互作用与标签";
-});
+{
+  const btn = document.getElementById("fivea_mode_btn");
+  if (btn) btn.addEventListener("click", ()=>{
+    fiveAMode = !fiveAMode;
+    znMode = fiveAMode;
+    residueLabelMode = fiveAMode;
+    setTextIfExists("fivea_mode_btn", "5Å相互作用+标签：" + (fiveAMode ? "开" : "关"));
+    setTextIfExists("zn_mode_btn", "ZN邻域模式：" + (znMode ? "开" : "关"));
+    setTextIfExists("res_label_btn", "残基标签：" + (residueLabelMode ? "开" : "关"));
+    if (currentItem) show(currentItem);
+    if (!fiveAMode) document.getElementById("status").textContent = "已关闭5Å相互作用与标签";
+  });
+}
 document.getElementById("measure_mode_btn").addEventListener("click", ()=>{
   measureMode = !measureMode;
-  document.getElementById("measure_mode_btn").textContent = "测量模式：" + (measureMode ? "开" : "关");
+  setTextIfExists("measure_mode_btn", "测量模式：" + (measureMode ? "开" : "关"));
   measurePoints = [];
   document.getElementById("status").textContent = measureMode ? "测量模式已开启：点击2个原子测键长，连续点击3个原子测键角" : "测量模式已关闭";
 });
@@ -1616,11 +1698,14 @@ document.getElementById("seq_content").addEventListener("click", (e)=>{
   if (!idx) return;
   focusResidueBySequenceIndex(idx);
 });
-document.getElementById("pocket_mode_btn").addEventListener("click", ()=>{
-  pocketMode = !pocketMode;
-  document.getElementById("pocket_mode_btn").textContent = "口袋包锌可视化：" + (pocketMode ? "开" : "关");
-  if (currentItem) show(currentItem);
-});
+{
+  const btn = document.getElementById("pocket_mode_btn");
+  if (btn) btn.addEventListener("click", ()=>{
+    pocketMode = !pocketMode;
+    setTextIfExists("pocket_mode_btn", "口袋包锌可视化：" + (pocketMode ? "开" : "关"));
+    if (currentItem) show(currentItem);
+  });
+}
 </script>
 </body>
 </html>

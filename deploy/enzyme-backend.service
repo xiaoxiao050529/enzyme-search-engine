@@ -1,0 +1,15 @@
+[Unit]
+Description=Enzyme Search Engine Backend
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/bingxing2/home/scx9kyg/xqc/enzyme-search-engine
+Environment=DIFFDOCK_API_HOST=127.0.0.1
+Environment=DIFFDOCK_API_PORT=8015
+ExecStart=/usr/bin/python3 /home/bingxing2/home/scx9kyg/xqc/enzyme-search-engine/backend/diffdock_api_server.py
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

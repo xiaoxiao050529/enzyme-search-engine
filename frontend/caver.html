@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>CAVER 页面</title>
+<script src="./vendor/3Dmol-min.js"></script>
+<style>
+body { font-family: system-ui, sans-serif; margin: 16px; }
+.top_nav { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+.top_nav a { display: inline-block; padding: 6px 10px; border: 1px solid #d9d9d9; background: #f6f8fa; color: #0b5394; text-decoration: none; border-radius: 6px; font-weight: 600; }
+.top_nav a:hover { background: #eaf2ff; }
+.layout { display: grid; grid-template-columns: 420px 1fr; gap: 14px; align-items: start; }
+#controls { border: 1px solid #ddd; background: #fafafa; padding: 10px; }
+label { display: block; margin-bottom: 8px; }
+input, button, textarea, select { width: 100%; box-sizing: border-box; padding: 6px; }
+button { margin-top: 4px; }
+.row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+#status { margin-top: 10px; color: #333; }
+.muted { margin: -4px 0 8px 0; color: #666; font-size: 12px; line-height: 1.5; }
+.progress_box { margin-top: 8px; padding: 8px; border: 1px solid #e1e8f0; background: #f8fbff; border-radius: 8px; }
+.progress_head { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 6px; font-size: 12px; color: #325b88; }
+.progress_track { height: 10px; background: #e4edf7; border-radius: 999px; overflow: hidden; }
+.progress_fill { width: 0%; height: 100%; background: linear-gradient(90deg, #4f8cc9, #67b99a); transition: width 220ms ease, background 220ms ease; }
+#result { border: 1px solid #ddd; background: #fff; min-height: 420px; padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+#viewer { height: 620px; border: 1px solid #ddd; background: #fff; position: relative; overflow: hidden; }
+#viewer_hint { color: #445; font-size: 12px; line-height: 1.5; }
+#files_box a { display: block; margin-bottom: 4px; color: #0b5394; }
+#summary_wrap { max-height: 320px; overflow: auto; border: 1px solid #eee; }
+#summary_table { width: 100%; border-collapse: collapse; font-size: 12px; }
+#summary_table th, #summary_table td { border: 1px solid #ddd; padding: 4px 6px; text-align: left; white-space: nowrap; }
+#summary_table th { position: sticky; top: 0; background: #f7f9fc; z-index: 1; }
+pre { white-space: pre-wrap; word-break: break-word; background: #f8f8f8; border: 1px solid #eee; padding: 8px; max-height: 260px; overflow: auto; }
+</style>
+<link rel="stylesheet" href="./theme.css">
+</head>
+<body class="page-caver">
+<div class="top_nav">
+  <a href="./index.html">主页面</a>
+  <a href="./diffdock_compare.html">DiffDock对比</a>
+  <a href="./master_table.html">Master表</a>
+  <a href="./fpocket.html">fpocket</a>
+  <a href="./tmalign.html">TM-align</a>
+  <a href="./caver.html">CAVER</a>
+  <a href="./alphafold.html">AlphaFold</a>
+  <a href="./pdbzn_workflow.html">PDB-ZN工作流</a>
+</div>
+<h2>CAVER 页面</h2>
+<div class="layout">
+  <div id="controls">
+    <label>API地址
+      <input id="api_base" type="text" value="" placeholder="留空自动探测；也可填写 https://你的域名 或 http://主机:8015">
+    </label>
+    <div class="muted">支持同域 `/api` 反代和 8015/8017/8016 自动探测。后端会优先使用本地 CAVER jar；未安装时会清晰报错。</div>
+    <label>PDB文件（可上传本地结构）
+      <input id="pdb_file" type="file" accept=".pdb,.ent">
+    </label>
+    <label>或选择库内蛋白
+      <input id="protein_pick" type="text" list="protein_options" placeholder="例如 3MWM | Graded expression ...">
+    </label>
+    <div id="protein_pick_hint" class="muted">当前未选中库内蛋白。</div>
+    <div class="muted">如果结构里有 Zn，默认可以直接用 Zn 坐标作为 CAVER 起点。</div>
+    <datalist id="protein_options"></datalist>
+    <label>第三轮 13 蛋白预计算结果
+      <select id="preset_pick"></select>
+    </label>
+    <button id="preset_load_btn" type="button">加载预计算可视化</button>
+    <div id="preset_hint" class="muted">这里会显示 pocket-seed 重跑后的 13 个蛋白 CAVER 结果。</div>
+    <label>任务名称
+      <input id="job_name" type="text" placeholder="例如 3MWM_caver">
+    </label>
+    <label>起点模式
+      <select id="seed_mode">
+        <option value="zn" selected>自动用 Zn 位点</option>
+        <option value="manual">手工输入坐标</option>
+      </select>
+    </label>
+    <div class="row3">
+      <label>X
+        <input id="seed_x" type="number" step="0.001" placeholder="seed_x">
+      </label>
+      <label>Y
+        <input id="seed_y" type="number" step="0.001" placeholder="seed_y">
+      </label>
+      <label>Z
+        <input id="seed_z" type="number" step="0.001" placeholder="seed_z">
+      </label>
+    </div>
+    <label>自定义 config.txt（可留空）
+      <textarea id="config_text" rows="8" placeholder="留空则后端自动生成 starting_point_coordinates / probe_radius / shell_radius / shell_depth 等默认参数"></textarea>
+    </label>
+    <button id="submit_btn" type="button">提交 CAVER 任务</button>
+    <label>任务ID
+      <input id="job_id" type="text" placeholder="提交后自动填入，或手工输入">
+    </label>
+    <button id="poll_btn" type="button">查询任务状态</button>
+    <button id="result_btn" type="button">加载结果</button>
+    <button id="log_btn" type="button">查看任务日志</button>
+    <div id="status">待提交</div>
+    <div class="progress_box">
+      <div class="progress_head"><span id="progress_label">任务进度</span><span id="progress_pct">0%</span></div>
+      <div class="progress_track"><div id="progress_fill" class="progress_fill"></div></div>
+    </div>
+    <pre id="debug_error">phase=idle</pre>
+  </div>
+  <div id="result">
+    <div id="job_meta">-</div>
+    <div id="viewer"></div>
+    <div id="viewer_hint">会叠加显示蛋白结构、Zn 位点和 CAVER 输出的通道中心线 PDB。</div>
+    <h3>通道摘要</h3>
+    <div id="summary_wrap"><table id="summary_table"></table></div>
+    <h3>输出文件</h3>
+    <div id="files_box">暂无</div>
+    <h3>日志</h3>
+    <pre id="log_view">暂无</pre>
+  </div>
+</div>
+<script>
+let viewer = null;
+let structureModel = null;
+let tunnelModel = null;
+let znModel = null;
+let pollTimer = null;
+let currentProgressValue = 0;
+let proteinCatalog = [];
+let proteinLookup = new Map();
+let currentStructureText = "";
+let presetItems = [];
+const routeParams = new URLSearchParams(window.location.search);
+const routePdb = String(routeParams.get("pdb") || "").trim().toUpperCase();
+const DEFAULT_PRESET_ID = "workflow_table_2_pocket_seed_v1";
+
+function createViewerStub() {
+  return {
+    clear(){},
+    addModel(){ return { setStyle(){}, setClickable(){} }; },
+    zoomTo(){},
+    render(){},
+    resize(){},
+  };
+}
+function ensureViewer() {
+  if (viewer) return viewer;
+  try {
+    if (window.$3Dmol) {
+      viewer = $3Dmol.createViewer("viewer", {backgroundColor:"white"});
+      return viewer;
+    }
+  } catch (_) {}
+  viewer = createViewerStub();
+  return viewer;
+}
+function getApiBase() {
+  return (document.getElementById("api_base").value || "").trim().replace(/\/+$/, "");
+}
+function appendNoCache(url) {
+  return url + (url.includes("?") ? "&" : "?") + "t=" + Date.now();
+}
+function setStatus(t) {
+  document.getElementById("status").textContent = t;
+}
+function setDebugError(t) {
+  document.getElementById("debug_error").textContent = t || "";
+}
+function setProgress(value, label, tone = "normal") {
+  const pct = Math.max(0, Math.min(100, Math.round(Number(value) || 0)));
+  currentProgressValue = pct;
+  document.getElementById("progress_fill").style.width = pct + "%";
+  document.getElementById("progress_fill").style.background =
+    tone === "error" ? "linear-gradient(90deg, #d62828, #f77f00)" : "linear-gradient(90deg, #4f8cc9, #67b99a)";
+  document.getElementById("progress_label").textContent = label || "任务进度";
+  document.getElementById("progress_pct").textContent = pct + "%";
+}
+function parseJson(text) {
+  try { return JSON.parse(text); } catch (_) { return null; }
+}
+async function fetchJsonWithDetail(url, init, phase) {
+  const r = await fetch(url, init);
+  const raw = await r.text();
+  const j = parseJson(raw);
+  const htmlLike = /<!doctype html|<html/i.test(raw || "");
+  if (!r.ok) throw new Error(`${phase} http_${r.status} ${htmlLike ? "返回HTML页面" : raw.slice(0, 240)}`);
+  if (!j || !j.ok) throw new Error(`${phase} ${htmlLike ? "返回HTML页面" : "invalid_json " + raw.slice(0, 240)}`);
+  return {json: j, raw};
+}
+async function detectApiBase() {
+  const userBase = getApiBase();
+  const h = window.location.hostname || "127.0.0.1";
+  const originBase = window.location.origin && window.location.origin !== "null" ? window.location.origin : "";
+  const cands = [userBase, originBase, `http://${h}:8015`, `http://${h}:8017`, `http://${h}:8016`, "http://127.0.0.1:8015", "http://127.0.0.1:8017", "http://127.0.0.1:8016"].filter(Boolean);
+  const uniq = [];
+  for (const c of cands) if (!uniq.includes(c)) uniq.push(c);
+  let lastErr = "";
+  for (const b of uniq) {
+    try {
+      const {json} = await fetchJsonWithDetail(b + "/api/caver/ping?t=" + Date.now(), {method:"GET"}, "ping");
+      document.getElementById("api_base").value = b;
+      return {base: b, ping: json};
+    } catch (e) {
+      lastErr = e && e.message ? e.message : String(e || "");
+    }
+  }
+  throw new Error("无法连接 CAVER API。最后错误：" + lastErr);
+}
+function normalizeDataRelPath(ref) {
+  const s = String(ref || "").trim();
+  if (!s) return "";
+  const directPrefixes = ["../backend/data/", "./backend/data/", "/backend/data/", "backend/data/"];
+  for (const p of directPrefixes) {
+    if (s.startsWith(p)) return s.slice(p.length);
+  }
+  if (s.startsWith("structures/") || s === "data.json") return s;
+  if (s.startsWith("/root/PDB_ZN/diffdock_inputs/receptors/")) return "structures/" + s.split("/").pop();
+  return "";
+}
+function dataUrlCandidates(apiBase, ref) {
+  const rel = normalizeDataRelPath(ref);
+  if (!rel) return [];
+  const out = [];
+  if (apiBase) out.push(`${apiBase}/api/data/file?path=${encodeURIComponent(rel)}`);
+  out.push(`../backend/data/${rel}`);
+  return [...new Set(out)];
+}
+async function fetchPlainJson(url) {
+  const r = await fetch(appendNoCache(url));
+  if (!r.ok) throw new Error(`${url} 不可用`);
+  return await r.json();
+}
+async function fetchPlainText(url) {
+  const r = await fetch(appendNoCache(url));
+  if (!r.ok) throw new Error(`${url} 不可用`);
+  return await r.text();
+}
+async function fetchFirstSuccessful(urls, loader) {
+  let lastErr = null;
+  for (const u of urls) {
+    try { return await loader(u); } catch (e) { lastErr = e; }
+  }
+  throw lastErr || new Error("资源不可用");
+}
+function proteinOptionValue(it) {
+  const id = String(it?.id || "").toUpperCase();
+  const name = String(it?.name || "").trim();
+  return name ? `${id} | ${name}` : id;
+}
+function populateProteinOptions() {
+  const list = document.getElementById("protein_options");
+  list.innerHTML = "";
+  for (const it of proteinCatalog) {
+    const op = document.createElement("option");
+    op.value = proteinOptionValue(it);
+    list.appendChild(op);
+  }
+}
+function refreshProteinPickHint() {
+  const entry = findProteinEntry(document.getElementById("protein_pick").value);
+  const hint = document.getElementById("protein_pick_hint");
+  if (!entry) {
+    hint.textContent = "当前未选中库内蛋白。";
+    return;
+  }
+  hint.textContent = `已选中：${entry.id}${entry.name ? " | " + entry.name : ""}`;
+  const prev = document.getElementById("debug_error").textContent || "phase=idle";
+  document.getElementById("debug_error").textContent = prev.split("\n").filter((line) => !line.startsWith("catalog_match=")).concat([`catalog_match=${entry.id}`]).join("\n");
+}
+async function loadProteinCatalog(apiBase) {
+  try {
+    const payload = await fetchFirstSuccessful(dataUrlCandidates(apiBase, "data.json"), fetchPlainJson);
+    const items = Array.isArray(payload?.items) ? payload.items : [];
+    proteinCatalog = items.map((it) => ({
+      id: String(it.id || "").toUpperCase(),
+      name: String(it.name || ""),
+      receptor_rel: String(it.receptor_rel || ""),
+      receptor_pdb: String(it.receptor_pdb || "")
+    })).filter((it) => it.id);
+    proteinLookup = new Map(proteinCatalog.map((it) => [it.id, it]));
+    populateProteinOptions();
+    if (routePdb && proteinLookup.has(routePdb)) {
+      document.getElementById("protein_pick").value = proteinOptionValue(proteinLookup.get(routePdb));
+    }
+    refreshProteinPickHint();
+  } catch (e) {
+    setDebugError(`phase=protein_catalog_warn\nerror=${e && e.message ? e.message : "unknown"}`);
+  }
+}
+function findProteinEntry(text) {
+  const raw = String(text || "").trim();
+  if (!raw) return null;
+  const id = raw.split("|")[0].trim().toUpperCase();
+  if (proteinLookup.has(id)) return proteinLookup.get(id);
+  return proteinCatalog.find((it) => proteinOptionValue(it).toUpperCase() === raw.toUpperCase()) || null;
+}
+async function loadSelectedProteinStructure(apiBase) {
+  const entry = findProteinEntry(document.getElementById("protein_pick").value);
+  if (!entry) throw new Error("请选择库内蛋白，或上传本地 PDB 文件");
+  const refs = [entry.receptor_rel, entry.receptor_pdb, `structures/${entry.id}.pdb`];
+  const text = await fetchFirstSuccessful(refs.flatMap((ref) => dataUrlCandidates(apiBase, ref)), fetchPlainText);
+  if (!text || text.trim().length < 50) throw new Error(`库内蛋白 ${entry.id} 结构为空或过短`);
+  return {entry, text};
+}
+function readFileText(file) {
+  return new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onload = () => resolve(String(fr.result || ""));
+    fr.onerror = () => reject(new Error("文件读取失败"));
+    fr.readAsText(file);
+  });
+}
+function parsePdbZnAtoms(text) {
+  const out = [];
+  for (const line of String(text || "").split(/\r?\n/)) {
+    if (!(line.startsWith("ATOM") || line.startsWith("HETATM"))) continue;
+    const atomName = String(line.slice(12, 16) || "").trim().toUpperCase();
+    const resn = String(line.slice(17, 20) || "").trim().toUpperCase();
+    const elem = String(line.slice(76, 78) || "").trim().toUpperCase() || atomName;
+    if (!(elem === "ZN" || resn === "ZN" || atomName === "ZN")) continue;
+    const x = Number(String(line.slice(30, 38) || "").trim());
+    const y = Number(String(line.slice(38, 46) || "").trim());
+    const z = Number(String(line.slice(46, 54) || "").trim());
+    if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(z)) continue;
+    out.push({x, y, z});
+  }
+  return out;
+}
+function renderFiles(apiBase, files) {
+  const box = document.getElementById("files_box");
+  box.innerHTML = "";
+  if (!Array.isArray(files) || !files.length) {
+    box.textContent = "暂无";
+    return;
+  }
+  for (const it of files) {
+    const a = document.createElement("a");
+    a.href = apiBase + (it.url || "");
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.textContent = `${it.path || it.name} (${it.size || 0} bytes)`;
+    box.appendChild(a);
+  }
+}
+function renderPresetOptions(items) {
+  const sel = document.getElementById("preset_pick");
+  sel.innerHTML = "";
+  const empty = document.createElement("option");
+  empty.value = "";
+  empty.textContent = "选择预计算蛋白";
+  sel.appendChild(empty);
+  for (const it of items || []) {
+    const op = document.createElement("option");
+    op.value = it.id || "";
+    op.textContent = `${it.id} | bottleneck ${it.best_bottleneck_radius_a || "-"} Å | ${it.acetophenone_size_pass_by_caver || "-"}`;
+    sel.appendChild(op);
+  }
+  if (routePdb && (items || []).some((it) => String(it.id || "") === routePdb)) {
+    sel.value = routePdb;
+  }
+}
+function renderSummary(columns, rows) {
+  const table = document.getElementById("summary_table");
+  if (!Array.isArray(rows) || !rows.length) {
+    table.innerHTML = "<tr><td>暂无摘要</td></tr>";
+    return;
+  }
+  const cols = Array.isArray(columns) && columns.length ? columns : Object.keys(rows[0] || {});
+  let html = "<thead><tr>";
+  for (const c of cols) html += `<th>${c}</th>`;
+  html += "</tr></thead><tbody>";
+  for (const row of rows) {
+    html += "<tr>";
+    for (const c of cols) html += `<td>${String(row[c] == null ? "" : row[c])}</td>`;
+    html += "</tr>";
+  }
+  html += "</tbody>";
+  table.innerHTML = html;
+}
+function renderStructure(structureText, tunnelPdbText) {
+  const v = ensureViewer();
+  v.clear();
+  structureModel = null;
+  tunnelModel = null;
+  znModel = null;
+  if (structureText && structureText.trim()) {
+    structureModel = v.addModel(structureText, "pdb");
+    structureModel.setStyle({}, {cartoon:{color:"#7f97af", opacity:0.82}});
+    structureModel.setStyle({within:{distance:3.0, sel:{elem:"ZN"}}}, {stick:{colorscheme:"greenCarbon", radius:0.18}});
+  }
+  const znAtoms = parsePdbZnAtoms(structureText);
+  if (znAtoms.length) {
+    const znLines = znAtoms.map((z, i) => {
+      const serial = String(i + 1).padStart(5, " ");
+      const resi = String(i + 1).padStart(4, " ");
+      const x = z.x.toFixed(3).padStart(8, " ");
+      const y = z.y.toFixed(3).padStart(8, " ");
+      const zz = z.z.toFixed(3).padStart(8, " ");
+      return `HETATM${serial} ZN   ZN Z${resi}    ${x}${y}${zz}  1.00 20.00          ZN`;
+    }).join("\n") + "\nEND\n";
+    znModel = v.addModel(znLines, "pdb");
+    znModel.setStyle({}, {sphere:{radius:0.58, color:"#c100ff", opacity:0.96}});
+  }
+  if (tunnelPdbText && tunnelPdbText.trim()) {
+    tunnelModel = v.addModel(tunnelPdbText, "pdb");
+    tunnelModel.setStyle({}, {stick:{color:"#d62828", radius:0.18}});
+  }
+  v.zoomTo();
+  if (v.resize) v.resize();
+  v.render();
+}
+async function loadPresetList(apiBase) {
+  try {
+    const {json} = await fetchJsonWithDetail(apiBase + "/api/caver/preset/list/" + DEFAULT_PRESET_ID, {method:"GET"}, "preset_list");
+    presetItems = Array.isArray(json.items) ? json.items : [];
+    renderPresetOptions(presetItems);
+    if (presetItems.length) {
+      document.getElementById("preset_hint").textContent = `已加载 ${presetItems.length} 个第三轮蛋白预计算结果。`;
+    }
+  } catch (e) {
+    document.getElementById("preset_hint").textContent = "预计算结果列表加载失败：" + (e && e.message ? e.message : "unknown");
+  }
+}
+async function loadPresetResult() {
+  let apiBase = getApiBase();
+  const pid = String(document.getElementById("preset_pick").value || "").trim().toUpperCase();
+  if (!pid) {
+    setStatus("请先选择一个预计算蛋白");
+    return;
+  }
+  try {
+    const detect = await detectApiBase();
+    apiBase = detect.base;
+    const {json} = await fetchJsonWithDetail(apiBase + "/api/caver/preset/result/" + DEFAULT_PRESET_ID + "/" + encodeURIComponent(pid), {method:"GET"}, "preset_result");
+    const result = json.result || {};
+    const meta = json.summary_meta || {};
+    currentStructureText = result.structure_pdb_text || currentStructureText;
+    const matched = presetItems.find((it) => String(it.id || "") === pid) || {};
+    document.getElementById("job_meta").textContent =
+      `preset=${DEFAULT_PRESET_ID} | pdb=${pid} | channels=${meta.Channel_count || matched.channel_count || "-"} | best_bottleneck=${meta.Best_bottleneck_radius_A || matched.best_bottleneck_radius_a || "-"} | acetophenone=${meta.Acetophenone_size_pass_by_caver || matched.acetophenone_size_pass_by_caver || "-"} | existing=${meta.Existing_acetophenone_judgement || matched.existing_acetophenone_judgement || "-"}`;
+    renderSummary(result.summary_columns || [], result.summary_rows || []);
+    renderFiles(apiBase, result.files || []);
+    renderStructure(result.structure_pdb_text || currentStructureText || "", result.centerline_pdb_text || "");
+    const entry = proteinLookup.get(pid);
+    if (entry) {
+      document.getElementById("protein_pick").value = proteinOptionValue(entry);
+      refreshProteinPickHint();
+    }
+    setStatus(`已加载预计算可视化：${pid}`);
+    setDebugError(`phase=preset_result_ok\npreset=${DEFAULT_PRESET_ID}\npdb=${pid}\nsummary_rows=${(result.summary_rows || []).length}`);
+  } catch (e) {
+    setStatus("预计算结果加载失败：" + (e && e.message ? e.message : "unknown"));
+    setDebugError(`phase=preset_result_error\nerror=${e && e.message ? e.message : "unknown"}`);
+  }
+}
+function progressFromJob(job) {
+  const phase = String(job?.phase || job?.status || "queued");
+  const table = {
+    queued: 8,
+    starting: 16,
+    spawn: 35,
+    waiting: 78,
+    done: 100,
+    done_recovered: 100,
+    failed: 100,
+    failed_no_runner: 100,
+    failed_no_output: 100,
+    failed_exit: 100,
+    failed_exception: 100,
+  };
+  return table[phase] != null ? table[phase] : (String(job?.status || "") === "done" ? 100 : 30);
+}
+function updateProgressFromJob(job) {
+  const status = String(job?.status || "queued");
+  const phase = String(job?.phase || status);
+  setProgress(progressFromJob(job), `任务状态：${status} / ${phase}`, status === "failed" ? "error" : "normal");
+}
+function stopPolling() {
+  if (pollTimer) {
+    clearInterval(pollTimer);
+    pollTimer = null;
+  }
+}
+function startPolling() {
+  stopPolling();
+  pollTimer = setInterval(() => {
+    const id = String(document.getElementById("job_id").value || "").trim();
+    if (!id) {
+      stopPolling();
+      return;
+    }
+    pollStatus(true);
+  }, 3000);
+}
+async function submitJob() {
+  let apiBase = getApiBase();
+  const file = (document.getElementById("pdb_file").files || [])[0];
+  stopPolling();
+  try {
+    const detect = await detectApiBase();
+    apiBase = detect.base;
+    let pdbName = "";
+    let pdbText = "";
+    currentStructureText = "";
+    if (file) {
+      pdbName = file.name;
+      pdbText = await readFileText(file);
+      currentStructureText = pdbText;
+    } else {
+      const selected = await loadSelectedProteinStructure(apiBase);
+      pdbName = `${selected.entry.id}.pdb`;
+      pdbText = selected.text;
+      currentStructureText = selected.text;
+    }
+    if (!pdbText || pdbText.trim().length < 50) throw new Error("PDB 内容为空或过短");
+    const payload = {
+      job_name: document.getElementById("job_name").value.trim(),
+      pdb_name: pdbName,
+      pdb_text: pdbText,
+      seed_mode: document.getElementById("seed_mode").value,
+      config_text: document.getElementById("config_text").value,
+    };
+    if (payload.seed_mode === "manual") {
+      payload.seed_x = Number(document.getElementById("seed_x").value);
+      payload.seed_y = Number(document.getElementById("seed_y").value);
+      payload.seed_z = Number(document.getElementById("seed_z").value);
+    }
+    setStatus("正在提交 CAVER 任务...");
+    setProgress(10, "提交中");
+    const {json} = await fetchJsonWithDetail(apiBase + "/api/caver/submit", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify(payload),
+    }, "submit");
+    document.getElementById("job_id").value = json.job_id || "";
+    setStatus(`任务已提交: ${json.job_id}`);
+    setDebugError(`phase=submitted\napi=${apiBase}\njob_id=${json.job_id}`);
+    startPolling();
+    await pollStatus(false);
+  } catch (e) {
+    setStatus("提交失败：" + (e && e.message ? e.message : "unknown"));
+    setDebugError(`phase=submit_error\nerror=${e && e.message ? e.message : "unknown"}`);
+    setProgress(100, "提交失败", "error");
+  }
+}
+async function pollStatus(silent) {
+  let apiBase = getApiBase();
+  const id = String(document.getElementById("job_id").value || "").trim();
+  if (!id) {
+    if (!silent) setStatus("请先输入任务ID");
+    return;
+  }
+  try {
+    const detect = await detectApiBase();
+    apiBase = detect.base;
+    const {json} = await fetchJsonWithDetail(apiBase + "/api/caver/status/" + encodeURIComponent(id), {method:"GET"}, "status");
+    const job = json.job || {};
+    document.getElementById("job_meta").textContent =
+      `job_id=${job.id || "-"} | status=${job.status || "-"} | seed=${JSON.stringify(job.seed || {})} | summary=${job.summary_file || "-"} | centerline=${job.centerline_file || "-"}`;
+    updateProgressFromJob(job);
+    if (!silent) setStatus(`任务状态：${job.status || "-"}`);
+    if (String(job.status || "") === "done" || String(job.status || "") === "failed") stopPolling();
+  } catch (e) {
+    if (!silent) setStatus("查询失败：" + (e && e.message ? e.message : "unknown"));
+  }
+}
+async function loadResult() {
+  let apiBase = getApiBase();
+  const id = String(document.getElementById("job_id").value || "").trim();
+  if (!id) {
+    setStatus("请先输入任务ID");
+    return;
+  }
+  try {
+    const detect = await detectApiBase();
+    apiBase = detect.base;
+    const {json} = await fetchJsonWithDetail(apiBase + "/api/caver/result/" + encodeURIComponent(id), {method:"GET"}, "result");
+    const result = json.result || {};
+    renderSummary(result.summary_columns || [], result.summary_rows || []);
+    renderFiles(apiBase, result.files || []);
+    let structureText = currentStructureText;
+    if (!structureText) {
+      const outputStructure = Array.isArray(result.files)
+        ? result.files.find((it) => /\/output\/data\/.*\.pdb$/i.test(String(it.url || "")) || /\/output\/data\/.*\.pdb$/i.test(String(it.path || "")))
+        : null;
+      if (outputStructure) {
+        try {
+          structureText = await fetchPlainText(apiBase + (outputStructure.url || ""));
+          currentStructureText = structureText;
+        } catch (_) {}
+      }
+    }
+    if (!structureText) {
+      const selected = findProteinEntry(document.getElementById("protein_pick").value);
+      if (selected) {
+        try {
+          const refs = [selected.receptor_rel, selected.receptor_pdb, `structures/${selected.id}.pdb`];
+          structureText = await fetchFirstSuccessful(refs.flatMap((ref) => dataUrlCandidates(apiBase, ref)), fetchPlainText);
+          currentStructureText = structureText;
+        } catch (_) {}
+      }
+    }
+    renderStructure(structureText, result.centerline_pdb_text || "");
+    setStatus("结果已加载");
+    setDebugError(`phase=result_ok\njob_id=${id}\nsummary_rows=${(result.summary_rows || []).length}\ncenterline=${result.centerline_file || "-"}`);
+  } catch (e) {
+    setStatus("结果加载失败：" + (e && e.message ? e.message : "unknown"));
+    setDebugError(`phase=result_error\nerror=${e && e.message ? e.message : "unknown"}`);
+  }
+}
+async function loadLog() {
+  let apiBase = getApiBase();
+  const id = String(document.getElementById("job_id").value || "").trim();
+  if (!id) {
+    setStatus("请先输入任务ID");
+    return;
+  }
+  try {
+    const detect = await detectApiBase();
+    apiBase = detect.base;
+    const {json} = await fetchJsonWithDetail(apiBase + "/api/caver/log/" + encodeURIComponent(id), {method:"GET"}, "log");
+    document.getElementById("log_view").textContent = json.log || "暂无";
+    setStatus("日志已加载");
+  } catch (e) {
+    setStatus("日志加载失败：" + (e && e.message ? e.message : "unknown"));
+  }
+}
+async function boot() {
+  ensureViewer();
+  try {
+    const detect = await detectApiBase();
+    await loadProteinCatalog(detect.base);
+    await loadPresetList(detect.base);
+    const ready = detect.ping && detect.ping.ready ? "已发现 CAVER 运行环境" : "尚未发现 CAVER jar，可先完成页面/接口接入";
+    setStatus(`API 已连接: ${detect.base}；${ready}`);
+    if (routePdb && presetItems.some((it) => String(it.id || "") === routePdb)) {
+      await loadPresetResult();
+    }
+  } catch (e) {
+    setStatus(`初始化失败：${e && e.message ? e.message : "unknown"}`);
+  }
+}
+document.getElementById("submit_btn").addEventListener("click", submitJob);
+document.getElementById("poll_btn").addEventListener("click", () => pollStatus(false));
+document.getElementById("result_btn").addEventListener("click", loadResult);
+document.getElementById("log_btn").addEventListener("click", loadLog);
+document.getElementById("preset_load_btn").addEventListener("click", loadPresetResult);
+document.getElementById("protein_pick").addEventListener("input", refreshProteinPickHint);
+document.getElementById("protein_pick").addEventListener("change", refreshProteinPickHint);
+boot();
+</script>
+</body>
+</html>

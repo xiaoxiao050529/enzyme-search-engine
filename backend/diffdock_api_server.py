@@ -3548,13 +3548,33 @@ def _pdbzn_delete_master_table(payload):
     }
 
 
-def _pdbzn_normalize_save_header(header, rows):
+_PDBZN_REMOVED_MASTER_COLUMNS = {
+    "苯乙酮_活性口袋命中Zn",
+    "Zn第一配位壳最近空隙_A",
+    "ZN_弯曲通道半径_A",
+    "ZN_弯曲通道长度_A",
+}
+
+
+def _pdbzn_sanitize_master_header(header):
     out = []
     seen = set()
+    for name in header or []:
+        raw = str(name or "").strip()
+        if not raw or raw == "_id" or raw in seen or raw in _PDBZN_REMOVED_MASTER_COLUMNS:
+            continue
+        seen.add(raw)
+        out.append(raw)
+    return out
+
+
+def _pdbzn_normalize_save_header(header, rows):
+    out = _pdbzn_sanitize_master_header(header)
+    seen = set(out)
 
     def add(name):
         raw = str(name or "").strip()
-        if not raw or raw == "_id" or raw in seen:
+        if not raw or raw == "_id" or raw in seen or raw in _PDBZN_REMOVED_MASTER_COLUMNS:
             return
         seen.add(raw)
         out.append(raw)
@@ -3586,6 +3606,7 @@ def _pdbzn_write_named_table_explicit(table_id, label, header, rows, stage, desc
     safe_id = str(table_id or "").strip().lower()
     if not safe_id or safe_id == "table1" or not re.fullmatch(r"[a-z0-9._-]+", safe_id):
         raise ValueError("invalid table_id")
+    header = _pdbzn_sanitize_master_header(header)
     with _pdbzn_table_registry_lock:
         tables = _pdbzn_load_table_registry()
         existing = next(
@@ -3737,6 +3758,7 @@ def _pdbzn_dataset_item_from_row(row):
 
 
 def _pdbzn_write_named_table(label, header, rows, stage, description):
+    header = _pdbzn_sanitize_master_header(header)
     with _pdbzn_table_registry_lock:
         safe_id, unique_label = _pdbzn_unique_table_identity(label)
         clean_rows = []

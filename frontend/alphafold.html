@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>AlphaFold 页面</title>
+<script src="./vendor/3Dmol-min.js"></script>
+<style>
+body { font-family: system-ui, sans-serif; margin: 16px; }
+.top_nav { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+.top_nav a { display: inline-block; padding: 6px 10px; border: 1px solid #d9d9d9; background: #f6f8fa; color: #0b5394; text-decoration: none; border-radius: 6px; font-weight: 600; }
+.top_nav a:hover { background: #eaf2ff; }
+.layout { display: grid; grid-template-columns: 420px 1fr; gap: 14px; align-items: start; }
+#controls { border: 1px solid #ddd; background: #fafafa; padding: 10px; }
+label { display: block; margin-bottom: 8px; }
+input, button, textarea, select { width: 100%; box-sizing: border-box; padding: 6px; }
+button { margin-top: 4px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.muted { margin: -4px 0 8px 0; color: #666; font-size: 12px; line-height: 1.5; }
+#status { margin-top: 10px; color: #333; }
+.progress_box { margin-top: 8px; padding: 8px; border: 1px solid #e1e8f0; background: #f8fbff; border-radius: 8px; }
+.progress_head { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 6px; font-size: 12px; color: #325b88; }
+.progress_track { height: 10px; background: #e4edf7; border-radius: 999px; overflow: hidden; }
+.progress_fill { width: 0%; height: 100%; background: linear-gradient(90deg, #4f8cc9, #67b99a); transition: width 220ms ease, background 220ms ease; }
+#result { border: 1px solid #ddd; background: #fff; min-height: 420px; padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+#viewer { height: 620px; border: 1px solid #ddd; background: #fff; position: relative; overflow: hidden; }
+#viewer_hint { color: #445; font-size: 12px; line-height: 1.5; }
+#job_meta, #metrics_box, #files_box, #log_box { border: 1px solid #e5e5e5; background: #fff; padding: 8px; }
+#files_box a { display: block; margin-bottom: 4px; color: #0b5394; }
+pre { white-space: pre-wrap; word-break: break-word; background: #f8f8f8; border: 1px solid #eee; padding: 8px; max-height: 320px; overflow: auto; }
+.badge_ready { color: #186a3b; font-weight: 700; }
+.badge_warn { color: #9c5700; font-weight: 700; }
+.badge_fail { color: #a12622; font-weight: 700; }
+</style>
+<link rel="stylesheet" href="./theme.css">
+</head>
+<body class="page-alphafold">
+<div class="top_nav">
+  <a href="./index.html">主页面</a>
+  <a href="./diffdock_compare.html">DiffDock对比</a>
+  <a href="./master_table.html">Master表</a>
+  <a href="./fpocket.html">fpocket</a>
+  <a href="./tmalign.html">TM-align</a>
+  <a href="./caver.html">CAVER</a>
+  <a href="./alphafold.html">AlphaFold</a>
+  <a href="./pdbzn_workflow.html">PDB-ZN工作流</a>
+</div>
+<h2>AlphaFold 页面</h2>
+<div class="layout">
+  <div id="controls">
+    <label>API地址
+      <input id="api_base" type="text" value="" placeholder="留空自动探测；也可填写 https://你的域名 或 http://主机:8015">
+    </label>
+    <div class="muted">支持同域 `/api` 反代和 8015/8017/8016 自动探测。当前实现优先接本地 AlphaFold 3 运行器；若本机没装 AF3，可先导入已经跑好的结果目录。</div>
+    <label>任务名称
+      <input id="job_name" type="text" placeholder="例如 ZN_enzyme_AF3_test">
+    </label>
+    <label>单条序列
+      <textarea id="sequence" rows="4" placeholder="输入一条蛋白序列，或留空改用 FASTA"></textarea>
+    </label>
+    <label>FASTA / 多链输入
+      <textarea id="fasta" rows="10" placeholder=">chainA&#10;MSEQUENCE...&#10;>chainB&#10;MSEQUENCE..."></textarea>
+    </label>
+    <div class="row2">
+      <label>model seeds
+        <input id="model_seeds" type="text" value="1" placeholder="例如 1,2,3">
+      </label>
+      <label>MSA 模式
+        <select id="msa_mode">
+          <option value="auto" selected>auto</option>
+          <option value="none">none</option>
+        </select>
+      </label>
+    </div>
+    <div class="muted">`none` 会在输入 JSON 里写入空 MSA，适合你只想先打通站内链路时使用；真正高质量预测通常仍需要完整 AF3 数据库。</div>
+    <button id="submit_btn" type="button">提交 AlphaFold 任务</button>
+    <div class="line"></div>
+    <label>导入已有结果目录
+      <input id="import_dir" type="text" placeholder="例如 /data/af3_runs/job_001">
+    </label>
+    <div class="muted">导入目录里至少要有一个 `.cif` / `.mmcif` / `.pdb` 结构文件。支持你把 AlphaFold 3 本地跑完的结果，或手工整理后的 AlphaFold Server 结果目录接进网站。</div>
+    <button id="import_btn" type="button">导入结果目录</button>
+    <div class="line"></div>
+    <label>任务ID
+      <input id="job_id" type="text" placeholder="提交或导入后自动填入，也可手工输入">
+    </label>
+    <button id="poll_btn" type="button">查询任务状态</button>
+    <button id="result_btn" type="button">加载结果</button>
+    <button id="log_btn" type="button">查看日志</button>
+    <div id="status">待提交</div>
+    <div class="progress_box">
+      <div class="progress_head"><span id="progress_label">任务进度</span><span id="progress_pct">0%</span></div>
+      <div class="progress_track"><div id="progress_fill" class="progress_fill"></div></div>
+    </div>
+  </div>
+  <div id="result">
+    <div id="job_meta">任务信息：-</div>
+    <div id="viewer"></div>
+    <div id="viewer_hint">结果区会优先渲染 AlphaFold 结构文件。若浏览器无法加载 3Dmol CDN，仍可在下面下载结果文件。</div>
+    <div id="metrics_box">置信指标：-</div>
+    <div id="files_box">结果文件：-</div>
+    <div id="log_box"><pre id="log_text">日志：-</pre></div>
+  </div>
+</div>
+<script>
+let apiBase = "";
+let pollTimer = null;
+let currentJob = null;
+let viewer = null;
+
+function createViewerStub() {
+  return {
+    clear(){},
+    addModel(){ return { setStyle(){} }; },
+    setStyle(){},
+    zoomTo(){},
+    render(){},
+  };
+}
+
+function initViewer() {
+  try {
+    if (window.$3Dmol) {
+      viewer = $3Dmol.createViewer("viewer", {backgroundColor:"white"});
+      return;
+    }
+  } catch (_) {}
+  viewer = createViewerStub();
+}
+
+function setStatus(text) {
+  document.getElementById("status").textContent = text;
+}
+
+function setProgress(value, label, tone = "normal") {
+  const pct = Math.max(0, Math.min(100, Math.round(Number(value) || 0)));
+  document.getElementById("progress_fill").style.width = pct + "%";
+  document.getElementById("progress_fill").style.background =
+    tone === "error"
+      ? "linear-gradient(90deg, #d62828, #f77f00)"
+      : "linear-gradient(90deg, #4f8cc9, #67b99a)";
+  document.getElementById("progress_label").textContent = label || "任务进度";
+  document.getElementById("progress_pct").textContent = pct + "%";
+}
+
+function progressFromJob(job) {
+  const phase = String(job?.phase || job?.status || "queued");
+  const table = {
+    queued: 8,
+    starting: 14,
+    prepare_dirs: 22,
+    spawn: 35,
+    waiting: 72,
+    done: 100,
+    done_imported: 100,
+    done_recovered: 100,
+    failed: 100,
+    failed_no_runner: 100,
+    failed_no_structure: 100,
+    failed_exit: 100,
+    failed_exception: 100,
+  };
+  return table[phase] != null ? table[phase] : (String(job?.status || "") === "done" ? 100 : 30);
+}
+
+function updateProgressFromJob(job) {
+  const status = String(job?.status || "queued");
+  const phase = String(job?.phase || status);
+  setProgress(progressFromJob(job), `任务状态：${status} / ${phase}`, status === "failed" ? "error" : "normal");
+}
+
+function stopPolling() {
+  if (pollTimer) {
+    clearInterval(pollTimer);
+    pollTimer = null;
+  }
+}
+
+function startPolling() {
+  stopPolling();
+  pollTimer = setInterval(() => {
+    if (!document.getElementById("job_id").value.trim()) {
+      stopPolling();
+      return;
+    }
+    pollJob(true);
+  }, 3000);
+}
+
+function parseSeeds() {
+  const raw = String(document.getElementById("model_seeds").value || "").trim();
+  if (!raw) return [1];
+  const out = [];
+  for (const seg of raw.split(/[,\s;]+/)) {
+    const n = Number(seg);
+    if (Number.isFinite(n)) out.push(Math.trunc(n));
+  }
+  return out.length ? out : [1];
+}
+
+function getApiCandidates() {
+  const h = window.location.hostname || "127.0.0.1";
+  const originBase = window.location.origin && window.location.origin !== "null" ? window.location.origin : "";
+  return [...new Set([
+    originBase,
+    `http://${h}:8015`,
+    `http://${h}:8017`,
+    `http://${h}:8016`,
+    "http://127.0.0.1:8015",
+    "http://127.0.0.1:8017",
+    "http://127.0.0.1:8016"
+  ])];
+}
+
+async function detectApiBase() {
+  const manual = (document.getElementById("api_base").value || "").trim().replace(/\/+$/, "");
+  if (manual) return manual;
+  if (apiBase) return apiBase;
+  for (const base of getApiCandidates()) {
+    try {
+      const res = await fetch((base || "") + "/api/alphafold/ping?t=" + Date.now());
+      if (!res.ok) continue;
+      const obj = await res.json();
+      if (obj && obj.ok) {
+        apiBase = base;
+        document.getElementById("api_base").value = apiBase;
+        return apiBase;
+      }
+    } catch (_) {}
+  }
+  return "";
+}
+
+async function apiGet(path) {
+  const base = await detectApiBase();
+  if (!base) throw new Error("未探测到 AlphaFold API");
+  const res = await fetch(base + path);
+  const obj = await res.json();
+  if (!res.ok || !obj.ok) throw new Error(obj.error || `HTTP ${res.status}`);
+  return obj;
+}
+
+async function apiPost(path, payload) {
+  const base = await detectApiBase();
+  if (!base) throw new Error("未探测到 AlphaFold API");
+  const res = await fetch(base + path, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(payload),
+  });
+  const obj = await res.json();
+  if (!res.ok || !obj.ok) throw new Error(obj.error || `HTTP ${res.status}`);
+  return obj;
+}
+
+function renderJobMeta(job) {
+  const readyBadge = job.status === "done"
+    ? '<span class="badge_ready">done</span>'
+    : (job.status === "failed" ? '<span class="badge_fail">failed</span>' : '<span class="badge_warn">running</span>');
+  document.getElementById("job_meta").innerHTML =
+    `任务信息：${readyBadge}<br>` +
+    `job_id=${job.id || "-"}<br>` +
+    `job_name=${job.job_name || "-"}<br>` +
+    `mode=${job.mode || "-"}<br>` +
+    `sequence_count=${job.sequence_count ?? "-"}<br>` +
+    `structure_file=${job.structure_file || "-"}<br>` +
+    `error=${job.error || "-"}`;
+}
+
+function renderMetrics(metrics) {
+  const keys = Object.keys(metrics || {});
+  if (!keys.length) {
+    document.getElementById("metrics_box").textContent = "置信指标：-";
+    return;
+  }
+  const lines = keys.sort().map((k) => `${k}: ${metrics[k]}`);
+  document.getElementById("metrics_box").innerHTML = "置信指标：<pre>" + lines.join("\n") + "</pre>";
+}
+
+function renderFiles(result) {
+  const box = document.getElementById("files_box");
+  const files = Array.isArray(result?.files) ? result.files : [];
+  if (!files.length) {
+    box.textContent = "结果文件：-";
+    return;
+  }
+  const base = (document.getElementById("api_base").value || apiBase || "").trim().replace(/\/+$/, "");
+  const jobId = document.getElementById("job_id").value.trim();
+  box.innerHTML = "结果文件：";
+  for (const item of files) {
+    const a = document.createElement("a");
+    a.href = `${base}/api/alphafold/file/${encodeURIComponent(jobId)}/${item.path}`;
+    a.textContent = `${item.path} (${item.size} bytes)`;
+    a.target = "_blank";
+    box.appendChild(a);
+  }
+}
+
+function renderStructure(result) {
+  if (!viewer) initViewer();
+  viewer.clear();
+  const text = String(result?.structure_text || "");
+  const fmt = String(result?.structure_format || "").toLowerCase();
+  if (!text) {
+    viewer.render();
+    return;
+  }
+  try {
+    const model = viewer.addModel(text, fmt === "pdb" ? "pdb" : "cif");
+    model.setStyle({}, {cartoon: {color: "spectrum"}});
+    viewer.zoomTo();
+    viewer.render();
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+async function submitJob() {
+  try {
+    setStatus("正在提交 AlphaFold 任务...");
+    setProgress(10, "提交中");
+    const payload = {
+      job_name: document.getElementById("job_name").value.trim(),
+      sequence: document.getElementById("sequence").value.trim(),
+      fasta: document.getElementById("fasta").value.trim(),
+      model_seeds: parseSeeds(),
+      msa_mode: document.getElementById("msa_mode").value,
+    };
+    const obj = await apiPost("/api/alphafold/submit", payload);
+    document.getElementById("job_id").value = obj.job_id || "";
+    setStatus(`任务已提交: ${obj.job_id}`);
+    startPolling();
+    await pollJob(false);
+  } catch (e) {
+    setStatus(`提交失败: ${e.message}`);
+    setProgress(100, "提交失败", "error");
+  }
+}
+
+async function importResultDir() {
+  try {
+    setStatus("正在导入结果目录...");
+    setProgress(16, "导入中");
+    const payload = {
+      job_name: document.getElementById("job_name").value.trim(),
+      sequence: document.getElementById("sequence").value.trim(),
+      fasta: document.getElementById("fasta").value.trim(),
+      model_seeds: parseSeeds(),
+      msa_mode: document.getElementById("msa_mode").value,
+      result_dir: document.getElementById("import_dir").value.trim(),
+    };
+    const obj = await apiPost("/api/alphafold/import", payload);
+    document.getElementById("job_id").value = obj.job_id || "";
+    setStatus(`结果目录已导入: ${obj.job_id}`);
+    await pollJob(false);
+    await loadResult();
+  } catch (e) {
+    setStatus(`导入失败: ${e.message}`);
+    setProgress(100, "导入失败", "error");
+  }
+}
+
+async function pollJob(silent) {
+  const jobId = document.getElementById("job_id").value.trim();
+  if (!jobId) {
+    if (!silent) setStatus("请先输入任务ID");
+    return;
+  }
+  try {
+    const obj = await apiGet(`/api/alphafold/status/${encodeURIComponent(jobId)}?t=${Date.now()}`);
+    currentJob = obj.job || null;
+    renderJobMeta(currentJob || {});
+    updateProgressFromJob(currentJob || {});
+    if (!silent) setStatus(`任务状态: ${currentJob?.status || "-"}`);
+    if (String(currentJob?.status || "") === "done") {
+      stopPolling();
+    }
+  } catch (e) {
+    if (!silent) setStatus(`查询失败: ${e.message}`);
+  }
+}
+
+async function loadResult() {
+  const jobId = document.getElementById("job_id").value.trim();
+  if (!jobId) {
+    setStatus("请先输入任务ID");
+    return;
+  }
+  try {
+    const obj = await apiGet(`/api/alphafold/result/${encodeURIComponent(jobId)}?t=${Date.now()}`);
+    renderStructure(obj.result || {});
+    renderMetrics(obj.result?.metrics || {});
+    renderFiles(obj.result || {});
+    setStatus("结果已加载");
+  } catch (e) {
+    setStatus(`加载结果失败: ${e.message}`);
+  }
+}
+
+async function loadLog() {
+  const jobId = document.getElementById("job_id").value.trim();
+  if (!jobId) {
+    setStatus("请先输入任务ID");
+    return;
+  }
+  try {
+    const obj = await apiGet(`/api/alphafold/log/${encodeURIComponent(jobId)}?t=${Date.now()}`);
+    document.getElementById("log_text").textContent = obj.log || "-";
+    setStatus("日志已加载");
+  } catch (e) {
+    setStatus(`日志加载失败: ${e.message}`);
+  }
+}
+
+async function boot() {
+  initViewer();
+  try {
+    const base = await detectApiBase();
+    if (!base) {
+      setStatus("尚未探测到 AlphaFold API，页面仍可填写参数。");
+      return;
+    }
+    const ping = await apiGet("/api/alphafold/ping?t=" + Date.now());
+    const ready = ping.ready ? "可直接运行本地 AlphaFold" : "当前未发现本地 AF3 runner，可先用导入模式";
+    setStatus(`API 已连接: ${base}；${ready}`);
+  } catch (e) {
+    setStatus(`API 初始化失败: ${e.message}`);
+  }
+}
+
+document.getElementById("submit_btn").addEventListener("click", submitJob);
+document.getElementById("import_btn").addEventListener("click", importResultDir);
+document.getElementById("poll_btn").addEventListener("click", () => pollJob(false));
+document.getElementById("result_btn").addEventListener("click", loadResult);
+document.getElementById("log_btn").addEventListener("click", loadLog);
+boot();
+</script>
+</body>
+</html>

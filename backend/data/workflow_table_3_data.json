@@ -1,0 +1,301 @@
+{
+  "items": [
+    {
+      "id": "2FQP",
+      "name": "Crystal structure of a cupin domain (bp2299) from bordetella pertussis tohama i at 1.80 A resolution",
+      "cluster": "4",
+      "receptor_pdb": "/root/PDB_ZN/diffdock_inputs/receptors/2FQP.pdb",
+      "receptor_rel": "/root/PDB_ZN/diffdock_inputs/receptors/2FQP.pdb",
+      "best_sdf": "/root/PDB_ZN/diffdock_outputs/2FQP/2FQP/rank5_confidence-2.02.sdf",
+      "species": "Bordetella pertussis Tohama I",
+      "monomer_seq": "GKRPGAIPTVQIDNERVKVTEWRFPPGGETGWHRHSDYVVVPTTGPLLLETPEGSVTSQLTRGVSYTRPEGVEHNVINPSDTEFVFVEIEIKA",
+      "residue_length": "92",
+      "zn_coord_site": "A:100",
+      "best_pocket_id": "9",
+      "best_pocket_min_dist_to_zn": "3.455",
+      "acetophenone_judgement": "不支持",
+      "caver_best_bottleneck_radius_a": "1.057",
+      "caver_pocket_depth_label": "表面暴露"
+    },
+    {
+      "id": "2PEB",
+      "name": "Crystal structure of a putative dioxygenase (npun_f1925) from nostoc punctiforme pcc 73102 at 1.46 A resolution",
+      "cluster": "4",
+      "receptor_pdb": "/root/PDB_ZN/diffdock_inputs/receptors/2PEB.pdb",
+      "receptor_rel": "/root/PDB_ZN/diffdock_inputs/receptors/2PEB.pdb",
+      "best_sdf": "/root/PDB_ZN/diffdock_outputs/2PEB/2PEB/rank10_confidence-5.40.sdf",
+      "species": "Nostoc punctiforme",
+      "monomer_seq": "KEDTIEIAGFHAHVYFDAASRDVAARVREGLGARFEVQLGRWFDKPIGPHPKGYQVAFLPNQFDKVVPWLLNREGLDILVHPETGDAVSDHAVYSLWLGAALALNIEFLRQLS",
+      "residue_length": "113",
+      "zn_coord_site": "A:200",
+      "best_pocket_id": "11",
+      "best_pocket_min_dist_to_zn": "3.485",
+      "acetophenone_judgement": "不支持",
+      "caver_best_bottleneck_radius_a": "1.337",
+      "caver_pocket_depth_label": "半埋藏"
+    },
+    {
+      "id": "1FSJ",
+      "name": "CRYSTAL STRUCTURE OF THE E9 DNASE DOMAIN",
+      "cluster": "2",
+      "receptor_pdb": "/root/PDB_ZN/diffdock_inputs/receptors/1FSJ.pdb",
+      "receptor_rel": "/root/PDB_ZN/diffdock_inputs/receptors/1FSJ.pdb",
+      "best_sdf": "/root/PDB_ZN/diffdock_outputs/1FSJ/1FSJ/rank8_confidence-2.57.sdf",
+      "species": "Escherichia coli",
+      "monomer_seq": "MESKRNKPGKATGKGKPVGDKWLDDAGKDSGAPIPDRIADKLRDKEFKSFDDFRKAVWEEVSKDPELSKNLNPSNKSSVSKGYSPFTPKNQQVGGRKVYELHHDKPISQGGEVYDMDNIRVTTPKRHIDIHRGK",
+      "residue_length": "132",
+      "zn_coord_site": "B:901",
+      "best_pocket_id": "3",
+      "best_pocket_min_dist_to_zn": "3.404",
+      "acetophenone_judgement": "不支持",
+      "caver_best_bottleneck_radius_a": "1.337",
+      "caver_pocket_depth_label": "半埋藏"
+    },
+    {
+      "id": "2O1Q",
+      "name": "CRYSTAL STRUCTURE OF A PUTATIVE ACETYLACETONE DIOXYGENASE (MPE_A3659) FROM METHYLIBIUM PETROLEIPHILUM PM1 AT 1.50 A RESOLUTION",
+      "cluster": "4",
+      "receptor_pdb": "/root/PDB_ZN/diffdock_inputs/receptors/2O1Q.pdb",
+      "receptor_rel": "/root/PDB_ZN/diffdock_inputs/receptors/2O1Q.pdb",
+      "best_sdf": "/root/PDB_ZN/diffdock_outputs/2O1Q/2O1Q/rank10_confidence-3.71.sdf",
+      "species": "Methylibium petroleiphilum",
+      "monomer_seq": "LKSKIKEEYVQDQVDWKPFPAAFSTGGIRWKLLHVSPEGSWTAIFDCPAGSSFAAHVHVGPGEYFLTKGKDVRGGKAAGGDTAIAPGYGYESANARHDKTEFPVASEFYSFLGPLTFVKPDGSPIAVIGWEDAQGAWAA",
+      "residue_length": "139",
+      "zn_coord_site": "A:145",
+      "best_pocket_id": "2",
+      "best_pocket_min_dist_to_zn": "3.403",
+      "acetophenone_judgement": "不支持",
+      "caver_best_bottleneck_radius_a": "0.886",
+      "caver_pocket_depth_label": "半埋藏"
+    },
+    {
+      "id": "1FR2",
+      "name": "CRYSTAL STRUCTURE OF THE E9 DNASE DOMAIN WITH A MUTANT IMMUNITY PROTEIN IM9(E41A)",
+      "cluster": "2",
+      "receptor_pdb": "/root/PDB_ZN/diffdock_inputs/receptors/1FR2.pdb",
+      "receptor_rel": "/root/PDB_ZN/diffdock_inputs/receptors/1FR2.pdb",
+      "best_sdf": "/root/PDB_ZN/diffdock_outputs/1FR2/1FR2/rank2_confidence-2.02.sdf",
+      "species": "Escherichia coli",
+      "monomer_seq": "ESKRNKPGKATGKGKPVGDKWLDDAGKDSGAPIPDRIADKLRDKEFKSFDDFRKAVWEEVSKDPELSKNLNPSNKSSVSKGYSPFTPKNQQVGGRKVYELHHDKPISQGGEVYDMDNIRVTTPKRHIDIHR",
+      "residue_length": "107",
+      "zn_coord_site": "B:301",
+      "best_pocket_id": "8",
+      "best_pocket_min_dist_to_zn": "3.418",
+      "acetophenone_judgement": "不支持",
+      "caver_best_bottleneck_radius_a": "1.480",
+      "caver_pocket_depth_label": "半埋藏"
+    },
+    {
+      "id": "3H3E",
+      "name": "Crystal structure of Tm1679, A METAL-DEPENDENT HYDROLASE OF THE BETA-LACTAMASE SUPERFAMILY",
+      "cluster": "0",
+      "receptor_pdb": "/root/PDB_ZN/diffdock_inputs/receptors/3H3E.pdb",
+      "receptor_rel": "/root/PDB_ZN/diffdock_inputs/receptors/3H3E.pdb",
+      "best_sdf": "/root/PDB_ZN/diffdock_outputs/3H3E/3H3E/rank7_confidence-4.20.sdf",
+      "species": "Thermotoga maritima",
+      "monomer_seq": "HRIHVLCDDSSQNGFESEHGFSVLVDSVLFDTGKSDVFLKNARKLGIDLPKDVLISHGHYDHAGGLLYLSGKRVWLRKEALDQKYSGERYAGADWNEVLYYNTGKFVIERITEIGKNFLLGPANLRGKVPTGDFFVERNGERRKDLFEDEQTLVVRTKEGLVVITGCSHRGIDNILLDIAETFNERIKVVGGFHLLKSSDDEIEKIVKAFNELGVETVVPCHCTGERAVDIFKREFLGKIDCYAGLKLEVSD",
+      "residue_length": "252",
+      "zn_coord_site": "A:256",
+      "best_pocket_id": "7",
+      "best_pocket_min_dist_to_zn": "3.928",
+      "acetophenone_judgement": "可以",
+      "caver_best_bottleneck_radius_a": "2.988",
+      "caver_pocket_depth_label": "表面暴露"
+    },
+    {
+      "id": "6CQG",
+      "name": "YycF Effector Domain Structure without DNA bound",
+      "cluster": "2",
+      "receptor_pdb": "/root/PDB_ZN/diffdock_inputs/receptors/6CQG.pdb",
+      "receptor_rel": "/root/PDB_ZN/diffdock_inputs/receptors/6CQG.pdb",
+      "best_sdf": "/root/PDB_ZN/diffdock_outputs/6CQG/6CQG/rank2_confidence-1.10.sdf",
+      "species": "Streptococcus pneumoniae",
+      "monomer_seq": "PIQIGDLEIVPDAYVAKKYGEELDLTHREFELLYHLASHTGQVITREHLLETVWGYDYFGDVRTVDVTVRRLREKIEDTPSRPEYILTRRGVGYYMRN",
+      "residue_length": "98",
+      "zn_coord_site": "A:301",
+      "best_pocket_id": "1",
+      "best_pocket_min_dist_to_zn": "14.451",
+      "acetophenone_judgement": "不支持",
+      "caver_best_bottleneck_radius_a": "1.690",
+      "caver_pocket_depth_label": "表面暴露"
+    },
+    {
+      "id": "4L63",
+      "name": "Apo form of AB5 holotoxin",
+      "cluster": "1",
+      "receptor_pdb": "/root/PDB_ZN/diffdock_inputs/receptors/4L63.pdb",
+      "receptor_rel": "/root/PDB_ZN/diffdock_inputs/receptors/4L63.pdb",
+      "best_sdf": "/root/PDB_ZN/diffdock_outputs/4L63/4L63/rank1_confidence-0.13.sdf",
+      "species": "Escherichia coli",
+      "monomer_seq": "AERTPNEEKKVIGYADHNGQLYNITSIYGPVINYTVPDENITINTINRTQLTINYSDYVREAFNEWAPSGIRVQQVSSRVVSFSTTNYADNSLGSTIFDPSGNSRTRIDIGSFNRIVMNNFEKLKSRGAIPANMSPEEYIKLKLRITIKHEIGHILGLLHNNEGGSYFPHGVGLEVARCRLLNQAPSIMLNGSNYDYIDRLSHYLERPVTETDIGPSRNDIEGVRVMRRGGSGNSFTNRFSCLGLGLAF",
+      "residue_length": "128",
+      "zn_coord_site": "A:301",
+      "best_pocket_id": "21",
+      "best_pocket_min_dist_to_zn": "3.59",
+      "acetophenone_judgement": "边缘",
+      "caver_best_bottleneck_radius_a": "1.823",
+      "caver_pocket_depth_label": "表面暴露"
+    },
+    {
+      "id": "2P6Y",
+      "name": "X-ray structure of the protein Q9KM02_VIBCH from Vibrio cholerae at the resolution 1.63 A. Northeast Structural Genomics Consortium target VcR80.",
+      "cluster": "3",
+      "receptor_pdb": "/root/PDB_ZN/diffdock_inputs/receptors/2P6Y.pdb",
+      "receptor_rel": "/root/PDB_ZN/diffdock_inputs/receptors/2P6Y.pdb",
+      "best_sdf": "/root/PDB_ZN/diffdock_outputs/2P6Y/2P6Y/rank6_confidence-1.75.sdf",
+      "species": "Vibrio cholerae",
+      "monomer_seq": "IHLIALRLTRGDLKQQIVQLVQQHRIHAGSIASCVGCLSTLHIRLADSVSTLQVSAPFEILSLSGTLTYQHCHLHIAVADAQGRVWGGHLLEGNLINTAELIHHYPQHHFTREFDPNTGYSELVVSAA",
+      "residue_length": "128",
+      "zn_coord_site": "A:201",
+      "best_pocket_id": "1",
+      "best_pocket_min_dist_to_zn": "3.811",
+      "acetophenone_judgement": "边缘",
+      "caver_best_bottleneck_radius_a": "2.126",
+      "caver_pocket_depth_label": "表面暴露"
+    },
+    {
+      "id": "6Z2D",
+      "name": "Crystal structure of wild type OgpA from Akkermansia muciniphila in P 41 21 2",
+      "cluster": "1",
+      "receptor_pdb": "/root/PDB_ZN/diffdock_inputs/receptors/6Z2D.pdb",
+      "receptor_rel": "/root/PDB_ZN/diffdock_inputs/receptors/6Z2D.pdb",
+      "best_sdf": "/root/PDB_ZN/diffdock_outputs/6Z2D/6Z2D/rank4_confidence-2.00.sdf",
+      "species": "Akkermansia muciniphila ATCC BAA-835",
+      "monomer_seq": "TVPDALKDRIALKKTARQLNIVYFLGSDTEPVPDYERRLSELLLYLQQFYGKEMQRHGYGARSFGLDIKSPGRVNIIEYKAKNPAAHYPYENGGGWKAAQELDEFFKAHPDRKKSQHTLIIMPTWNDEKNGPDNPGGVPFYGMGRNCFALDYPAFDIKHLGQKTREGRLLTKWYGGMAHELGHGLNLPHNHQTASDGKKYGTALMGSGNYTFGTSPTFLTPASCALLDACEVFSVTPSQQFYEGKPEVEVGDVAISFKGDQILVSGNYKSPQTVKALNVYIQDPPYAVNQDYDAVSFSRRLGKKSGKFSMKIDKKELEGLNNNEFRISLMFILANGLHMQKHFTFHWDALQDYR",
+      "residue_length": "354",
+      "zn_coord_site": "A:408",
+      "best_pocket_id": "18",
+      "best_pocket_min_dist_to_zn": "3.518",
+      "acetophenone_judgement": "可以",
+      "caver_best_bottleneck_radius_a": "2.494",
+      "caver_pocket_depth_label": "表面暴露"
+    },
+    {
+      "id": "1B57",
+      "name": "CLASS II FRUCTOSE-1,6-BISPHOSPHATE ALDOLASE IN COMPLEX WITH PHOSPHOGLYCOLOHYDROXAMATE",
+      "cluster": "0",
+      "receptor_pdb": "/root/PDB_ZN/diffdock_inputs/receptors/1B57.pdb",
+      "receptor_rel": "/root/PDB_ZN/diffdock_inputs/receptors/1B57.pdb",
+      "best_sdf": "/root/PDB_ZN/diffdock_outputs/1B57/1B57/rank1_confidence-0.78.sdf",
+      "species": "Escherichia coli",
+      "monomer_seq": "SKIFDFVKPGVITGDDVQKVFQVAKENNFALPAVNCVGTDSINAVLETAAKVKAPVIVQFSNGGASFIAGKGVKSDVPQGAAILGAISGAHHVHQMAEHYGVPVILHTDHCAKKLLPWIDGLLDAGEKHFAATGKPLFSSHMIDLSEESLQENIEICSKYLERMSKIGMTLEIELGCTGGEELYTQPEDVDYAYTELSKISPRFTIAASFGNVHGVYKPGNVVLTPTILRDSQEYVSKKHNLPHNSLNFVFHGGSGSTAQEIKDSVSYGVVKMNIDTDTQWATWEGVLNYYKANEAYLQGQLGNPKGEDQPNKKYYDPRVWLRAGQTSMIARLEKAFQELNAIDVL",
+      "residue_length": "346",
+      "zn_coord_site": "A:360",
+      "best_pocket_id": "18",
+      "best_pocket_min_dist_to_zn": "4.453",
+      "acetophenone_judgement": "可以",
+      "caver_best_bottleneck_radius_a": "2.581",
+      "caver_pocket_depth_label": "半埋藏"
+    },
+    {
+      "id": "7OB6",
+      "name": "CPR-C4 - a conserved novel protease from the Candidate Phyla Radiation",
+      "cluster": "1",
+      "receptor_pdb": "/root/PDB_ZN/diffdock_inputs/receptors/7OB6.pdb",
+      "receptor_rel": "/root/PDB_ZN/diffdock_inputs/receptors/7OB6.pdb",
+      "best_sdf": "/root/PDB_ZN/diffdock_outputs/7OB6/7OB6/rank8_confidence-4.75.sdf",
+      "species": "candidate division CPR1",
+      "monomer_seq": "THHHHHHGSMHYKAQLQKLLTTEEKKILARLSTPQKIQDFLDTIKNKDLAEHTMWSPRAVLKHKHAHCMEGAMLAALALAYHGHSPLLMDLQTTDEDEDHVVALFKIDGHWGAISKTNHPVLRYRDPIYKSVRELAMSYFHEYFIWWTKKNGGKKTLRAYSNPFDLTRYKPERWVIATGDLDWLAEALDDSKHFPILNKKMQKQLRPASRIETKAASLSEWP",
+      "residue_length": "218",
+      "zn_coord_site": "A:301",
+      "best_pocket_id": "26",
+      "best_pocket_min_dist_to_zn": "7.953",
+      "acetophenone_judgement": "可以",
+      "caver_best_bottleneck_radius_a": "2.642",
+      "caver_pocket_depth_label": "表面暴露"
+    },
+    {
+      "id": "1PQ4",
+      "name": "Crystal structure of ZnuA",
+      "cluster": "1",
+      "receptor_pdb": "/root/PDB_ZN/diffdock_inputs/receptors/1PQ4.pdb",
+      "receptor_rel": "/root/PDB_ZN/diffdock_inputs/receptors/1PQ4.pdb",
+      "best_sdf": "/root/PDB_ZN/diffdock_outputs/1PQ4/1PQ4/rank3_confidence-1.08.sdf",
+      "species": "Synechocystis sp.",
+      "monomer_seq": "DAMDITVSIPPQQYFLEKIGGDLVRVSVLVPGNNDPHTYEPKPQQLAALSEAEAYVLIGLGFEQPWLEKLKAANANMKLIDSAQGITPLEMEKHDEKAKGALMVADPHIWLSPTLVKRQATTIAKELAELDPDNRDQYEANLAAFLAELERLNQELGQILQPLPQRKFIVFHPSWAYFARDYNLVQIPIEVEGQEPSAQELKQLIDTAKENNLTMVFGETQFSTKSSEAIAAEIGAGVELLDPLAADWSSNLKAVAQKIANANS",
+      "residue_length": "260",
+      "zn_coord_site": "B:1001",
+      "best_pocket_id": "28",
+      "best_pocket_min_dist_to_zn": "14.212",
+      "acetophenone_judgement": "可以",
+      "caver_best_bottleneck_radius_a": "2.449",
+      "caver_pocket_depth_label": "表面暴露"
+    }
+  ],
+  "analysis_summary": {
+    "method": {
+      "seed_mode": "best_pocket_center",
+      "probe_radius": 0.6,
+      "shell_radius": 5,
+      "shell_depth": 4,
+      "pass_radius_a": 2.2,
+      "borderline_radius_a": 1.8
+    },
+    "counts": {
+      "yes": 5,
+      "borderline": 2,
+      "no": 6
+    },
+    "groups": {
+      "yes": [
+        {
+          "pdb_id": "3H3E",
+          "best_bottleneck_radius_a": "2.988"
+        },
+        {
+          "pdb_id": "6Z2D",
+          "best_bottleneck_radius_a": "2.494"
+        },
+        {
+          "pdb_id": "1B57",
+          "best_bottleneck_radius_a": "2.581"
+        },
+        {
+          "pdb_id": "7OB6",
+          "best_bottleneck_radius_a": "2.642"
+        },
+        {
+          "pdb_id": "1PQ4",
+          "best_bottleneck_radius_a": "2.449"
+        }
+      ],
+      "borderline": [
+        {
+          "pdb_id": "4L63",
+          "best_bottleneck_radius_a": "1.823"
+        },
+        {
+          "pdb_id": "2P6Y",
+          "best_bottleneck_radius_a": "2.126"
+        }
+      ],
+      "no": [
+        {
+          "pdb_id": "2FQP",
+          "best_bottleneck_radius_a": "1.057"
+        },
+        {
+          "pdb_id": "2PEB",
+          "best_bottleneck_radius_a": "1.337"
+        },
+        {
+          "pdb_id": "1FSJ",
+          "best_bottleneck_radius_a": "1.337"
+        },
+        {
+          "pdb_id": "2O1Q",
+          "best_bottleneck_radius_a": "0.886"
+        },
+        {
+          "pdb_id": "1FR2",
+          "best_bottleneck_radius_a": "1.480"
+        },
+        {
+          "pdb_id": "6CQG",
+          "best_bottleneck_radius_a": "1.690"
+        }
+      ]
+    },
+    "text": "CAVER pocket-seed 重算结论：yes=5, borderline=2, no=6."
+  }
+}

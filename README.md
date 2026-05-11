@@ -27,6 +27,18 @@ bash start.sh
 ./start.sh
 ```
 
+如果你要直接以公网模式启动：
+
+```bash
+PUBLIC_MODE=1 ./start.sh
+```
+
+如需指定公网 IP 或域名用于终端提示输出：
+
+```bash
+PUBLIC_MODE=1 PUBLIC_HOST=your.domain.or.ip ./start.sh
+```
+
 这个脚本会自动：
 
 - 启动或复用后端 API
@@ -58,6 +70,166 @@ bash start.sh
 - `backend/data/`：前端直接浏览的静态快照
 - `backend/runtime/`：后端 API 和任务执行产生的动态状态
 
+另外，我已经把这两层数据整理出一个便于人工查看的目录视图：
+
+- `backend/data_catalog/`
+
+注意：
+
+- 这是“整理视图”，用于按类别浏览数据。
+- 程序实际运行仍然读取 `backend/data/` 和 `backend/runtime/`，所以不会因为整理目录而破坏现有页面和 API。
+
+## 1.1 当前已有数据分类
+
+如果只看当前仓库里的“已有数据”，可以把它们按用途整理成 7 类。最容易混淆的是 `master table`，它其实不是一个单文件，而是一组彼此配套的视图文件。
+
+### A. 数据表注册表
+
+文件：
+
+- `backend/data/table_registry.json`
+
+作用：
+
+- 这是所有“可选数据表”的目录。
+- 前端 `master_table.html`、`index.html`、`pdbzn_workflow.html` 会先读这里，决定当前有哪些表可以切换。
+- 当前注册表里可见 9 个表，包括 `table1`、`table2`、`table3`、`6j4c`、`1jdi` 以及几个 workflow / 手工保存生成的新表。
+
+### B. Master Table 数据组
+
+典型文件：
+
+- `backend/data/table1_master_full.json`
+- `backend/data/table1_data.json`
+- `backend/data/table1_master_table.csv`
+- `backend/data/table1_ids.json`
+
+作用：
+
+- 这四个文件合起来，才是一张表的完整静态快照。
+- 可以把它们理解成同一批数据的 4 种视图：
+- `_master_full.json`：最完整的宽表，包含 `header + rows`，给 `master_table.html` 和详情联动使用。
+- `_data.json`：较轻量的 `items` 列表，给首页、DiffDock 对比页等快速浏览页面使用。
+- `_master_table.csv`：便于直接打开或导出的表格版本。
+- `_ids.json`：只保留该表的 PDB / Representative 标识列表，方便筛选或复用。
+
+补充说明：
+
+- 根目录级的 `backend/data/master_full.json`、`backend/data/data.json`、`backend/data/master_table.csv` 是默认快照。
+- `table1_*` 是当前主表快照；`table2_*`、`table3_*`、`6j4c_*`、`1jdi_*`、`my_new_table_*` 这些是 workflow 或手工保存后产生的派生表。
+
+### C. 蛋白结构文件
+
+文件：
+
+- `backend/data/structures/*.pdb`
+- `backend/data/structures/*.cif`
+
+当前规模：
+
+- `72` 个 `.pdb`
+- `4` 个 `.cif`
+
+作用：
+
+- 这是蛋白三维结构的原始坐标文件。
+- 首页结构浏览、TM-align、fpocket、workflow 导入都会依赖这里的结构数据。
+
+补充说明：
+
+- `backend/data/structures/*_out/` 是部分结构跑 pocket / 外部工具后留下的输出目录，不是主数据表本身，而是分析产物缓存。
+
+### D. 配体文件
+
+文件：
+
+- `backend/data/ligands/*.sdf`
+
+当前规模：
+
+- `71` 个 `.sdf`
+
+作用：
+
+- 存放与蛋白对应的配体构象。
+- 首页加载最佳配体、DiffDock 对比页显示 pose 时都要读这些文件。
+
+### E. DiffDock 结果数据
+
+文件：
+
+- `backend/data/diffdock_index.json`
+- `backend/data/diffdock/<PDB>/rank*.sdf`
+
+当前规模：
+
+- `diffdock_index.json` 当前索引 `71` 个蛋白
+- `backend/data/diffdock/` 下当前有 `71` 个 PDB 子目录
+
+作用：
+
+- `diffdock_index.json` 是 DiffDock 结果的目录索引，告诉前端每个蛋白有哪些 pose。
+- 每个 `diffdock/<PDB>/` 目录里存具体的 `rank*.sdf` 对接结果。
+- `diffdock_compare.html` 主要就是读这一组数据。
+
+### F. fpocket / pocket 结果数据
+
+文件：
+
+- `backend/data/pockets/<PDB>/best_pocket_atm.pdb`
+- `backend/data/pockets/<PDB>/best_pocket_vert.pqr`
+- `backend/data/pocket.csv`
+
+当前规模：
+
+- `backend/data/pockets/` 下当前有 `72` 个 PDB 子目录
+
+作用：
+
+- `best_pocket_atm.pdb` 和 `best_pocket_vert.pqr` 是每个蛋白 pocket 结果的可视化输入。
+- `fpocket.html` 和首页的 pocket 叠加显示会直接用这些文件。
+- `pocket.csv` 可以视为 pocket 结果的汇总表。
+
+### G. 运行时数据库与动态产物
+
+文件 / 目录：
+
+- `backend/runtime/`
+- `backend/runtime/pdbzn.sqlite`
+- `backend/pdbzn_workflow.db`
+
+作用：
+
+- `backend/runtime/pdbzn.sqlite` 是当前后端 workflow 真正在维护的动态数据库。
+- `backend/runtime/` 里还会放任务目录、日志、临时结果和导出表。
+- `backend/pdbzn_workflow.db` 是历史遗留文件，不应再当作当前主数据库理解。
+
+### H. 数量不一致时该怎么理解
+
+当前这些类别的数量并不完全相等，例如：
+
+- 结构文件是 `72` 个 `.pdb` + `4` 个 `.cif`
+- 配体 `.sdf` 是 `71` 个
+- DiffDock 结果目录是 `71` 个
+- pocket 结果目录是 `72` 个
+
+这通常不表示仓库出错，而表示：
+
+- 不是每个蛋白都已经完成了全部下游分析
+- 某些蛋白只有结构，没有配体或 DiffDock 结果
+- 某些页面读取的是“主表快照”，某些页面读取的是“下游分析产物目录”
+
+### 一句话记忆
+
+如果只想快速记：
+
+- “表数据”看 `table_registry.json + *_master_full.json / *_data.json / *_csv / *_ids.json`
+- “蛋白结构”看 `structures/`
+- “配体”看 `ligands/`
+- “DiffDock pose” 看 `diffdock_index.json + diffdock/`
+- “fpocket 结果”看 `pockets/ + pocket.csv`
+- “运行时状态”看 `backend/runtime/`
+
 ## 2. 仓库结构总览
 
 建议把仓库理解成下面 6 层：
@@ -82,7 +254,7 @@ bash start.sh
 ├── scripts/
 │   └── download_pdb.sh
 ├── data/
-│   └── pdb/                   # 额外下载的 mmCIF，非后端默认主路径
+│   └── pdb/                   # 额外下载的 PDB，非后端默认主路径
 ├── 各类说明文档 *.md
 └── ids*.txt / ids72.tet 等辅助清单
 ```
@@ -93,7 +265,7 @@ bash start.sh
 - `backend/diffdock_api_server.py`：统一后端入口，负责 API、工作流、结构解析、任务调度、文件输出。
 - `backend/data/`：仓库自带静态数据，前端即使不跑重计算，也可以直接浏览这些数据。
 - `backend/runtime/`：运行时产物，包含 SQLite、任务目录、日志、导出表。
-- `scripts/`：辅助脚本，目前主要是批量下载 PDB/mmCIF。
+- `scripts/`：辅助脚本，目前主要是批量下载 PDB。
 - 根目录说明文档：历史分散说明，现已被本文档整合。
 
 ## 3. 代码架构
@@ -341,7 +513,7 @@ server = ThreadingHTTPServer((HOST, PORT), Handler)
 
 作用：
 
-- 根据 ID 清单批量从 RCSB 下载 `.cif.gz`
+- 根据 ID 清单批量从 RCSB 下载 `.pdb`
 
 现在支持：
 
@@ -383,7 +555,7 @@ bash scripts/download_pdb.sh ids72.txt data/pdb data/failed_ids72.txt
 典型字段：
 
 - `Representative`
-- `Similarity_Score`
+- `Similarity_Score`（相对参考结构 1QRG 的分数，不是 Step2 聚类相似性）
 - `Best_Confidence`
 - `NearestDistanceTo3HisZn`
 - `ZN_Depth`
@@ -971,7 +1143,8 @@ DiffDock 和 TM-align 也是同样的模式：
 1. 后端扫描结构文件来源
 2. 读取主表 CSV
 3. 按 `pdb_id` 建立 `proteins` 表
-4. 把主表中的关键信息灌进 `pdbzn.sqlite`
+4. 从 PDB 坐标重新计算金属、ZN 邻域残基和最大配位 HIS 数
+5. 合并主表中的名称、分类、相似度等辅助信息到 `pdbzn.sqlite`
 
 输出：
 
@@ -1104,13 +1277,13 @@ DiffDock 和 TM-align 也是同样的模式：
 
 逻辑：
 
-1. 读取主表 CSV
-2. 把 Step4 字段拼接回主表
-3. 补 DiffDock 字段
-4. 可选快速补跑 fpocket
+1. 以 Step4 通过结果作为候选集输入
+2. 对每个候选重新解析本地结构并重算 3HIS / Zn 配位字段
+3. 从本地 DiffDock 原始产物重新确定最佳 pose 并重算相关距离
+4. 可选重新运行 `fpocket`，不再回填旧 pocket 汇总字段
 5. 计算 `Step5_FinalScore`
 6. 写出到 `backend/runtime/exports/<output>.csv`
-7. 如果允许，再覆盖主表 CSV
+7. 如果允许，再把新的 Step5 结果追加写回主表 CSV
 
 输出：
 

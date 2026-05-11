@@ -19,7 +19,7 @@
       "ids": "workflow_table_5_ids.json",
       "row_count": 9,
       "stage": "master_table_edit",
-      "description": "Master Table 手工保存结果，来源：workflow_table_4",
+      "description": "Master Table 手工保存结果，来源：workflow_table_4；CAVER pocket-seed 重算结论：yes=5, borderline=2, no=6.",
       "updated_at": 1778401599,
       "updated_at_text": "2026-05-10 16:26:39"
     },
@@ -32,7 +32,7 @@
       "ids": "workflow_table_3_ids.json",
       "row_count": 13,
       "stage": "master_table_edit",
-      "description": "Master Table 手工保存结果，来源：workflow_table",
+      "description": "Master Table 手工保存结果，来源：workflow_table；CAVER pocket-seed 重算结论：yes=5, borderline=2, no=6.",
       "updated_at": 1778343972,
       "updated_at_text": "2026-05-10 00:26:12"
     },

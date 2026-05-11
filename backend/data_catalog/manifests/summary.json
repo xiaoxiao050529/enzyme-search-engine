@@ -1,0 +1,219 @@
+{
+  "generated_from": "scripts/organize_data_catalog.py",
+  "catalog_root": "backend/data_catalog",
+  "counts": {
+    "registered_tables": 10,
+    "default_master_rows_file": "backend/data/master_full.json",
+    "structures_pdb": 72,
+    "structures_cif": 4,
+    "ligands_sdf": 71,
+    "diffdock_result_dirs": 71,
+    "pocket_result_dirs": 72
+  },
+  "tables": [
+    {
+      "id": "table1",
+      "label": "Table 1 (72 proteins)",
+      "full": "table1_master_full.json",
+      "data": "table1_data.json",
+      "csv": "table1_master_table.csv",
+      "ids": "table1_ids.json",
+      "row_count": 72,
+      "description": "主表快照（Table 1）",
+      "organized_bundle": "backend/data_catalog/tables/bundles/table1",
+      "files": {
+        "data.json": "backend/data/table1_data.json",
+        "master_full.json": "backend/data/table1_master_full.json",
+        "master_table.csv": "backend/data/table1_master_table.csv",
+        "ids.json": "backend/data/table1_ids.json"
+      }
+    },
+    {
+      "id": "tmp-save-check-2",
+      "label": "tmp-save-check-2",
+      "full": "tmp-save-check-2_master_full.json",
+      "data": "tmp-save-check-2_data.json",
+      "csv": "tmp-save-check-2_master_table.csv",
+      "ids": "tmp-save-check-2_ids.json",
+      "row_count": 1,
+      "stage": "master_table_edit",
+      "description": "Master Table 手工保存结果",
+      "updated_at": 1778310074,
+      "updated_at_text": "2026-05-09 15:01:14",
+      "organized_bundle": "backend/data_catalog/tables/bundles/tmp-save-check-2",
+      "files": {
+        "data.json": "backend/data/tmp-save-check-2_data.json",
+        "master_full.json": "backend/data/tmp-save-check-2_master_full.json",
+        "master_table.csv": "backend/data/tmp-save-check-2_master_table.csv",
+        "ids.json": "backend/data/tmp-save-check-2_ids.json"
+      }
+    },
+    {
+      "id": "tmp-save-check",
+      "label": "tmp-save-check",
+      "full": "tmp-save-check_master_full.json",
+      "data": "tmp-save-check_data.json",
+      "csv": "tmp-save-check_master_table.csv",
+      "ids": "tmp-save-check_ids.json",
+      "row_count": 1,
+      "stage": "master_table_edit",
+      "description": "Master Table 手工保存结果",
+      "updated_at": 1778309055,
+      "updated_at_text": "2026-05-09 14:44:15",
+      "organized_bundle": "backend/data_catalog/tables/bundles/tmp-save-check",
+      "files": {
+        "data.json": "backend/data/tmp-save-check_data.json",
+        "master_full.json": "backend/data/tmp-save-check_master_full.json",
+        "master_table.csv": "backend/data/tmp-save-check_master_table.csv",
+        "ids.json": "backend/data/tmp-save-check_ids.json"
+      }
+    },
+    {
+      "id": "6j4c",
+      "label": "6J4C",
+      "full": "6j4c_master_full.json",
+      "data": "6j4c_data.json",
+      "csv": "6j4c_master_table.csv",
+      "ids": "6j4c_ids.json",
+      "row_count": 1,
+      "stage": "step5_finalize",
+      "description": "PDB 工作流生成结果（包含 DiffDock / fpocket / 3HIS 几何补全）",
+      "updated_at": 1776871411,
+      "updated_at_text": "2026-04-22 23:23:31",
+      "organized_bundle": "backend/data_catalog/tables/bundles/6j4c",
+      "files": {
+        "data.json": "backend/data/6j4c_data.json",
+        "master_full.json": "backend/data/6j4c_master_full.json",
+        "master_table.csv": "backend/data/6j4c_master_table.csv",
+        "ids.json": "backend/data/6j4c_ids.json"
+      }
+    },
+    {
+      "id": "1jdi",
+      "label": "1JDI",
+      "full": "1jdi_master_full.json",
+      "data": "1jdi_data.json",
+      "csv": "1jdi_master_table.csv",
+      "ids": "1jdi_ids.json",
+      "row_count": 1,
+      "stage": "step5_finalize",
+      "description": "PDB 工作流生成结果（包含 DiffDock / fpocket / 3HIS 几何补全）",
+      "updated_at": 1776860089,
+      "updated_at_text": "2026-04-22 20:14:49",
+      "organized_bundle": "backend/data_catalog/tables/bundles/1jdi",
+      "files": {
+        "data.json": "backend/data/1jdi_data.json",
+        "master_full.json": "backend/data/1jdi_master_full.json",
+        "master_table.csv": "backend/data/1jdi_master_table.csv",
+        "ids.json": "backend/data/1jdi_ids.json"
+      }
+    },
+    {
+      "id": "my_new_table_3",
+      "label": "My New Table (3)",
+      "full": "my_new_table_3_master_full.json",
+      "data": "my_new_table_3_data.json",
+      "csv": "my_new_table_3_master_table.csv",
+      "ids": "my_new_table_3_ids.json",
+      "row_count": 0,
+      "stage": "step5_finalize",
+      "description": "PDB 工作流生成结果（包含 DiffDock / fpocket / 3HIS 几何补全）",
+      "updated_at": 1776852486,
+      "updated_at_text": "2026-04-22 18:08:06",
+      "organized_bundle": "backend/data_catalog/tables/bundles/my_new_table_3",
+      "files": {
+        "data.json": "backend/data/my_new_table_3_data.json",
+        "master_full.json": "backend/data/my_new_table_3_master_full.json",
+        "master_table.csv": "backend/data/my_new_table_3_master_table.csv",
+        "ids.json": "backend/data/my_new_table_3_ids.json"
+      }
+    },
+    {
+      "id": "my_new_table_2",
+      "label": "My New Table (2)",
+      "full": "my_new_table_2_master_full.json",
+      "data": "my_new_table_2_data.json",
+      "csv": "my_new_table_2_master_table.csv",
+      "ids": "my_new_table_2_ids.json",
+      "row_count": 0,
+      "stage": "step5_finalize",
+      "description": "PDB 工作流生成结果（包含 DiffDock / fpocket / 3HIS 几何补全）",
+      "updated_at": 1776852477,
+      "updated_at_text": "2026-04-22 18:07:57",
+      "organized_bundle": "backend/data_catalog/tables/bundles/my_new_table_2",
+      "files": {
+        "data.json": "backend/data/my_new_table_2_data.json",
+        "master_full.json": "backend/data/my_new_table_2_master_full.json",
+        "master_table.csv": "backend/data/my_new_table_2_master_table.csv",
+        "ids.json": "backend/data/my_new_table_2_ids.json"
+      }
+    },
+    {
+      "id": "my_new_table",
+      "label": "My New Table",
+      "full": "my_new_table_master_full.json",
+      "data": "my_new_table_data.json",
+      "csv": "my_new_table_master_table.csv",
+      "ids": "my_new_table_ids.json",
+      "row_count": 0,
+      "stage": "step5_finalize",
+      "description": "PDB 工作流生成结果（包含 DiffDock / fpocket / 3HIS 几何补全）",
+      "updated_at": 1776852354,
+      "updated_at_text": "2026-04-22 18:05:54",
+      "organized_bundle": "backend/data_catalog/tables/bundles/my_new_table",
+      "files": {
+        "data.json": "backend/data/my_new_table_data.json",
+        "master_full.json": "backend/data/my_new_table_master_full.json",
+        "master_table.csv": "backend/data/my_new_table_master_table.csv",
+        "ids.json": "backend/data/my_new_table_ids.json"
+      }
+    },
+    {
+      "id": "table2",
+      "label": "x / Table 2",
+      "full": "table2_master_full.json",
+      "data": "table2_data.json",
+      "csv": "table2_master_table.csv",
+      "ids": "table2_ids.json",
+      "row_count": 1,
+      "stage": "step4_validate",
+      "description": "Step 4 几何验证通过候选（未执行 Step 5 fpocket 收口）",
+      "updated_at": 1776851983,
+      "updated_at_text": "2026-04-22 17:59:43",
+      "organized_bundle": "backend/data_catalog/tables/bundles/table2",
+      "files": {
+        "data.json": "backend/data/table2_data.json",
+        "master_full.json": "backend/data/table2_master_full.json",
+        "master_table.csv": "backend/data/table2_master_table.csv",
+        "ids.json": "backend/data/table2_ids.json"
+      }
+    },
+    {
+      "id": "table3",
+      "label": "x / Table 3",
+      "full": "table3_master_full.json",
+      "data": "table3_data.json",
+      "csv": "table3_master_table.csv",
+      "ids": "table3_ids.json",
+      "row_count": 1,
+      "stage": "step5_finalize",
+      "description": "Step 5 收口结果（包含 DiffDock / fpocket / 3HIS 几何补全）",
+      "updated_at": 1776851983,
+      "updated_at_text": "2026-04-22 17:59:43",
+      "organized_bundle": "backend/data_catalog/tables/bundles/table3",
+      "files": {
+        "data.json": "backend/data/table3_data.json",
+        "master_full.json": "backend/data/table3_master_full.json",
+        "master_table.csv": "backend/data/table3_master_table.csv",
+        "ids.json": "backend/data/table3_ids.json"
+      }
+    }
+  ],
+  "asset_dirs": {
+    "structures_dir": "backend/data/structures",
+    "ligands_dir": "backend/data/ligands",
+    "diffdock_dir": "backend/data/diffdock",
+    "pockets_dir": "backend/data/pockets",
+    "runtime_dir": "backend/runtime"
+  }
+}

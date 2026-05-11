@@ -5,13 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PDB-ZN 挖酶工作流</title>
 <style>
+/* 页面私有样式：这里把五步工作流拆成独立面板和统一结果区域。 */
 body { font-family: system-ui, sans-serif; margin: 16px; }
 .top_nav { display: flex; gap: 8px; margin-bottom: 10px; }
 .top_nav a { display: inline-block; padding: 6px 10px; border: 1px solid #d9d9d9; background: #f6f8fa; color: #0b5394; text-decoration: none; border-radius: 6px; font-weight: 600; }
 .top_nav a:hover { background: #eaf2ff; }
 .page_head { display: flex; align-items: center; justify-content: space-between; margin: 6px 0 10px; }
 .page_head h2 { margin: 0; }
-.head_btn { width: auto; padding: 6px 12px; }
+.head_actions { display: flex; gap: 8px; align-items: center; }
+.head_btn { display: inline-flex; align-items: center; justify-content: center; width: auto; padding: 6px 12px; text-decoration: none; }
 .progress_box { margin: 0 0 12px; padding: 10px; border: 1px solid #dbe6f3; border-radius: 8px; background: #f8fbff; }
 .progress_head { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 6px; font-size: 12px; color: #325b88; }
 .progress_track { height: 12px; background: #e4edf7; border-radius: 999px; overflow: hidden; }
@@ -39,27 +41,36 @@ th { position: sticky; top: 0; background: #f7f9fc; z-index: 1; }
 <link rel="stylesheet" href="./theme.css">
 </head>
 <body class="page-workflow">
+<!-- 顶部导航：在工作流页和其他分析工具页之间切换。 -->
 <div class="top_nav">
   <a href="./index.html">主页面</a>
   <a href="./diffdock_compare.html">DiffDock对比</a>
   <a href="./master_table.html">Master表</a>
   <a href="./fpocket.html">fpocket</a>
   <a href="./tmalign.html">TM-align</a>
+  <a href="./caver.html">CAVER</a>
+  <a href="./alphafold.html">AlphaFold</a>
   <a href="./pdbzn_workflow.html">PDB-ZN工作流</a>
 </div>
+<!-- 页面头部：显示当前步骤标题和顶部“下一步”快捷按钮。 -->
 <div class="page_head">
   <h2 id="stage_title">PDB-ZN 挖酶工作流 · Step 1</h2>
-  <button id="next_top_btn" class="head_btn" type="button">Next → Step 2</button>
+  <div class="head_actions">
+    <a class="head_btn" href="./alphafold.html">AlphaFold 工作台</a>
+    <button id="next_top_btn" class="head_btn" type="button">Next → Step 2</button>
+  </div>
 </div>
+<!-- 总进度条：表示五步工作流整体走到哪一步，不只是某一次请求的进度。 -->
 <div class="progress_box">
   <div class="progress_head"><span id="workflow_progress_label">工作流进度</span><span id="workflow_progress_pct">0%</span></div>
   <div class="progress_track"><div id="workflow_progress_fill" class="progress_fill"></div></div>
 </div>
+<!-- 主体布局：左边是参数面板，右边是中间结果和最终结果。 -->
 <div class="layout">
   <div class="panel" id="step1_panel">
     <h3>Step 1：金属+残基筛选</h3>
     <label>API地址
-      <input id="api_base" type="text" value="http://127.0.0.1:8015" placeholder="例如 http://127.0.0.1:8015">
+      <input id="api_base" type="text" value="" placeholder="留空自动探测；也可填写 https://你的域名 或 http://主机:8015">
     </label>
     <label>快速选择蛋白
       <input id="protein_picker" type="text" list="protein_catalog" placeholder="例如 3MWM | Graded expression ...">
@@ -174,6 +185,7 @@ th { position: sticky; top: 0; background: #f7f9fc; z-index: 1; }
   </div>
 </div>
 <script>
+// ---------- 表单读取与工作流状态 ----------
 function valNum(id) {
   const v = document.getElementById(id).value;
   if (v == null || String(v).trim() === "") return null;
@@ -215,6 +227,8 @@ let proteinCatalog = [];
 let proteinLookup = new Map();
 let workflowProgressTimer = null;
 let workflowProgressValue = 0;
+
+// ---------- 总进度条与步骤切换 ----------
 function appendNoCache(url) {
   return url + (url.includes("?") ? "&" : "?") + "t=" + Date.now();
 }
@@ -371,10 +385,13 @@ function clearProteinSelection() {
   document.getElementById("s1_protein_name_contains").value = "";
   document.getElementById("status").textContent = "已清空蛋白筛选";
 }
+
+// ---------- API 解析与静态数据读取 ----------
 function buildApiCandidates() {
   const inputBase = getApiBase();
   const h = window.location.hostname || "127.0.0.1";
-  const candidates = [inputBase, `http://${h}:8015`, `http://${h}:8135`, `http://${h}:8130`, `http://${h}:8122`, `http://${h}:8121`, `http://${h}:8120`, `http://${h}:8117`, `http://${h}:8017`, `http://${h}:8016`, `http://${h}:8116`, "http://127.0.0.1:8015", "http://127.0.0.1:8135", "http://127.0.0.1:8130", "http://127.0.0.1:8122", "http://127.0.0.1:8121", "http://127.0.0.1:8120", "http://127.0.0.1:8117", "http://127.0.0.1:8017", "http://127.0.0.1:8016", "http://127.0.0.1:8116"].filter(Boolean);
+  const originBase = window.location.origin && window.location.origin !== "null" ? window.location.origin : "";
+  const candidates = [inputBase, originBase, `http://${h}:8015`, `http://${h}:8135`, `http://${h}:8130`, `http://${h}:8122`, `http://${h}:8121`, `http://${h}:8120`, `http://${h}:8117`, `http://${h}:8017`, `http://${h}:8016`, `http://${h}:8116`, "http://127.0.0.1:8015", "http://127.0.0.1:8135", "http://127.0.0.1:8130", "http://127.0.0.1:8122", "http://127.0.0.1:8121", "http://127.0.0.1:8120", "http://127.0.0.1:8117", "http://127.0.0.1:8017", "http://127.0.0.1:8016", "http://127.0.0.1:8116"].filter(Boolean);
   const uniq = [];
   for (const c of candidates) if (!uniq.includes(c)) uniq.push(c);
   return uniq;
@@ -451,6 +468,8 @@ async function resolveApiBase() {
   }
   throw new Error("所有API地址均不可用\n" + errors.join("\n"));
 }
+
+// ---------- 本地聚类与请求载荷构建 ----------
 function normalizeStep2FromRunResponse(raw) {
   const steps = Array.isArray(raw?.steps) ? raw.steps : [];
   const step2 = steps.find((s) => String(s?.id || "") === "step2_clustering");
@@ -643,6 +662,8 @@ function buildStep5Payload() {
     }
   };
 }
+
+// ---------- 结果渲染：数据库状态、表格和步骤摘要 ----------
 function renderDbStats(stats, sourceDir, selection, sourceTotal) {
   const s = stats || {};
   const sel = selection || {};
@@ -723,6 +744,8 @@ function renderSteps(data) {
     stepsWrap.appendChild(box);
   }
 }
+
+// ---------- 五个步骤对应的动作函数 ----------
 async function loadConfig() {
   const apiBase = await resolveApiBase();
   const {json: j} = await fetchJsonWithDetail(apiBase + "/api/pdbzn/workflow/config", {}, "config");
@@ -992,6 +1015,8 @@ async function runStep5Finalize() {
   hasStep5Run = true;
   finishWorkflowStepProgress(5, "Step 5 完成");
 }
+
+// 错误显示和事件绑定统一放在最底部，方便把“能力函数”和“按钮触发”分开阅读。
 document.getElementById("import_btn").addEventListener("click", async () => {
   try {
     await importDatabase();

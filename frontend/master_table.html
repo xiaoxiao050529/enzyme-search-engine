@@ -593,6 +593,12 @@ const COLUMN_ZH = {
   "Representative": "PDB编号",
   "苯乙酮_综合判断": "综合判断",
   "苯乙酮_尺寸可进入": "尺寸可进入",
+  "苯乙酮_通道瓶颈半径_A": "best-bottleneck(Å)",
+  "苯乙酮_CAVER通道判定": "CAVER通道判定",
+  "苯乙酮_CAVER口袋深度": "CAVER口袋深度",
+  "苯乙酮_CAVER口袋深度判定列": "深度判定列",
+  "苯乙酮_CAVER口袋深度判定值": "深度判定值",
+  "苯乙酮_口袋最小半径_A": "口袋最小半径(Å)",
   "ZN_全蛋白最短直线表面距离_A": "全蛋白最短直线表面距离(Å)",
   "ZN_全蛋白P10深度_A": "全蛋白P10深度(Å)",
   "ZN_全蛋白中位深度_A": "全蛋白中位深度(Å)",
@@ -643,12 +649,25 @@ const COLUMN_ZH = {
   "Species": "物种",
   "MonomerSeq": "单体序列",
   "TriHis_SameChain": "3His是否同链",
-  "Zn_Binding_MonomerResidueCount": "Zn结合单体残基数"
+  "Zn_Binding_MonomerResidueCount": "Zn结合单体残基数",
+  "CAVER_SeedMode": "CAVER种子模式",
+  "CAVER_ChannelCount": "CAVER通道数",
+  "CAVER_BestBottleneckRadius_A": "CAVER原始best-bottleneck(Å)",
+  "CAVER_BestThroughput": "CAVER最佳throughput",
+  "CAVER_AcetophenonePass": "CAVER原始通道判定",
+  "CAVER_PocketDepthLabel": "CAVER原始口袋深度",
+  "CAVER_PocketDepthBasis": "CAVER原始深度依据"
 };
 
 const COLUMN_HINTS = {
   "苯乙酮_综合判断": "基于活性 pocket 半径与现有苯乙酮 docking pose 的综合结论。可以 / 大概率可以 / 边缘 / 不顺利 / 偏不支持。",
   "苯乙酮_尺寸可进入": "只看活性位点 pocket 的几何尺寸时，苯乙酮是否有望穿过入口并进入 Zn 邻域。yes 表示瓶颈半径不小于约 2.9 Å。",
+  "苯乙酮_通道瓶颈半径_A": "这里对应判断说明里的 best_bottleneck。当前优先使用 CAVER pocket-seed 重算得到的最佳瓶颈半径，单位 Å。",
+  "苯乙酮_CAVER通道判定": "从 CAVER best_bottleneck 阈值直接得到的通道判定。yes / borderline / no 分别表示可通过 / 临界 / 不通过。",
+  "苯乙酮_CAVER口袋深度": "CAVER pocket-seed 重算时给出的口袋深度标签，通常为表面暴露 / 半埋藏 / 深埋藏。",
+  "苯乙酮_CAVER口袋深度判定列": "口袋深度标签实际依据的原始列。当前逻辑优先使用 ZN_Surface_Distance；若缺失，再回退到 ZN_Depth。",
+  "苯乙酮_CAVER口袋深度判定值": "口袋深度判定时实际使用的原始数值，例如 0.172 Å 或 4.127。",
+  "苯乙酮_口袋最小半径_A": "口袋内部最小有效半径。若来自 CAVER pocket-seed 回填，它通常与 best_bottleneck 接近或相同。",
   "ZN_全蛋白最短直线表面距离_A": "以整个蛋白链为遮挡体，沿所有方向扫射后得到的最短直线表面距离。它表示是否存在某个方向很快就能接触到表面。",
   "ZN_全蛋白P10深度_A": "所有方向直线表面距离分布的第 10 百分位。它比最小值稳，能更好反映“整体偏表面还是偏埋藏”。",
   "ZN_全蛋白中位深度_A": "所有方向直线表面距离分布的中位数。它更像总体埋藏深度，数值越大通常表示位点更埋。",
@@ -666,8 +685,47 @@ const COLUMN_HINTS = {
   "BestPocket_AlphaSpheres": "构成该 pocket 的 alpha-sphere 数量。通常越多表示 pocket 更大或更复杂。",
   "BestPocket_MinDistToZn": "最佳 pocket 到最近 Zn 的距离，单位 Å。越小越像真正贴近活性位点。",
   "BestPocket_ZnMatch": "最佳 pocket 是否命中 Zn 活性位点。1 表示命中，0 表示当前 best pocket 更可能是别处的大口袋。",
-  "BestPocket_SelectRule": "该 pocket 被选中的规则。zn_priority 表示优先贴近 Zn；largest_volume 表示主要因为体积最大被选中。"
+  "BestPocket_SelectRule": "该 pocket 被选中的规则。zn_priority 表示优先贴近 Zn；largest_volume 表示主要因为体积最大被选中。",
+  "CAVER_BestBottleneckRadius_A": "CAVER 原始输出的 best_bottleneck 半径。前面的 best-bottleneck(Å) 列通常会直接引用它。",
+  "CAVER_AcetophenonePass": "CAVER 原始输出的通道判定。前面的 CAVER通道判定 列是它的整理展示版。",
+  "CAVER_PocketDepthLabel": "CAVER 原始输出的口袋深度标签。前面的 CAVER口袋深度 列是它的整理展示版。",
+  "CAVER_PocketDepthBasis": "CAVER 原始输出的口袋深度判定依据文本，例如 ZN_Surface_Distance=0.172 Å。"
 };
+
+function columnVisualGroup(name) {
+  const key = asText(name).trim();
+  if ([
+    "苯乙酮_综合判断",
+    "苯乙酮_尺寸可进入",
+    "苯乙酮_判断说明",
+  ].includes(key)) return "col_group_judgement";
+  if ([
+    "苯乙酮_通道瓶颈半径_A",
+    "苯乙酮_口袋最小半径_A",
+    "苯乙酮_CAVER通道判定",
+    "CAVER_BestBottleneckRadius_A",
+    "CAVER_AcetophenonePass",
+    "CAVER_ChannelCount",
+    "CAVER_BestThroughput",
+  ].includes(key)) return "col_group_channel";
+  if ([
+    "苯乙酮_CAVER口袋深度",
+    "CAVER_PocketDepthLabel",
+  ].includes(key)) return "col_group_depth";
+  if ([
+    "苯乙酮_CAVER口袋深度判定列",
+    "苯乙酮_CAVER口袋深度判定值",
+    "CAVER_PocketDepthBasis",
+    "ZN_Surface_Distance",
+    "ZN_Depth",
+    "ZN_Depth_Rounded",
+  ].includes(key)) return "col_group_basis";
+  if ([
+    "苯乙酮_O到Zn最短距离_A",
+    "苯乙酮_任意原子到Zn最短距离_A",
+  ].includes(key)) return "col_group_distance";
+  return "";
+}
 
 function showHintPopup(text, x, y) {
   const box = document.getElementById("hint_popup");
@@ -1056,6 +1114,8 @@ function renderHeader() {
   for (const h of visibleHeader) {
     const th = document.createElement("th");
     if (h === MASTER_FIXED_COL) th.classList.add("col_frozen");
+    const groupClass = columnVisualGroup(h);
+    if (groupClass) th.classList.add(groupClass);
     const mark = sortState.key === h ? (sortState.asc ? " ▲" : " ▼") : "";
     const main = document.createElement("div");
     main.className = "th_main";
@@ -1133,6 +1193,8 @@ function renderTable() {
       const td = document.createElement("td");
       const isLinkColumn = h === "_id" || h === "Representative" || h === "Receptor_PDB";
       if (h === MASTER_FIXED_COL) td.classList.add("col_frozen");
+      const groupClass = columnVisualGroup(h);
+      if (groupClass) td.classList.add(groupClass);
       const val = asText(r[h]);
       if (rowIsDirty(r)) td.classList.add("cell_dirty");
       if (!editMode && isLinkColumn && jumpId) {
@@ -1289,13 +1351,13 @@ function getSelectedTable() {
 async function fetchTablePayload(tableEntry) {
   const ret = await fetchFirstJson(dataUrlCandidates(tableEntry.full || "master_full.json"));
   const j = ret.json;
-  return {
+  return enrichAcetophenonePayload({
     header: Array.isArray(j.header) ? j.header : [],
     rows: Array.isArray(j.rows) ? j.rows : [],
     source: Boolean(localApiBase) && String(ret.url || "").startsWith(`${localApiBase}/api/data/file`)
       ? `${localApiBase}/api/data/file`
       : `静态 backend/data/${tableEntry.full || "master_full.json"}`
-  };
+  });
 }
 
 function setWorkingTable(header, rows, sourceLabel) {

@@ -61,7 +61,11 @@
     "CAVER_SeedXYZ",
     "CAVER_JobDir",
     "CAVER_PocketDepthLabel",
-    "CAVER_PocketDepthBasis"
+    "CAVER_PocketDepthBasis",
+    "苯乙酮_CAVER通道判定",
+    "苯乙酮_CAVER口袋深度",
+    "苯乙酮_CAVER口袋深度判定列",
+    "苯乙酮_CAVER口袋深度判定值"
   ],
   "rows": [
     {
@@ -72,7 +76,7 @@
       "苯乙酮_口袋最小半径_A": "3.460",
       "苯乙酮_O到Zn最短距离_A": "18.008",
       "苯乙酮_任意原子到Zn最短距离_A": "13.990",
-      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=33; best_bottleneck=1.057 Å; 通道判定=no; 口袋深度=表面暴露（ZN_Surface_Distance=0.000 Å）。 原备注：尺寸上虽可进入，但现有苯乙酮 pose 仍未把羰基 O 或主体稳定送到 Zn 位点",
+      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=33。详细判定见专用列。 原备注：尺寸上虽可进入，但现有苯乙酮 pose 仍未把羰基 O 或主体稳定送到 Zn 位点",
       "Zn_CoordResidueCount": "3",
       "Zn_CoordHisCount": "3",
       "Zn_CoordNonHisCount": "0",
@@ -126,7 +130,11 @@
       "CAVER_SeedXYZ": "17.901,111.802,66.825",
       "CAVER_JobDir": "/home/bingxing2/home/scx9kyg/xqc/enzyme-search-engine/backend/runtime/caver_batch_workflow_table_2/pocket_seed_v1_2FQP",
       "CAVER_PocketDepthLabel": "表面暴露",
-      "CAVER_PocketDepthBasis": "ZN_Surface_Distance=0.000 Å"
+      "CAVER_PocketDepthBasis": "ZN_Surface_Distance=0.000 Å",
+      "苯乙酮_CAVER通道判定": "no",
+      "苯乙酮_CAVER口袋深度": "表面暴露",
+      "苯乙酮_CAVER口袋深度判定列": "ZN_Surface_Distance",
+      "苯乙酮_CAVER口袋深度判定值": "0.000 Å"
     },
     {
       "Representative": "2PEB",
@@ -136,7 +144,7 @@
       "苯乙酮_口袋最小半径_A": "3.430",
       "苯乙酮_O到Zn最短距离_A": "3.577",
       "苯乙酮_任意原子到Zn最短距离_A": "3.558",
-      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=36; best_bottleneck=1.337 Å; 通道判定=no; 口袋深度=半埋藏（ZN_Surface_Distance=2.313 Å）。 原备注：口袋尺寸允许，且现有 pose 的羰基 O 已靠近 Zn（<= 3.7 Å）",
+      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=36。详细判定见专用列。 原备注：口袋尺寸允许，且现有 pose 的羰基 O 已靠近 Zn（<= 3.7 Å）",
       "Zn_CoordResidueCount": "3",
       "Zn_CoordHisCount": "3",
       "Zn_CoordNonHisCount": "0",
@@ -190,7 +198,11 @@
       "CAVER_SeedXYZ": "18.305,25.694,28.534",
       "CAVER_JobDir": "/home/bingxing2/home/scx9kyg/xqc/enzyme-search-engine/backend/runtime/caver_batch_workflow_table_2/pocket_seed_v1_2PEB",
       "CAVER_PocketDepthLabel": "半埋藏",
-      "CAVER_PocketDepthBasis": "ZN_Surface_Distance=2.313 Å"
+      "CAVER_PocketDepthBasis": "ZN_Surface_Distance=2.313 Å",
+      "苯乙酮_CAVER通道判定": "no",
+      "苯乙酮_CAVER口袋深度": "半埋藏",
+      "苯乙酮_CAVER口袋深度判定列": "ZN_Surface_Distance",
+      "苯乙酮_CAVER口袋深度判定值": "2.313 Å"
     },
     {
       "Representative": "1FSJ",
@@ -200,7 +212,7 @@
       "苯乙酮_口袋最小半径_A": "3.400",
       "苯乙酮_O到Zn最短距离_A": "8.409",
       "苯乙酮_任意原子到Zn最短距离_A": "5.058",
-      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=59; best_bottleneck=1.337 Å; 通道判定=no; 口袋深度=半埋藏（ZN_Surface_Distance=1.488 Å）。 原备注：尺寸上虽可进入，但现有苯乙酮 pose 仍未把羰基 O 或主体稳定送到 Zn 位点",
+      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=59。详细判定见专用列。 原备注：尺寸上虽可进入，但现有苯乙酮 pose 仍未把羰基 O 或主体稳定送到 Zn 位点",
       "Zn_CoordResidueCount": "3",
       "Zn_CoordHisCount": "3",
       "Zn_CoordNonHisCount": "0",
@@ -254,7 +266,11 @@
       "CAVER_SeedXYZ": "33.658,-6.656,42.936",
       "CAVER_JobDir": "/home/bingxing2/home/scx9kyg/xqc/enzyme-search-engine/backend/runtime/caver_batch_workflow_table_2/pocket_seed_v1_1FSJ",
       "CAVER_PocketDepthLabel": "半埋藏",
-      "CAVER_PocketDepthBasis": "ZN_Surface_Distance=1.488 Å"
+      "CAVER_PocketDepthBasis": "ZN_Surface_Distance=1.488 Å",
+      "苯乙酮_CAVER通道判定": "no",
+      "苯乙酮_CAVER口袋深度": "半埋藏",
+      "苯乙酮_CAVER口袋深度判定列": "ZN_Surface_Distance",
+      "苯乙酮_CAVER口袋深度判定值": "1.488 Å"
     },
     {
       "Representative": "2O1Q",
@@ -264,7 +280,7 @@
       "苯乙酮_口袋最小半径_A": "3.400",
       "苯乙酮_O到Zn最短距离_A": "3.369",
       "苯乙酮_任意原子到Zn最短距离_A": "3.369",
-      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=29; best_bottleneck=0.886 Å; 通道判定=no; 口袋深度=半埋藏（ZN_Surface_Distance=1.704 Å）。 原备注：口袋尺寸允许，且现有 pose 的羰基 O 已靠近 Zn（<= 3.7 Å）",
+      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=29。详细判定见专用列。 原备注：口袋尺寸允许，且现有 pose 的羰基 O 已靠近 Zn（<= 3.7 Å）",
       "Zn_CoordResidueCount": "3",
       "Zn_CoordHisCount": "3",
       "Zn_CoordNonHisCount": "0",
@@ -318,7 +334,11 @@
       "CAVER_SeedXYZ": "18.868,21.531,13.027",
       "CAVER_JobDir": "/home/bingxing2/home/scx9kyg/xqc/enzyme-search-engine/backend/runtime/caver_batch_workflow_table_2/pocket_seed_v1_2O1Q",
       "CAVER_PocketDepthLabel": "半埋藏",
-      "CAVER_PocketDepthBasis": "ZN_Surface_Distance=1.704 Å"
+      "CAVER_PocketDepthBasis": "ZN_Surface_Distance=1.704 Å",
+      "苯乙酮_CAVER通道判定": "no",
+      "苯乙酮_CAVER口袋深度": "半埋藏",
+      "苯乙酮_CAVER口袋深度判定列": "ZN_Surface_Distance",
+      "苯乙酮_CAVER口袋深度判定值": "1.704 Å"
     },
     {
       "Representative": "1FR2",
@@ -328,7 +348,7 @@
       "苯乙酮_口袋最小半径_A": "3.420",
       "苯乙酮_O到Zn最短距离_A": "6.963",
       "苯乙酮_任意原子到Zn最短距离_A": "3.668",
-      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=27; best_bottleneck=1.480 Å; 通道判定=no; 口袋深度=半埋藏（ZN_Surface_Distance=1.900 Å）。 原备注：底物整体已能进入 Zn 邻域，但羰基 O 朝向仍未对准 Zn",
+      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=27。详细判定见专用列。 原备注：底物整体已能进入 Zn 邻域，但羰基 O 朝向仍未对准 Zn",
       "Zn_CoordResidueCount": "3",
       "Zn_CoordHisCount": "3",
       "Zn_CoordNonHisCount": "0",
@@ -382,7 +402,11 @@
       "CAVER_SeedXYZ": "13.57,16.629,31.357",
       "CAVER_JobDir": "/home/bingxing2/home/scx9kyg/xqc/enzyme-search-engine/backend/runtime/caver_batch_workflow_table_2/pocket_seed_v1_1FR2",
       "CAVER_PocketDepthLabel": "半埋藏",
-      "CAVER_PocketDepthBasis": "ZN_Surface_Distance=1.900 Å"
+      "CAVER_PocketDepthBasis": "ZN_Surface_Distance=1.900 Å",
+      "苯乙酮_CAVER通道判定": "no",
+      "苯乙酮_CAVER口袋深度": "半埋藏",
+      "苯乙酮_CAVER口袋深度判定列": "ZN_Surface_Distance",
+      "苯乙酮_CAVER口袋深度判定值": "1.900 Å"
     },
     {
       "Representative": "3H3E",
@@ -392,7 +416,7 @@
       "苯乙酮_口袋最小半径_A": "3.420",
       "苯乙酮_O到Zn最短距离_A": "7.880",
       "苯乙酮_任意原子到Zn最短距离_A": "3.964",
-      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=37; best_bottleneck=2.988 Å; 通道判定=yes; 口袋深度=表面暴露（ZN_Surface_Distance=0.000 Å）。 原备注：底物整体已能进入 Zn 邻域，但羰基 O 朝向仍未对准 Zn",
+      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=37。详细判定见专用列。 原备注：底物整体已能进入 Zn 邻域，但羰基 O 朝向仍未对准 Zn",
       "Zn_CoordResidueCount": "3",
       "Zn_CoordHisCount": "3",
       "Zn_CoordNonHisCount": "0",
@@ -446,7 +470,11 @@
       "CAVER_SeedXYZ": "22.443,64.095,15.82",
       "CAVER_JobDir": "/home/bingxing2/home/scx9kyg/xqc/enzyme-search-engine/backend/runtime/caver_batch_workflow_table_2/pocket_seed_v1_3H3E",
       "CAVER_PocketDepthLabel": "表面暴露",
-      "CAVER_PocketDepthBasis": "ZN_Surface_Distance=0.000 Å"
+      "CAVER_PocketDepthBasis": "ZN_Surface_Distance=0.000 Å",
+      "苯乙酮_CAVER通道判定": "yes",
+      "苯乙酮_CAVER口袋深度": "表面暴露",
+      "苯乙酮_CAVER口袋深度判定列": "ZN_Surface_Distance",
+      "苯乙酮_CAVER口袋深度判定值": "0.000 Å"
     },
     {
       "Representative": "6CQG",
@@ -456,7 +484,7 @@
       "苯乙酮_口袋最小半径_A": "1.690",
       "苯乙酮_O到Zn最短距离_A": "6.663",
       "苯乙酮_任意原子到Zn最短距离_A": "5.482",
-      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=1; best_bottleneck=1.690 Å; 通道判定=no; 口袋深度=表面暴露（ZN_Surface_Distance=0.114 Å）。 原备注：当前 best_pocket 未命中 Zn 活性位点，且现有苯乙酮 pose 未显示稳定靠近 Zn",
+      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=1。详细判定见专用列。 原备注：当前 best_pocket 未命中 Zn 活性位点，且现有苯乙酮 pose 未显示稳定靠近 Zn",
       "Zn_CoordResidueCount": "3",
       "Zn_CoordHisCount": "3",
       "Zn_CoordNonHisCount": "0",
@@ -510,7 +538,11 @@
       "CAVER_SeedXYZ": "-6.735,-16.227,11.14",
       "CAVER_JobDir": "/home/bingxing2/home/scx9kyg/xqc/enzyme-search-engine/backend/runtime/caver_batch_workflow_table_2/pocket_seed_v1_6CQG",
       "CAVER_PocketDepthLabel": "表面暴露",
-      "CAVER_PocketDepthBasis": "ZN_Surface_Distance=0.114 Å"
+      "CAVER_PocketDepthBasis": "ZN_Surface_Distance=0.114 Å",
+      "苯乙酮_CAVER通道判定": "no",
+      "苯乙酮_CAVER口袋深度": "表面暴露",
+      "苯乙酮_CAVER口袋深度判定列": "ZN_Surface_Distance",
+      "苯乙酮_CAVER口袋深度判定值": "0.114 Å"
     },
     {
       "Representative": "4L63",
@@ -520,7 +552,7 @@
       "苯乙酮_口袋最小半径_A": "3.530",
       "苯乙酮_O到Zn最短距离_A": "6.874",
       "苯乙酮_任意原子到Zn最短距离_A": "6.127",
-      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=62; best_bottleneck=1.823 Å; 通道判定=borderline; 口袋深度=表面暴露（ZN_Surface_Distance=0.000 Å）。 原备注：尺寸上虽可进入，但现有苯乙酮 pose 仍未把羰基 O 或主体稳定送到 Zn 位点",
+      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=62。详细判定见专用列。 原备注：尺寸上虽可进入，但现有苯乙酮 pose 仍未把羰基 O 或主体稳定送到 Zn 位点",
       "Zn_CoordResidueCount": "3",
       "Zn_CoordHisCount": "3",
       "Zn_CoordNonHisCount": "0",
@@ -574,7 +606,11 @@
       "CAVER_SeedXYZ": "24.536,17.245,13.069",
       "CAVER_JobDir": "/home/bingxing2/home/scx9kyg/xqc/enzyme-search-engine/backend/runtime/caver_batch_workflow_table_2/pocket_seed_v1_4L63",
       "CAVER_PocketDepthLabel": "表面暴露",
-      "CAVER_PocketDepthBasis": "ZN_Surface_Distance=0.000 Å"
+      "CAVER_PocketDepthBasis": "ZN_Surface_Distance=0.000 Å",
+      "苯乙酮_CAVER通道判定": "borderline",
+      "苯乙酮_CAVER口袋深度": "表面暴露",
+      "苯乙酮_CAVER口袋深度判定列": "ZN_Surface_Distance",
+      "苯乙酮_CAVER口袋深度判定值": "0.000 Å"
     },
     {
       "Representative": "2P6Y",
@@ -584,7 +620,7 @@
       "苯乙酮_口袋最小半径_A": "3.410",
       "苯乙酮_O到Zn最短距离_A": "7.941",
       "苯乙酮_任意原子到Zn最短距离_A": "6.823",
-      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=21; best_bottleneck=2.126 Å; 通道判定=borderline; 口袋深度=表面暴露（ZN_Surface_Distance=0.000 Å）。 原备注：尺寸上虽可进入，但现有苯乙酮 pose 仍未把羰基 O 或主体稳定送到 Zn 位点",
+      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=21。详细判定见专用列。 原备注：尺寸上虽可进入，但现有苯乙酮 pose 仍未把羰基 O 或主体稳定送到 Zn 位点",
       "Zn_CoordResidueCount": "3",
       "Zn_CoordHisCount": "3",
       "Zn_CoordNonHisCount": "0",
@@ -638,7 +674,11 @@
       "CAVER_SeedXYZ": "77.747,49.729,58.966",
       "CAVER_JobDir": "/home/bingxing2/home/scx9kyg/xqc/enzyme-search-engine/backend/runtime/caver_batch_workflow_table_2/pocket_seed_v1_2P6Y",
       "CAVER_PocketDepthLabel": "表面暴露",
-      "CAVER_PocketDepthBasis": "ZN_Surface_Distance=0.000 Å"
+      "CAVER_PocketDepthBasis": "ZN_Surface_Distance=0.000 Å",
+      "苯乙酮_CAVER通道判定": "borderline",
+      "苯乙酮_CAVER口袋深度": "表面暴露",
+      "苯乙酮_CAVER口袋深度判定列": "ZN_Surface_Distance",
+      "苯乙酮_CAVER口袋深度判定值": "0.000 Å"
     },
     {
       "Representative": "6Z2D",
@@ -648,7 +688,7 @@
       "苯乙酮_口袋最小半径_A": "3.440",
       "苯乙酮_O到Zn最短距离_A": "8.701",
       "苯乙酮_任意原子到Zn最短距离_A": "7.473",
-      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=38; best_bottleneck=2.494 Å; 通道判定=yes; 口袋深度=表面暴露（ZN_Surface_Distance=0.000 Å）。 原备注：尺寸上虽可进入，但现有苯乙酮 pose 仍未把羰基 O 或主体稳定送到 Zn 位点",
+      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=38。详细判定见专用列。 原备注：尺寸上虽可进入，但现有苯乙酮 pose 仍未把羰基 O 或主体稳定送到 Zn 位点",
       "Zn_CoordResidueCount": "3",
       "Zn_CoordHisCount": "3",
       "Zn_CoordNonHisCount": "0",
@@ -702,7 +742,11 @@
       "CAVER_SeedXYZ": "77.86,63.197,12.477",
       "CAVER_JobDir": "/home/bingxing2/home/scx9kyg/xqc/enzyme-search-engine/backend/runtime/caver_batch_workflow_table_2/pocket_seed_v1_6Z2D",
       "CAVER_PocketDepthLabel": "表面暴露",
-      "CAVER_PocketDepthBasis": "ZN_Surface_Distance=0.000 Å"
+      "CAVER_PocketDepthBasis": "ZN_Surface_Distance=0.000 Å",
+      "苯乙酮_CAVER通道判定": "yes",
+      "苯乙酮_CAVER口袋深度": "表面暴露",
+      "苯乙酮_CAVER口袋深度判定列": "ZN_Surface_Distance",
+      "苯乙酮_CAVER口袋深度判定值": "0.000 Å"
     },
     {
       "Representative": "1B57",
@@ -712,7 +756,7 @@
       "苯乙酮_口袋最小半径_A": "3.410",
       "苯乙酮_O到Zn最短距离_A": "14.921",
       "苯乙酮_任意原子到Zn最短距离_A": "11.543",
-      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=79; best_bottleneck=2.581 Å; 通道判定=yes; 口袋深度=半埋藏（ZN_Surface_Distance=2.216 Å）。 原备注：尺寸上虽可进入，但现有苯乙酮 pose 仍未把羰基 O 或主体稳定送到 Zn 位点",
+      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=79。详细判定见专用列。 原备注：尺寸上虽可进入，但现有苯乙酮 pose 仍未把羰基 O 或主体稳定送到 Zn 位点",
       "Zn_CoordResidueCount": "3",
       "Zn_CoordHisCount": "3",
       "Zn_CoordNonHisCount": "0",
@@ -766,7 +810,11 @@
       "CAVER_SeedXYZ": "32.243,60.138,120.571",
       "CAVER_JobDir": "/home/bingxing2/home/scx9kyg/xqc/enzyme-search-engine/backend/runtime/caver_batch_workflow_table_2/pocket_seed_v1_1B57",
       "CAVER_PocketDepthLabel": "半埋藏",
-      "CAVER_PocketDepthBasis": "ZN_Surface_Distance=2.216 Å"
+      "CAVER_PocketDepthBasis": "ZN_Surface_Distance=2.216 Å",
+      "苯乙酮_CAVER通道判定": "yes",
+      "苯乙酮_CAVER口袋深度": "半埋藏",
+      "苯乙酮_CAVER口袋深度判定列": "ZN_Surface_Distance",
+      "苯乙酮_CAVER口袋深度判定值": "2.216 Å"
     },
     {
       "Representative": "7OB6",
@@ -776,7 +824,7 @@
       "苯乙酮_口袋最小半径_A": "2.642",
       "苯乙酮_O到Zn最短距离_A": "13.423",
       "苯乙酮_任意原子到Zn最短距离_A": "11.894",
-      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=58; best_bottleneck=2.642 Å; 通道判定=yes; 口袋深度=表面暴露（ZN_Surface_Distance=0.303 Å）。 原备注：当前 best_pocket 未命中 Zn 活性位点，且现有苯乙酮 pose 未显示稳定靠近 Zn",
+      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=58。详细判定见专用列。 原备注：当前 best_pocket 未命中 Zn 活性位点，且现有苯乙酮 pose 未显示稳定靠近 Zn",
       "Zn_CoordResidueCount": "3",
       "Zn_CoordHisCount": "3",
       "Zn_CoordNonHisCount": "0",
@@ -830,7 +878,11 @@
       "CAVER_SeedXYZ": "-68.476,25.5,-12.253",
       "CAVER_JobDir": "/home/bingxing2/home/scx9kyg/xqc/enzyme-search-engine/backend/runtime/caver_batch_workflow_table_2/pocket_seed_v1_7OB6",
       "CAVER_PocketDepthLabel": "表面暴露",
-      "CAVER_PocketDepthBasis": "ZN_Surface_Distance=0.303 Å"
+      "CAVER_PocketDepthBasis": "ZN_Surface_Distance=0.303 Å",
+      "苯乙酮_CAVER通道判定": "yes",
+      "苯乙酮_CAVER口袋深度": "表面暴露",
+      "苯乙酮_CAVER口袋深度判定列": "ZN_Surface_Distance",
+      "苯乙酮_CAVER口袋深度判定值": "0.303 Å"
     },
     {
       "Representative": "1PQ4",
@@ -840,7 +892,7 @@
       "苯乙酮_口袋最小半径_A": "2.449",
       "苯乙酮_O到Zn最短距离_A": "16.030",
       "苯乙酮_任意原子到Zn最短距离_A": "15.287",
-      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=63; best_bottleneck=2.449 Å; 通道判定=yes; 口袋深度=表面暴露（ZN_Surface_Distance=0.172 Å）。 原备注：当前 best_pocket 未命中 Zn 活性位点，且现有苯乙酮 pose 未显示稳定靠近 Zn",
+      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=63。详细判定见专用列。 原备注：当前 best_pocket 未命中 Zn 活性位点，且现有苯乙酮 pose 未显示稳定靠近 Zn",
       "Zn_CoordResidueCount": "3",
       "Zn_CoordHisCount": "3",
       "Zn_CoordNonHisCount": "0",
@@ -894,7 +946,11 @@
       "CAVER_SeedXYZ": "-3.985,0.471,3.513",
       "CAVER_JobDir": "/home/bingxing2/home/scx9kyg/xqc/enzyme-search-engine/backend/runtime/caver_batch_workflow_table_2/pocket_seed_v1_1PQ4",
       "CAVER_PocketDepthLabel": "表面暴露",
-      "CAVER_PocketDepthBasis": "ZN_Surface_Distance=0.172 Å"
+      "CAVER_PocketDepthBasis": "ZN_Surface_Distance=0.172 Å",
+      "苯乙酮_CAVER通道判定": "yes",
+      "苯乙酮_CAVER口袋深度": "表面暴露",
+      "苯乙酮_CAVER口袋深度判定列": "ZN_Surface_Distance",
+      "苯乙酮_CAVER口袋深度判定值": "0.172 Å"
     }
   ],
   "analysis_summary": {

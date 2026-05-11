@@ -15,7 +15,13 @@
       "best_pocket_min_dist_to_zn": "3.455",
       "acetophenone_judgement": "不支持",
       "caver_best_bottleneck_radius_a": "1.057",
-      "caver_pocket_depth_label": "表面暴露"
+      "caver_pocket_depth_label": "表面暴露",
+      "苯乙酮_通道瓶颈半径_A": "1.057",
+      "苯乙酮_CAVER通道判定": "no",
+      "苯乙酮_CAVER口袋深度": "表面暴露",
+      "苯乙酮_CAVER口袋深度判定列": "ZN_Surface_Distance",
+      "苯乙酮_CAVER口袋深度判定值": "0.000 Å",
+      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=33。详细判定见专用列。 原备注：尺寸上虽可进入，但现有苯乙酮 pose 仍未把羰基 O 或主体稳定送到 Zn 位点"
     },
     {
       "id": "2PEB",
@@ -32,7 +38,13 @@
       "best_pocket_min_dist_to_zn": "3.485",
       "acetophenone_judgement": "不支持",
       "caver_best_bottleneck_radius_a": "1.337",
-      "caver_pocket_depth_label": "半埋藏"
+      "caver_pocket_depth_label": "半埋藏",
+      "苯乙酮_通道瓶颈半径_A": "1.337",
+      "苯乙酮_CAVER通道判定": "no",
+      "苯乙酮_CAVER口袋深度": "半埋藏",
+      "苯乙酮_CAVER口袋深度判定列": "ZN_Surface_Distance",
+      "苯乙酮_CAVER口袋深度判定值": "2.313 Å",
+      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=36。详细判定见专用列。 原备注：口袋尺寸允许，且现有 pose 的羰基 O 已靠近 Zn（<= 3.7 Å）"
     },
     {
       "id": "1FSJ",
@@ -49,7 +61,13 @@
       "best_pocket_min_dist_to_zn": "3.404",
       "acetophenone_judgement": "不支持",
       "caver_best_bottleneck_radius_a": "1.337",
-      "caver_pocket_depth_label": "半埋藏"
+      "caver_pocket_depth_label": "半埋藏",
+      "苯乙酮_通道瓶颈半径_A": "1.337",
+      "苯乙酮_CAVER通道判定": "no",
+      "苯乙酮_CAVER口袋深度": "半埋藏",
+      "苯乙酮_CAVER口袋深度判定列": "ZN_Surface_Distance",
+      "苯乙酮_CAVER口袋深度判定值": "1.488 Å",
+      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=59。详细判定见专用列。 原备注：尺寸上虽可进入，但现有苯乙酮 pose 仍未把羰基 O 或主体稳定送到 Zn 位点"
     },
     {
       "id": "2O1Q",
@@ -66,7 +84,13 @@
       "best_pocket_min_dist_to_zn": "3.403",
       "acetophenone_judgement": "不支持",
       "caver_best_bottleneck_radius_a": "0.886",
-      "caver_pocket_depth_label": "半埋藏"
+      "caver_pocket_depth_label": "半埋藏",
+      "苯乙酮_通道瓶颈半径_A": "0.886",
+      "苯乙酮_CAVER通道判定": "no",
+      "苯乙酮_CAVER口袋深度": "半埋藏",
+      "苯乙酮_CAVER口袋深度判定列": "ZN_Surface_Distance",
+      "苯乙酮_CAVER口袋深度判定值": "1.704 Å",
+      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=29。详细判定见专用列。 原备注：口袋尺寸允许，且现有 pose 的羰基 O 已靠近 Zn（<= 3.7 Å）"
     },
     {
       "id": "1FR2",
@@ -83,7 +107,13 @@
       "best_pocket_min_dist_to_zn": "3.418",
       "acetophenone_judgement": "不支持",
       "caver_best_bottleneck_radius_a": "1.480",
-      "caver_pocket_depth_label": "半埋藏"
+      "caver_pocket_depth_label": "半埋藏",
+      "苯乙酮_通道瓶颈半径_A": "1.480",
+      "苯乙酮_CAVER通道判定": "no",
+      "苯乙酮_CAVER口袋深度": "半埋藏",
+      "苯乙酮_CAVER口袋深度判定列": "ZN_Surface_Distance",
+      "苯乙酮_CAVER口袋深度判定值": "1.900 Å",
+      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=27。详细判定见专用列。 原备注：底物整体已能进入 Zn 邻域，但羰基 O 朝向仍未对准 Zn"
     },
     {
       "id": "3H3E",
@@ -100,7 +130,13 @@
       "best_pocket_min_dist_to_zn": "3.928",
       "acetophenone_judgement": "可以",
       "caver_best_bottleneck_radius_a": "2.988",
-      "caver_pocket_depth_label": "表面暴露"
+      "caver_pocket_depth_label": "表面暴露",
+      "苯乙酮_通道瓶颈半径_A": "2.988",
+      "苯乙酮_CAVER通道判定": "yes",
+      "苯乙酮_CAVER口袋深度": "表面暴露",
+      "苯乙酮_CAVER口袋深度判定列": "ZN_Surface_Distance",
+      "苯乙酮_CAVER口袋深度判定值": "0.000 Å",
+      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=37。详细判定见专用列。 原备注：底物整体已能进入 Zn 邻域，但羰基 O 朝向仍未对准 Zn"
     },
     {
       "id": "6CQG",
@@ -117,7 +153,13 @@
       "best_pocket_min_dist_to_zn": "14.451",
       "acetophenone_judgement": "不支持",
       "caver_best_bottleneck_radius_a": "1.690",
-      "caver_pocket_depth_label": "表面暴露"
+      "caver_pocket_depth_label": "表面暴露",
+      "苯乙酮_通道瓶颈半径_A": "1.690",
+      "苯乙酮_CAVER通道判定": "no",
+      "苯乙酮_CAVER口袋深度": "表面暴露",
+      "苯乙酮_CAVER口袋深度判定列": "ZN_Surface_Distance",
+      "苯乙酮_CAVER口袋深度判定值": "0.114 Å",
+      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=1。详细判定见专用列。 原备注：当前 best_pocket 未命中 Zn 活性位点，且现有苯乙酮 pose 未显示稳定靠近 Zn"
     },
     {
       "id": "4L63",
@@ -134,7 +176,13 @@
       "best_pocket_min_dist_to_zn": "3.59",
       "acetophenone_judgement": "边缘",
       "caver_best_bottleneck_radius_a": "1.823",
-      "caver_pocket_depth_label": "表面暴露"
+      "caver_pocket_depth_label": "表面暴露",
+      "苯乙酮_通道瓶颈半径_A": "1.823",
+      "苯乙酮_CAVER通道判定": "borderline",
+      "苯乙酮_CAVER口袋深度": "表面暴露",
+      "苯乙酮_CAVER口袋深度判定列": "ZN_Surface_Distance",
+      "苯乙酮_CAVER口袋深度判定值": "0.000 Å",
+      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=62。详细判定见专用列。 原备注：尺寸上虽可进入，但现有苯乙酮 pose 仍未把羰基 O 或主体稳定送到 Zn 位点"
     },
     {
       "id": "2P6Y",
@@ -151,7 +199,13 @@
       "best_pocket_min_dist_to_zn": "3.811",
       "acetophenone_judgement": "边缘",
       "caver_best_bottleneck_radius_a": "2.126",
-      "caver_pocket_depth_label": "表面暴露"
+      "caver_pocket_depth_label": "表面暴露",
+      "苯乙酮_通道瓶颈半径_A": "2.126",
+      "苯乙酮_CAVER通道判定": "borderline",
+      "苯乙酮_CAVER口袋深度": "表面暴露",
+      "苯乙酮_CAVER口袋深度判定列": "ZN_Surface_Distance",
+      "苯乙酮_CAVER口袋深度判定值": "0.000 Å",
+      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=21。详细判定见专用列。 原备注：尺寸上虽可进入，但现有苯乙酮 pose 仍未把羰基 O 或主体稳定送到 Zn 位点"
     },
     {
       "id": "6Z2D",
@@ -168,7 +222,13 @@
       "best_pocket_min_dist_to_zn": "3.518",
       "acetophenone_judgement": "可以",
       "caver_best_bottleneck_radius_a": "2.494",
-      "caver_pocket_depth_label": "表面暴露"
+      "caver_pocket_depth_label": "表面暴露",
+      "苯乙酮_通道瓶颈半径_A": "2.494",
+      "苯乙酮_CAVER通道判定": "yes",
+      "苯乙酮_CAVER口袋深度": "表面暴露",
+      "苯乙酮_CAVER口袋深度判定列": "ZN_Surface_Distance",
+      "苯乙酮_CAVER口袋深度判定值": "0.000 Å",
+      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=38。详细判定见专用列。 原备注：尺寸上虽可进入，但现有苯乙酮 pose 仍未把羰基 O 或主体稳定送到 Zn 位点"
     },
     {
       "id": "1B57",
@@ -185,7 +245,13 @@
       "best_pocket_min_dist_to_zn": "4.453",
       "acetophenone_judgement": "可以",
       "caver_best_bottleneck_radius_a": "2.581",
-      "caver_pocket_depth_label": "半埋藏"
+      "caver_pocket_depth_label": "半埋藏",
+      "苯乙酮_通道瓶颈半径_A": "2.581",
+      "苯乙酮_CAVER通道判定": "yes",
+      "苯乙酮_CAVER口袋深度": "半埋藏",
+      "苯乙酮_CAVER口袋深度判定列": "ZN_Surface_Distance",
+      "苯乙酮_CAVER口袋深度判定值": "2.216 Å",
+      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=79。详细判定见专用列。 原备注：尺寸上虽可进入，但现有苯乙酮 pose 仍未把羰基 O 或主体稳定送到 Zn 位点"
     },
     {
       "id": "7OB6",
@@ -202,7 +268,13 @@
       "best_pocket_min_dist_to_zn": "7.953",
       "acetophenone_judgement": "可以",
       "caver_best_bottleneck_radius_a": "2.642",
-      "caver_pocket_depth_label": "表面暴露"
+      "caver_pocket_depth_label": "表面暴露",
+      "苯乙酮_通道瓶颈半径_A": "2.642",
+      "苯乙酮_CAVER通道判定": "yes",
+      "苯乙酮_CAVER口袋深度": "表面暴露",
+      "苯乙酮_CAVER口袋深度判定列": "ZN_Surface_Distance",
+      "苯乙酮_CAVER口袋深度判定值": "0.303 Å",
+      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=58。详细判定见专用列。 原备注：当前 best_pocket 未命中 Zn 活性位点，且现有苯乙酮 pose 未显示稳定靠近 Zn"
     },
     {
       "id": "1PQ4",
@@ -219,7 +291,13 @@
       "best_pocket_min_dist_to_zn": "14.212",
       "acetophenone_judgement": "可以",
       "caver_best_bottleneck_radius_a": "2.449",
-      "caver_pocket_depth_label": "表面暴露"
+      "caver_pocket_depth_label": "表面暴露",
+      "苯乙酮_通道瓶颈半径_A": "2.449",
+      "苯乙酮_CAVER通道判定": "yes",
+      "苯乙酮_CAVER口袋深度": "表面暴露",
+      "苯乙酮_CAVER口袋深度判定列": "ZN_Surface_Distance",
+      "苯乙酮_CAVER口袋深度判定值": "0.172 Å",
+      "苯乙酮_判断说明": "CAVER pocket-seed 重算：best_pocket_center; channels=63。详细判定见专用列。 原备注：当前 best_pocket 未命中 Zn 活性位点，且现有苯乙酮 pose 未显示稳定靠近 Zn"
     }
   ],
   "analysis_summary": {
